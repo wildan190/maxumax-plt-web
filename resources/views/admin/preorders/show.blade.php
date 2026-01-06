@@ -1,0 +1,153 @@
+@extends('layouts.app')
+
+@section('page-title', 'Preorder Details')
+
+@section('content')
+    <div style="max-width: 1200px;">
+        <div style="margin-bottom: 2rem;">
+            <a href="{{ route('admin.preorders.index') }}"
+                style="color: #6b7280; text-decoration: none; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.5rem;"
+                title="Back">← Back to Preorders</a>
+            <h1 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin: 0.5rem 0 0 0;">Preorder
+                #{{ $preorder->id }}</h1>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 340px; gap: 2rem;">
+            <!-- Main Details -->
+            <div
+                style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <p
+                                style="font-size: 0.875rem; color: #6b7280; font-weight: 600; text-transform: uppercase; margin: 0 0 0.5rem 0;">
+                                Customer Name</p>
+                            <p style="font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0;">
+                                {{ $preorder->name }}</p>
+                        </div>
+                        <div>
+                            <p
+                                style="font-size: 0.875rem; color: #6b7280; font-weight: 600; text-transform: uppercase; margin: 0 0 0.5rem 0;">
+                                Status</p>
+                            <span
+                                style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.875rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.875rem; background: {{ $preorder->status == 'paid' ? '#d1fae5' : '#fef3c7' }}; color: {{ $preorder->status == 'paid' ? '#065f46' : '#92400e' }};">
+                                <span
+                                    style="width: 8px; height: 8px; border-radius: 50%; background: {{ $preorder->status == 'paid' ? '#22c55e' : '#f59e0b' }};"></span>
+                                {{ ucfirst($preorder->status) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0; margin-bottom: 0.25rem;">Email</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0;">{{ $preorder->email ?? '—' }}</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0; margin-bottom: 0.25rem;">Phone</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0;">{{ $preorder->phone ?? '—' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #111827; margin: 0 0 1rem 0;">Order Details</h3>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Jersey Type</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
+                                {{ $preorder->jersey_type }}</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Size</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
+                                {{ $preorder->size }}</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Quantity</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
+                                {{ $preorder->quantity }}</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Total Amount</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 600;">
+                                {{ $preorder->currency ?? 'MYR' }} {{ number_format($preorder->total_amount, 2) }}</p>
+                        </div>
+                    </div>
+
+                    @if($preorder->notes)
+                        <div style="margin-top: 1rem;">
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Notes</p>
+                            <p
+                                style="font-size: 0.95rem; color: #374151; margin: 0; padding: 0.75rem; background: #f9fafb; border-radius: 0.375rem;">
+                                {{ $preorder->notes }}</p>
+                        </div>
+                    @endif
+
+                    @if($preorder->custom_fields && count($preorder->custom_fields) > 0)
+                        <div style="margin-top: 1.5rem;">
+                            <h4 style="font-size: 0.95rem; font-weight: 600; color: #111827; margin: 0 0 0.75rem 0;">🏷️
+                                Customizations</h4>
+                            <div
+                                style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem; overflow: hidden;">
+                                @foreach($preorder->custom_fields as $field)
+                                    <div
+                                        style="display: flex; justify-content: space-between; padding: 0.75rem 1rem; border-bottom: 1px solid #bbf7d0;">
+                                        <span style="color: #065f46; font-weight: 500;">{{ $field['key'] ?? '-' }}</span>
+                                        <span style="color: #111827; font-weight: 700;">{{ $field['value'] ?? '-' }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <div style="padding: 1.5rem;">
+                    @if($preorder->status !== 'paid')
+                        <form action="{{ route('admin.preorders.markPaid', $preorder) }}" method="POST"
+                            style="display: inline;">
+                            @csrf
+                            <button type="submit"
+                                style="padding: 0.75rem 1.25rem; background: #22c55e; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;"
+                                onclick="return confirm('Mark this preorder as paid?')">✓ Mark as Paid</button>
+                        </form>
+                    @endif
+                    <form action="{{ route('admin.preorders.destroy', $preorder) }}" method="POST"
+                        style="display: inline; margin-left: 0.5rem;">
+                        @csrf @method('DELETE')
+                        <button type="submit"
+                            style="padding: 0.75rem 1.25rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;"
+                            onclick="return confirm('Delete this preorder?')">Delete</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- History Sidebar -->
+            <div
+                style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; height: fit-content;">
+                <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #111827; margin: 0;">Order History</h3>
+                </div>
+                <div style="padding: 1.5rem; max-height: 500px; overflow-y: auto;">
+                    @if($preorder->histories->count())
+                        <ul style="margin: 0; padding: 0; list-style: none;">
+                            @foreach($preorder->histories as $h)
+                                <li style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
+                                    <div style="font-weight: 600; color: #111827; margin-bottom: 0.25rem;">
+                                        {{ ucfirst($h->new_status) }}</div>
+                                    @if($h->note)
+                                        <div style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.5rem;">{{ $h->note }}</div>
+                                    @endif
+                                    <div style="color: #9ca3af; font-size: 0.8rem;">{{ $h->created_at->format('M d, Y H:i') }}</div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p style="color: #6b7280; font-size: 0.95rem; margin: 0;">No history records.</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection

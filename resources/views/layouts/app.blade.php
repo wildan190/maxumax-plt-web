@@ -15,8 +15,8 @@
         <!-- Feather Icons -->
         <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 
-        <!-- Styles -->
-        @vite(['resources/css/app.css', 'resources/css/layouts.css'])
+        <!-- Styles + Scripts (Vite) -->
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body>
         <div class="admin-layout">
@@ -75,6 +75,6 @@
             });
         </script>
 
-        @vite(['resources/js/app.js'])
+        <!-- Vite handled scripts included above -->
     </body>
 </html>

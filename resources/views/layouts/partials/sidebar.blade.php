@@ -55,6 +55,33 @@
             <span>Pengaturan</span>
         </a>
 
+        <a href="{{ route('admin.preorders.index') }}" class="admin-nav-item {{ request()->routeIs('admin.preorders.*') ? 'active' : '' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7h18M3 12h18M3 17h18"></path>
+            </svg>
+            <span>Preorders</span>
+        </a>
+
+        <a href="{{ route('admin.products.index') }}" class="admin-nav-item {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+            </svg>
+            <span>Products</span>
+        </a>
+
+        <a href="{{ route('admin.orders.history') }}" class="admin-nav-item {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 4h18"></path>
+                <path d="M3 10h18"></path>
+                <path d="M3 16h18"></path>
+                <circle cx="7" cy="10" r="1"></circle>
+                <circle cx="7" cy="16" r="1"></circle>
+                <circle cx="7" cy="4" r="1"></circle>
+            </svg>
+            <span>Orders History</span>
+        </a>
+
         <!-- Tools Section -->
         <div class="admin-nav-section-title">Alat</div>
 
