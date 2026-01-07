@@ -29,12 +29,22 @@
                             <p
                                 style="font-size: 0.875rem; color: #6b7280; font-weight: 600; text-transform: uppercase; margin: 0 0 0.5rem 0;">
                                 Status</p>
-                            <span
-                                style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.875rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.875rem; background: {{ $preorder->status == 'paid' ? '#d1fae5' : '#fef3c7' }}; color: {{ $preorder->status == 'paid' ? '#065f46' : '#92400e' }};">
-                                <span
-                                    style="width: 8px; height: 8px; border-radius: 50%; background: {{ $preorder->status == 'paid' ? '#22c55e' : '#f59e0b' }};"></span>
-                                {{ ucfirst($preorder->status) }}
-                            </span>
+                            @if($preorder->status === 'paid')
+                                <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.875rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.875rem; background: #d1fae5; color: #065f46;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
+                                    Paid
+                                </span>
+                            @elseif($preorder->status === 'confirmed')
+                                <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.875rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.875rem; background: #e0e7ff; color: #3730a3;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #4f46e5;"></span>
+                                    Confirmed
+                                </span>
+                            @else
+                                <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.875rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.875rem; background: #fef3c7; color: #92400e;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
+                                    Pending
+                                </span>
+                            @endif
                         </div>
                     </div>
 
@@ -104,9 +114,15 @@
                 </div>
 
                 <div style="padding: 1.5rem;">
-                    @if($preorder->status !== 'paid')
-                        <form action="{{ route('admin.preorders.markPaid', $preorder) }}" method="POST"
-                            style="display: inline;">
+                    @if($preorder->status === 'pending')
+                        <form action="{{ route('admin.preorders.confirm', $preorder) }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit"
+                                style="padding: 0.75rem 1.25rem; background: #6366f1; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;"
+                                onclick="return confirm('Confirm this order?')">✓ Confirm</button>
+                        </form>
+                    @elseif($preorder->status === 'confirmed')
+                        <form action="{{ route('admin.preorders.markPaid', $preorder) }}" method="POST" style="display: inline;">
                             @csrf
                             <button type="submit"
                                 style="padding: 0.75rem 1.25rem; background: #22c55e; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;"

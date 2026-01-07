@@ -35,6 +35,9 @@ class PreorderAdminController extends Controller
     public function markPaid(Request $request, $id)
     {
         $pre = Preorder::findOrFail($id);
+        if ($pre->status !== 'confirmed') {
+            return back()->with('error', 'Order harus dikonfirmasi admin terlebih dahulu sebelum ditandai sebagai paid');
+        }
         $old = $pre->status;
         $pre->status = 'paid';
         $pre->save();
@@ -60,6 +63,32 @@ class PreorderAdminController extends Controller
         ]);
 
         return back()->with('status', 'Marked as paid');
+    }
+
+    public function confirm(Request $request, $id)
+    {
+        $pre = Preorder::findOrFail($id);
+        $old = $pre->status;
+
+        if ($pre->status === 'paid') {
+            return back()->with('status', 'Order sudah paid');
+        }
+
+        if ($pre->status === 'confirmed') {
+            return back()->with('status', 'Order sudah dikonfirmasi');
+        }
+
+        $pre->status = 'confirmed';
+        $pre->save();
+
+        \App\Models\PreorderHistory::create([
+            'preorder_id' => $pre->id,
+            'old_status' => $old,
+            'new_status' => 'confirmed',
+            'note' => 'Confirmed by admin',
+        ]);
+
+        return back()->with('status', 'Order dikonfirmasi');
     }
 
     public function destroy($id)

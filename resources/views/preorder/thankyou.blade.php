@@ -252,6 +252,9 @@
         <div class="success-icon">✓</div>
         <h1 class="thankyou-title">Thank You!</h1>
         <p class="thankyou-subtitle">Your pre-order has been successfully received</p>
+        <div style="display:inline-block; background:#fff7ed; color:#9a3412; border:1px solid #fed7aa; border-radius: 9999px; padding:0.5rem 1rem; font-weight:600; margin-bottom:1.5rem;">
+            Status: Pending admin confirmation
+        </div>
 
         <!-- Order Details Card -->
         <div class="order-card">

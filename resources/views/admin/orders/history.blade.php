@@ -67,6 +67,8 @@
                             <td style="padding: 1rem;">
                                 @if($o->status === 'paid')
                                     <span style="display:inline-block; background:#dcfce7; color:#166534; padding:0.25rem 0.5rem; border-radius:0.375rem; font-weight:600; font-size:0.8rem;">Paid</span>
+                                @elseif($o->status === 'confirmed')
+                                    <span style="display:inline-block; background:#e0e7ff; color:#3730a3; padding:0.25rem 0.5rem; border-radius:0.375rem; font-weight:600; font-size:0.8rem;">Confirmed</span>
                                 @else
                                     <span style="display:inline-block; background:#fef9c3; color:#854d0e; padding:0.25rem 0.5rem; border-radius:0.375rem; font-weight:600; font-size:0.8rem;">Pending</span>
                                 @endif
@@ -79,6 +81,17 @@
                             </td>
                             <td style="padding: 1rem;">
                                 <div style="display:flex; gap:0.5rem;">
+                                    @if($o->status === 'pending')
+                                        <form method="POST" action="{{ route('admin.preorders.confirm', $o->id) }}">
+                                            @csrf
+                                            <button type="submit" style="background: #6366f1; color: white; padding: 0.5rem 0.75rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor:pointer;">Confirm</button>
+                                        </form>
+                                    @elseif($o->status === 'confirmed')
+                                        <form method="POST" action="{{ route('admin.preorders.markPaid', $o->id) }}">
+                                            @csrf
+                                            <button type="submit" style="background: #22c55e; color: white; padding: 0.5rem 0.75rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor:pointer;">Mark Paid</button>
+                                        </form>
+                                    @endif
                                     <a href="{{ route('admin.preorders.show', $o->id) }}" style="background: #3b82f6; color: white; padding: 0.5rem 0.75rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; text-decoration: none;">View</a>
                                 </div>
                             </td>

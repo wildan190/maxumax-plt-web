@@ -32,6 +32,10 @@
             <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0; font-weight: 600; text-transform: uppercase;">Pending</p>
             <p style="font-size: 1.875rem; font-weight: 800; color: #f97316; margin: 0;">{{ $preorders->where('status', 'pending')->count() }}</p>
         </div>
+        <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #6366f1; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0; font-weight: 600; text-transform: uppercase;">Confirmed</p>
+            <p style="font-size: 1.875rem; font-weight: 800; color: #6366f1; margin: 0;">{{ $preorders->where('status', 'confirmed')->count() }}</p>
+        </div>
         <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #22c55e; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
             <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0; font-weight: 600; text-transform: uppercase;">Paid</p>
             <p style="font-size: 1.875rem; font-weight: 800; color: #22c55e; margin: 0;">{{ $preorders->where('status', 'paid')->count() }}</p>
@@ -81,6 +85,8 @@
                                 <td style="padding: 1rem;">
                                     @if($preorder->status === 'pending')
                                         <span style="background: #fef3c7; color: #92400e; padding: 0.35rem 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 600;">Pending</span>
+                                    @elseif($preorder->status === 'confirmed')
+                                        <span style="background: #e0e7ff; color: #3730a3; padding: 0.35rem 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 600;">Confirmed</span>
                                     @elseif($preorder->status === 'paid')
                                         <span style="background: #dcfce7; color: #166534; padding: 0.35rem 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 600;">Paid</span>
                                     @endif
@@ -88,6 +94,11 @@
                                 <td style="padding: 1rem;">
                                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                         @if($preorder->status === 'pending')
+                                            <form method="POST" action="{{ route('admin.preorders.confirm', $preorder->id) }}" style="display: inline;">
+                                                @csrf
+                                                <button type="submit" style="background: #6366f1; color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">Confirm</button>
+                                            </form>
+                                        @elseif($preorder->status === 'confirmed')
                                             <form method="POST" action="{{ route('admin.preorders.markPaid', $preorder->id) }}" style="display: inline;">
                                                 @csrf
                                                 <button type="submit" style="background: #22c55e; color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">Mark Paid</button>
