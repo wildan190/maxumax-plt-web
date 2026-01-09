@@ -16,7 +16,7 @@ return new class extends Migration
         $products = \Illuminate\Support\Facades\DB::table('products')->select('id')->get();
         foreach ($products as $p) {
             \Illuminate\Support\Facades\DB::table('products')->where('id', $p->id)->update([
-                'uuid' => (string) \Illuminate\Support\Str::uuid()
+                'uuid' => (string) \Illuminate\Support\Str::uuid(),
             ]);
         }
     }

@@ -44,9 +44,21 @@
         <div class="preorder-layout">
             <!-- Product Summary Card -->
             <div class="product-summary-card">
-                <div class="product-image-wrapper">
-                    @if($product->image_path)
-                        <img src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}" />
+                <div class="product-image-wrapper" id="orderGallery">
+                    @php
+                        $gallery = [];
+                        if ($product->image_path) { $gallery[] = $product->image_path; }
+                        foreach ($product->images as $img) { $gallery[] = $img->path; }
+                    @endphp
+                    @if(count($gallery))
+                        <div style="position:relative; width:100%;">
+                            <img id="orderMainImg" src="{{ asset('storage/'.$gallery[0]) }}" alt="{{ $product->name }}" style="max-width:100%; max-height:280px; object-fit:contain; border-radius:0.5rem;" />
+                            <div style="display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap;">
+                                @foreach($gallery as $i => $path)
+                                    <img data-index="{{ $i }}" src="{{ asset('storage/'.$path) }}" alt="thumb {{ $i+1 }}" style="width:56px; height:56px; object-fit:cover; border-radius:0.375rem; border:1px solid #e2e8f0; cursor:pointer; opacity: 0.6;">
+                                @endforeach
+                            </div>
+                        </div>
                     @else
                         <span class="placeholder">👕</span>
                     @endif
@@ -86,7 +98,7 @@
 
             <!-- Multi-Step Form -->
             <div class="form-card">
-                <form method="POST" action="{{ route('preorder.store') }}" id="preorderForm">
+                <form method="POST" action="{{ route($product->available_for_preorder ? 'preorder.store' : 'order.store') }}" id="preorderForm">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}" />
                     <input type="hidden" name="currency" id="currencyInput" value="MYR" />
@@ -237,14 +249,48 @@
                         <div class="form-nav">
                             <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
                             <button type="submit" class="btn btn-success">✓ Confirm Pre-order</button>
+                            <form method="POST" action="{{ route('cart.add') }}" id="addToCartForm" style="display:inline-block; margin-left:0.5rem;">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                <input type="hidden" name="quantity" id="cartQuantity" value="1">
+                                <input type="hidden" name="size" id="cartSize" value="M">
+                                <input type="hidden" name="long_sleeve" id="cartLongSleeve" value="0">
+                                <button type="submit" class="btn"><i data-feather="shopping-bag"></i> Add to Cart</button>
+                            </form>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
     </section>
-
     <script>
+        (function(){
+            const g = document.getElementById('orderGallery');
+            if (g) {
+                const main = document.getElementById('orderMainImg');
+                const thumbs = Array.from(g.querySelectorAll('img[data-index]'));
+                let idx = 0;
+                if (thumbs.length) {
+                    thumbs[0].style.opacity = '1';
+                    thumbs[0].style.borderColor = '#111827';
+                }
+                function setIdx(i){
+                    idx = i;
+                    const src = thumbs[idx].getAttribute('src');
+                    main.setAttribute('src', src);
+                    thumbs.forEach((t, ti) => {
+                        t.style.opacity = ti === idx ? '1' : '0.6';
+                        t.style.borderColor = ti === idx ? '#111827' : '#e2e8f0';
+                    });
+                }
+                thumbs.forEach(t => {
+                    t.addEventListener('click', () => {
+                        const i = parseInt(t.getAttribute('data-index'), 10) || 0;
+                        setIdx(i);
+                    });
+                });
+            }
+        })();
         // Currency configuration
         const currencies = {
             MYR: { symbol: 'RM', rate: 1, longSleeve: 3, nameset: 13 },
@@ -279,6 +325,26 @@
             }
             return getCurrencySymbol() + ' ' + converted.toFixed(2);
         }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            const qtyInput = document.querySelector('input[name="quantity"]');
+            const sizeSelect = document.querySelector('select[name="size"]');
+            const longSleeve = document.getElementById('longSleeve');
+            const cartQty = document.getElementById('cartQuantity');
+            const cartSize = document.getElementById('cartSize');
+            const cartLs = document.getElementById('cartLongSleeve');
+            function syncCartFields(){
+                cartQty.value = qtyInput ? (qtyInput.value || 1) : 1;
+                cartSize.value = sizeSelect ? (sizeSelect.value || 'M') : 'M';
+                cartLs.value = longSleeve && longSleeve.checked ? 1 : 0;
+            }
+            ['change','input'].forEach(ev => {
+                qtyInput && qtyInput.addEventListener(ev, syncCartFields);
+                sizeSelect && sizeSelect.addEventListener(ev, syncCartFields);
+                longSleeve && longSleeve.addEventListener(ev, syncCartFields);
+            });
+            syncCartFields();
+        });
 
         function updateCurrencyDisplay() {
             const config = currencies[currentCurrency];

@@ -260,7 +260,7 @@
         <div class="order-card">
             <div class="order-number-bar">
                 <div class="label">Order Number</div>
-                <div class="number">#{{ $preorder->id }}</div>
+                <div class="number">{{ $preorder->order_number }}</div>
             </div>
 
             <div class="order-body">

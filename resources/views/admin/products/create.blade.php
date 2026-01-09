@@ -6,7 +6,6 @@
     <div style="max-width: 900px;">
         <div style="margin-bottom: 2rem;">
             <a href="{{ route('admin.products.index') }}" style="color: #6b7280; text-decoration: none; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.5rem;" title="Back">← Back to Products</a>
-            <h1 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin: 0.5rem 0 0 0;">Create New Product</h1>
         </div>
 
         @if($errors->any())
@@ -73,12 +72,17 @@
 
                 <div>
                     <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827;">Product Image</label>
-                        <div id="imagePreview" style="margin-bottom: 1rem; display: none;">
-                            <img id="preview" src="" style="width: 100%; height: 200px; object-fit: cover; border-radius: 0.5rem; border: 1px solid #e5e7eb;" alt="Preview" />
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827;">Product Images</label>
+                        <div id="dropzoneImages" style="border:2px dashed #d1d5db; border-radius:0.5rem; padding:1rem; text-align:center; cursor:pointer;">
+                            <div style="font-weight:600; color:#111827;">Drag & drop up to 4 images</div>
+                            <div style="color:#6b7280; font-size:0.9rem; margin-top:0.25rem;">or click to select</div>
                         </div>
-                        <input type="file" name="image" accept="image/*" id="imageInput" style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; cursor: pointer;" />
-                        <p style="font-size: 0.875rem; color: #6b7280; margin: 0.5rem 0 0 0;">PNG, JPG or GIF (Max 5MB)</p>
+                        <input type="file" name="images[]" accept="image/*" id="imageInput" multiple style="display:none;" />
+                        <div id="imagePreviewGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap:0.5rem; margin-top:0.75rem;"></div>
+                        <div id="imageStatusText" style="margin-top:0.5rem; color:#dc2626; font-size:0.875rem; display:none;">Maksimal 4 gambar</div>
+                        <div style="margin-top:0.5rem;">
+                            <button type="button" id="clearImagesBtn" style="background:#e5e7eb; color:#111827; padding:0.4rem 0.8rem; border:none; border-radius:0.375rem; font-weight:600; cursor:pointer;">Clear</button>
+                        </div>
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
@@ -115,16 +119,65 @@
     </div>
 
     <script>
-        document.getElementById('imageInput')?.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    document.getElementById('preview').src = event.target.result;
-                    document.getElementById('imagePreview').style.display = 'block';
-                };
-                reader.readAsDataURL(file);
+        (function(){
+            const dz = document.getElementById('dropzoneImages');
+            const input = document.getElementById('imageInput');
+            const grid = document.getElementById('imagePreviewGrid');
+            const status = document.getElementById('imageStatusText');
+            const clearBtn = document.getElementById('clearImagesBtn');
+            function render(files){
+                grid.innerHTML = '';
+                const max = Math.min(files.length, 4);
+                for (let i = 0; i < max; i++) {
+                    const f = files[i];
+                    const reader = new FileReader();
+                    reader.onload = function(evt){
+                        const img = document.createElement('img');
+                        img.src = evt.target.result;
+                        img.style.width = '100%';
+                        img.style.height = '80px';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '0.375rem';
+                        img.style.border = '1px solid #e5e7eb';
+                        grid.appendChild(img);
+                    };
+                    reader.readAsDataURL(f);
+                }
+                status.style.display = files.length > 4 ? 'block' : 'none';
             }
-        });
+            function setFiles(fileList){
+                const dt = new DataTransfer();
+                const arr = Array.from(fileList).slice(0,4);
+                arr.forEach(f => dt.items.add(f));
+                input.files = dt.files;
+                render(arr);
+            }
+            dz.addEventListener('click', function(){
+                input.click();
+            });
+            dz.addEventListener('dragover', function(e){
+                e.preventDefault();
+                dz.style.background = '#f9fafb';
+            });
+            dz.addEventListener('dragleave', function(){
+                dz.style.background = 'transparent';
+            });
+            dz.addEventListener('drop', function(e){
+                e.preventDefault();
+                dz.style.background = 'transparent';
+                const files = e.dataTransfer.files;
+                const imgs = Array.from(files).filter(f => f.type.startsWith('image/'));
+                if (imgs.length) setFiles(imgs);
+            });
+            input.addEventListener('change', function(e){
+                const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+                if (files.length) setFiles(files);
+            });
+            clearBtn.addEventListener('click', function(){
+                input.value = '';
+                grid.innerHTML = '';
+                status.style.display = 'none';
+            });
+        })();
     </script>
 @endsection

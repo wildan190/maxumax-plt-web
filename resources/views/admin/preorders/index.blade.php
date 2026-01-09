@@ -5,7 +5,6 @@
 @section('content')
     <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h1 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin: 0;">Preorder Management</h1>
             <p style="color: #6b7280; margin: 0.5rem 0 0 0; font-size: 0.95rem;">Manage and monitor all preorder requests</p>
         </div>
         <div style="display: flex; gap: 1rem;">
@@ -16,7 +15,7 @@
             <form method="POST" action="{{ route('admin.preorders.export') }}" style="display: inline;">
                 @csrf
                 <button type="submit" style="background: #6b7280; color: white; padding: 0.625rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                    <span>📥</span> Export CSV
+                    <span><i data-feather="download"></i></span> Export CSV
                 </button>
             </form>
         </div>
@@ -94,18 +93,18 @@
                                 <td style="padding: 1rem;">
                                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                         @if($preorder->status === 'pending')
-                                            <form method="POST" action="{{ route('admin.preorders.confirm', $preorder->id) }}" style="display: inline;">
+                                            <form method="POST" action="{{ route('admin.preorders.confirm', $preorder) }}" style="display: inline;" class="js-confirm" data-title="Confirm this preorder?" data-text="Status akan diubah menjadi confirmed.">
                                                 @csrf
                                                 <button type="submit" style="background: #6366f1; color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">Confirm</button>
                                             </form>
                                         @elseif($preorder->status === 'confirmed')
-                                            <form method="POST" action="{{ route('admin.preorders.markPaid', $preorder->id) }}" style="display: inline;">
+                                            <form method="POST" action="{{ route('admin.preorders.markPaid', $preorder) }}" style="display: inline;" class="js-confirm" data-title="Mark as paid?" data-text="Status akan diubah menjadi paid.">
                                                 @csrf
                                                 <button type="submit" style="background: #22c55e; color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">Mark Paid</button>
                                             </form>
                                         @endif
-                                        <a href="{{ route('admin.preorders.show', $preorder->id) }}" style="background: #3b82f6; color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block;">View</a>
-                                        <form method="POST" action="{{ route('admin.preorders.destroy', $preorder->id) }}" style="display: inline;" onsubmit="return confirm('Delete this preorder?');">
+                                        <a href="{{ route('admin.preorders.show', $preorder) }}" style="background: #3b82f6; color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block;">View</a>
+                                        <form method="POST" action="{{ route('admin.preorders.destroy', $preorder) }}" style="display: inline;" class="js-delete" data-title="Delete this preorder?" data-text="Tindakan ini tidak dapat dibatalkan.">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" style="background: #ef4444; color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">Delete</button>
@@ -115,9 +114,9 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" style="padding: 3rem 1rem; text-align: center; color: #6b7280;">
-                                    <p style="margin: 0; font-size: 1rem;">No preorders found</p>
-                                </td>
+                        <td colspan="10" style="padding: 3rem 1rem; text-align: center; color: #6b7280;">
+                            <p style="margin: 0; font-size: 1rem;">No preorders found</p>
+                        </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -136,9 +135,55 @@
         @endif
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        document.querySelectorAll('form.js-confirm').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const title = form.getAttribute('data-title') || 'Are you sure?';
+                const text = form.getAttribute('data-text') || '';
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6366f1',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+        document.querySelectorAll('form.js-delete').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const title = form.getAttribute('data-title') || 'Delete item?';
+                const text = form.getAttribute('data-text') || 'This action cannot be undone.';
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Delete'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
         function showDetails(id) {
-            alert('Detail preorder #' + id + ' — fitur detail view akan datang');
+            Swal.fire({
+                title: 'Detail preorder #' + id,
+                text: 'Fitur detail view akan datang',
+                icon: 'info',
+                confirmButtonColor: '#111827'
+            });
         }
     </script>
 @endsection

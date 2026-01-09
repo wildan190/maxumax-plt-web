@@ -11,37 +11,39 @@
         </div>
     </section>
 
+    
+
     <section class="features-section">
         <div class="section-container">
             <h2 class="section-title">Why Choose MaxuMax?</h2>
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">✨</div>
+                    <div class="feature-icon"><i data-feather="star"></i></div>
                     <h3 class="feature-title">Premium Quality</h3>
                     <p class="feature-text">High-quality materials with neat stitching and durability for long-term use.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">💰</div>
+                    <div class="feature-icon"><i data-feather="dollar-sign"></i></div>
                     <h3 class="feature-title">Affordable Prices</h3>
                     <p class="feature-text">Pre-order with competitive pricing and flexible payment, pay when goods arrive.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🎨</div>
+                    <div class="feature-icon"><i data-feather="sliders"></i></div>
                     <h3 class="feature-title">Full Customization</h3>
                     <p class="feature-text">Choose size, color, add nameset, long sleeve, and personalize to your liking.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📦</div>
+                    <div class="feature-icon"><i data-feather="box"></i></div>
                     <h3 class="feature-title">Guaranteed Delivery</h3>
                     <p class="feature-text">Your items will be delivered directly to you with flexible payment options.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">⭐</div>
+                    <div class="feature-icon"><i data-feather="award"></i></div>
                     <h3 class="feature-title">Exclusive Designs</h3>
                     <p class="feature-text">Unique and exclusive designs you won't find anywhere else.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">💬</div>
+                    <div class="feature-icon"><i data-feather="message-circle"></i></div>
                     <h3 class="feature-title">Customer Support</h3>
                     <p class="feature-text">Our support team is ready to help you 24/7 via WhatsApp and customer service.</p>
                 </div>
@@ -59,7 +61,7 @@
                     <a href="{{ route('preorder.landing') }}" class="inline-block bg-black text-white px-4 py-2 rounded-md font-semibold text-sm transition hover:bg-slate-900 hover:-translate-y-0.5">View Our Collection →</a>
                 </div>
                 <div class="about-image-card">
-                    <div class="about-image">👕</div>
+                    <div class="about-image"><i data-feather="shopping-bag"></i></div>
                 </div>
             </div>
         </div>
@@ -122,81 +124,7 @@
         </div>
     </section>
 
-    <section class="py-16 bg-white">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="text-center mb-10">
-                <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Feedback & Rating</h2>
-                <p class="text-slate-600">Beri kami penilaian dan masukan untuk meningkatkan kualitas layanan.</p>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1 bg-slate-50 border border-slate-200 rounded-xl p-6">
-                    <div class="text-slate-900 font-bold text-xl mb-2">Rata-rata Rating</div>
-                    @php $avg = $feedbackAvg ?? 0; $count = $feedbackCount ?? 0; $rounded = (int) round($avg); @endphp
-                    <div class="flex items-center gap-2 mb-2">
-                        @for ($i = 1; $i <= 5; $i++)
-                            <span class="{{ $i <= $rounded ? 'text-yellow-500' : 'text-slate-300' }}">★</span>
-                        @endfor
-                    </div>
-                    <div class="text-slate-600 text-sm">Skor: {{ number_format($avg, 2) }} dari {{ $count }} feedback</div>
-                </div>
-                <div class="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-6">
-                    <form method="POST" action="{{ route('feedback.store') }}" class="space-y-4">
-                        @csrf
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">Nama (opsional)</label>
-                                <input type="text" name="name" class="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">Email (opsional)</label>
-                                <input type="email" name="email" class="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Rating</label>
-                            <div class="flex items-center gap-3">
-                                @for ($r = 1; $r <= 5; $r++)
-                                    <label class="inline-flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="rating" value="{{ $r }}" class="accent-black" required />
-                                        <span class="text-slate-800">{{ $r }}</span>
-                                    </label>
-                                @endfor
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Feedback</label>
-                            <textarea name="comment" rows="3" class="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black" placeholder="Tulis masukan Anda di sini..."></textarea>
-                        </div>
-                        <div>
-                            <button type="submit" class="inline-flex items-center bg-black text-white px-5 py-3 rounded-md font-semibold text-base transition hover:bg-slate-900 hover:-translate-y-0.5">Kirim Feedback</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="mt-10">
-                <div class="text-slate-900 font-bold text-xl mb-4">Feedback Terbaru</div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    @forelse ($latestFeedback ?? [] as $fb)
-                        @php $rr = (int) $fb->rating; @endphp
-                        <div class="bg-white border border-slate-200 rounded-xl p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="font-semibold text-slate-900">{{ $fb->name ?? 'Anonim' }}</div>
-                                <div class="flex items-center gap-1">
-                                    @for ($i = 1; $i <= 5; $i++)
-                                        <span class="{{ $i <= $rr ? 'text-yellow-500' : 'text-slate-300' }}">★</span>
-                                    @endfor
-                                </div>
-                            </div>
-                            <div class="text-slate-600 text-sm">{{ $fb->comment ?? '-' }}</div>
-                            <div class="text-slate-400 text-xs mt-2">{{ $fb->created_at->diffForHumans() }}</div>
-                        </div>
-                    @empty
-                        <div class="text-slate-500">Belum ada feedback.</div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-    </section>
+    
 
     <section class="cta-section">
         <div class="section-container cta-container">

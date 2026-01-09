@@ -1,23 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\PreorderController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\FeedbackController;
-use App\Models\Feedback;
+use App\Http\Controllers\ProfileController;
+use App\Models\Product;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    $avg = round((float) Feedback::avg('rating'), 2);
-    $count = (int) Feedback::count();
-    $latest = Feedback::orderByDesc('created_at')->limit(6)->get();
-    return view('home', [
-        'feedbackAvg' => $avg,
-        'feedbackCount' => $count,
-        'latestFeedback' => $latest,
-    ]);
-});
+Route::get('/', fn () => view('home'));
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
@@ -32,9 +23,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/preorders', [App\Http\Controllers\PreorderAdminController::class, 'index'])->name('admin.preorders.index');
     Route::get('/preorders/{preorder}', [App\Http\Controllers\PreorderAdminController::class, 'show'])->name('admin.preorders.show');
-    Route::post('/preorders/{id}/confirm', [App\Http\Controllers\PreorderAdminController::class, 'confirm'])->name('admin.preorders.confirm');
-    Route::post('/preorders/{id}/mark-paid', [App\Http\Controllers\PreorderAdminController::class, 'markPaid'])->name('admin.preorders.markPaid');
-    Route::delete('/preorders/{id}', [App\Http\Controllers\PreorderAdminController::class, 'destroy'])->name('admin.preorders.destroy');
+    Route::post('/preorders/{preorder}/confirm', [App\Http\Controllers\PreorderAdminController::class, 'confirm'])->name('admin.preorders.confirm');
+    Route::post('/preorders/{preorder}/mark-paid', [App\Http\Controllers\PreorderAdminController::class, 'markPaid'])->name('admin.preorders.markPaid');
+    Route::delete('/preorders/{preorder}', [App\Http\Controllers\PreorderAdminController::class, 'destroy'])->name('admin.preorders.destroy');
     Route::get('/preorders/export/csv', [App\Http\Controllers\PreorderAdminController::class, 'exportCsv'])->name('admin.preorders.export');
 
     // Product management
@@ -56,6 +47,9 @@ Route::group(['domain' => env('PREORDER_DOMAIN', null)], function () {
     Route::get('/preorder/create/{product}', [PreorderController::class, 'create'])->name('preorder.create');
     Route::post('/preorder', [PreorderController::class, 'store'])->name('preorder.store');
     Route::get('/preorder/thank-you/{id}', [PreorderController::class, 'thankyou'])->name('preorder.thankyou');
+    Route::get('/order/create/{product}', [PreorderController::class, 'create'])->name('order.create');
+    Route::post('/order', [PreorderController::class, 'store'])->name('order.store');
+    Route::get('/order/thank-you/{id}', [PreorderController::class, 'thankyou'])->name('order.thankyou');
 });
 
 // Fallback registration if domain not configured (simple routes)
@@ -63,5 +57,16 @@ Route::get('/preorder', [PreorderController::class, 'showLanding'])->name('preor
 Route::get('/preorder/create/{product}', [PreorderController::class, 'create'])->name('preorder.create');
 Route::post('/preorder', [PreorderController::class, 'store'])->name('preorder.store');
 Route::get('/preorder/thank-you/{id}', [PreorderController::class, 'thankyou'])->name('preorder.thankyou');
+Route::get('/order/create/{product}', [PreorderController::class, 'create'])->name('order.create');
+Route::post('/order', [PreorderController::class, 'store'])->name('order.store');
+Route::get('/order/thank-you/{id}', [PreorderController::class, 'thankyou'])->name('order.thankyou');
 
 Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+Route::get('/order/track', [PreorderController::class, 'track'])->name('order.track');
+Route::get('/product/{product}', [PreorderController::class, 'showProduct'])->name('product.show');
+
+Route::get('/cart', [PreorderController::class, 'cartShow'])->name('cart.show');
+Route::post('/cart/add', [PreorderController::class, 'cartAdd'])->name('cart.add');
+Route::post('/cart/update', [PreorderController::class, 'cartUpdate'])->name('cart.update');
+Route::post('/cart/remove', [PreorderController::class, 'cartRemove'])->name('cart.remove');
+Route::post('/checkout/cod', [PreorderController::class, 'checkoutCod'])->name('checkout.cod');

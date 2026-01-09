@@ -25,7 +25,7 @@ class ProfileController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . auth()->id()],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.auth()->id()],
         ]);
 
         $user = auth()->user();
@@ -61,9 +61,9 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
-        
+
         auth()->logout();
-        
+
         $user->delete();
 
         $request->session()->invalidate();

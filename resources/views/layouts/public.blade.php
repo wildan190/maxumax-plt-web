@@ -27,7 +27,18 @@
                 </a>
                 <div class="public-nav-links">
                     <a href="/" class="public-nav-link">Home</a>
-                    <a href="#products" class="public-nav-link">Products</a>
+                    <a href="{{ route('preorder.landing') }}" class="public-nav-link">Pre-order</a>
+                    <a href="{{ route('preorder.landing') }}#products" class="public-nav-link">Products</a>
+                    <a href="{{ route('order.track') }}" class="public-nav-link">Track Order</a>
+                    @php $cartCount = is_array(session('cart')) ? count(session('cart')) : 0; @endphp
+                    <a href="{{ route('cart.show') }}" class="public-nav-link" aria-label="Cart" title="Cart" style="position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px;">
+                        <i data-feather="shopping-cart" style="width: 20px; height: 20px; color: #0f172a;"></i>
+                        @if($cartCount)
+                            <span style="position: absolute; top: -6px; right: -6px; background: #ef4444; color: #ffffff; border-radius: 6px; height: 18px; min-width: 18px; padding: 0 4px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                                {{ $cartCount }}
+                            </span>
+                        @endif
+                    </a>
                 </div>
             </div>
         </nav>

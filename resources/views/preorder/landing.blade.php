@@ -14,16 +14,29 @@
             </p>
             <div class="flex flex-wrap justify-center gap-3">
                 <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-full font-semibold text-sm">
-                    <span class="inline-flex w-5 h-5 rounded-full bg-emerald-500 items-center justify-center text-[10px]">✓</span>
+                    <span class="inline-flex w-5 h-5 rounded-full bg-emerald-500 items-center justify-center"><i data-feather="check" style="width:12px;height:12px;"></i></span>
                     Pay on Delivery
                 </div>
                 <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-full font-semibold text-sm">
-                    <span class="inline-flex w-5 h-5 rounded-full bg-emerald-500 items-center justify-center text-[10px]">✓</span>
+                    <span class="inline-flex w-5 h-5 rounded-full bg-emerald-500 items-center justify-center"><i data-feather="check" style="width:12px;height:12px;"></i></span>
                     4 Jersey Options
                 </div>
                 <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-full font-semibold text-sm">
-                    <span class="inline-flex w-5 h-5 rounded-full bg-emerald-500 items-center justify-center text-[10px]">✓</span>
+                    <span class="inline-flex w-5 h-5 rounded-full bg-emerald-500 items-center justify-center"><i data-feather="check" style="width:12px;height:12px;"></i></span>
                     Full Customization
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-white py-12 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+                    <img class="w-full h-full object-cover" data-jpeg="{{ asset('assets/img/banner1.jpeg') }}" alt="MaxuMax Banner 1" />
+                </div>
+                <div class="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+                    <img class="w-full h-full object-cover" data-jpeg="{{ asset('assets/img/banner2.jpeg') }}" alt="MaxuMax Banner 2" />
                 </div>
             </div>
         </div>
@@ -64,9 +77,9 @@
                         <div class="relative aspect-[4/3] bg-slate-50 flex items-center justify-center">
                             <span class="absolute top-3 left-3 inline-flex items-center rounded bg-black text-white text-xs font-semibold px-2 py-1">Pre-order</span>
                             @if($product->image_path)
-                                <img class="w-full h-full object-cover" src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}" />
+                                <img class="w-full h-full object-contain p-2" src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}" />
                             @else
-                                <span class="text-4xl">👕</span>
+                                <span class="text-4xl"><i data-feather="image"></i></span>
                             @endif
                         </div>
                         <div class="p-4">
@@ -96,10 +109,10 @@
         <div id="grid-active" class="hidden grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             @if($activeProducts->count())
                 @foreach($activeProducts as $product)
-                    <a href="{{ route('preorder.create', $product) }}" class="group bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition" data-category="{{ strtolower($product->jersey_type ?? '') }}">
+                    <a href="{{ route('product.show', $product) }}" class="group bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition" data-category="{{ strtolower($product->jersey_type ?? '') }}">
                         <div class="relative aspect-[4/3] bg-slate-50 flex items-center justify-center">
                             @if($product->image_path)
-                                <img class="w-full h-full object-cover" src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}" />
+                                <img class="w-full h-full object-contain p-2" src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}" />
                             @else
                                 <span class="text-4xl">👕</span>
                             @endif
@@ -131,6 +144,32 @@
     </section>
 
     <script>
+        (function(){
+            const imgs = document.querySelectorAll('img[data-jpeg]');
+            imgs.forEach(function(img){
+                const url = img.getAttribute('data-jpeg');
+                const im = new Image();
+                im.onload = function(){
+                    const c = document.createElement('canvas');
+                    c.width = im.naturalWidth;
+                    c.height = im.naturalHeight;
+                    const ctx = c.getContext('2d');
+                    ctx.drawImage(im, 0, 0);
+                    let webp;
+                    try {
+                        webp = c.toDataURL('image/webp', 0.9);
+                    } catch(e) {
+                        webp = null;
+                    }
+                    img.src = webp && webp.indexOf('data:image/webp') === 0 ? webp : url;
+                };
+                im.onerror = function(){
+                    img.src = url;
+                };
+                im.src = url;
+            });
+        })();
+
         const tabs = document.querySelectorAll('.tab-btn');
         const gridPre = document.getElementById('grid-preorder');
         const gridAct = document.getElementById('grid-active');

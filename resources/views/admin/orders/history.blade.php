@@ -5,7 +5,6 @@
 @section('content')
     <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h1 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin: 0;">Order History</h1>
             <p style="color: #6b7280; margin: 0.5rem 0 0 0; font-size: 0.95rem;">Filter berdasarkan tipe order</p>
         </div>
         <form method="GET" action="{{ route('admin.orders.history') }}" style="display: flex; gap: 0.5rem;">
@@ -34,7 +33,7 @@
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">ID</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Order Number</th>
                         <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Customer</th>
                         <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Type</th>
                         <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Product</th>
@@ -51,7 +50,7 @@
                             $last = $o->histories->sortByDesc('created_at')->first();
                         @endphp
                         <tr style="border-bottom: 1px solid #e5e7eb;">
-                            <td style="padding: 1rem;">#{{ $o->id }}</td>
+                            <td style="padding: 1rem;">#{{ $o->order_number }}</td>
                             <td style="padding: 1rem;">
                                 <div style="font-weight:600; color:#111827;">{{ $o->name }}</div>
                                 <div style="color:#6b7280; font-size:0.85rem;">{{ $o->email ?? '-' }} · {{ $o->phone ?? '-' }}</div>
@@ -82,17 +81,17 @@
                             <td style="padding: 1rem;">
                                 <div style="display:flex; gap:0.5rem;">
                                     @if($o->status === 'pending')
-                                        <form method="POST" action="{{ route('admin.preorders.confirm', $o->id) }}">
+                                        <form method="POST" action="{{ route('admin.preorders.confirm', $o) }}">
                                             @csrf
                                             <button type="submit" style="background: #6366f1; color: white; padding: 0.5rem 0.75rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor:pointer;">Confirm</button>
                                         </form>
                                     @elseif($o->status === 'confirmed')
-                                        <form method="POST" action="{{ route('admin.preorders.markPaid', $o->id) }}">
+                                        <form method="POST" action="{{ route('admin.preorders.markPaid', $o) }}">
                                             @csrf
                                             <button type="submit" style="background: #22c55e; color: white; padding: 0.5rem 0.75rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor:pointer;">Mark Paid</button>
                                         </form>
                                     @endif
-                                    <a href="{{ route('admin.preorders.show', $o->id) }}" style="background: #3b82f6; color: white; padding: 0.5rem 0.75rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; text-decoration: none;">View</a>
+                                    <a href="{{ route('admin.preorders.show', $o) }}" style="background: #3b82f6; color: white; padding: 0.5rem 0.75rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; text-decoration: none;">View</a>
                                 </div>
                             </td>
                         </tr>

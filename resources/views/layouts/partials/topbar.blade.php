@@ -8,7 +8,7 @@
                 <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
         </button>
-        <h1 class="admin-page-title">@yield('page-title', 'Dashboard')</h1>
+        <!-- Page title is rendered in the main header to avoid duplication -->
     </div>
 
     <div class="admin-topbar-right">

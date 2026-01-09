@@ -10,7 +10,7 @@ class FeedbackController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'product_id' => ['nullable', 'integer', 'exists:products,id'],
+            'product_id' => ['required', 'integer', 'exists:products,id'],
             'name' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'rating' => ['required', 'integer', 'min:1', 'max:5'],

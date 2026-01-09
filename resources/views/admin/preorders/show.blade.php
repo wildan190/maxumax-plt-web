@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('page-title', 'Preorder Details')
+@section('page-title', 'Preorder #'.$preorder->order_number)
 
 @section('content')
     <div style="max-width: 1200px;">
@@ -8,8 +8,6 @@
             <a href="{{ route('admin.preorders.index') }}"
                 style="color: #6b7280; text-decoration: none; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.5rem;"
                 title="Back">← Back to Preorders</a>
-            <h1 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin: 0.5rem 0 0 0;">Preorder
-                #{{ $preorder->id }}</h1>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 340px; gap: 2rem;">
@@ -115,26 +113,24 @@
 
                 <div style="padding: 1.5rem;">
                     @if($preorder->status === 'pending')
-                        <form action="{{ route('admin.preorders.confirm', $preorder) }}" method="POST" style="display: inline;">
+                        <form action="{{ route('admin.preorders.confirm', $preorder) }}" method="POST" style="display: inline;" class="js-confirm" data-title="Confirm this preorder?" data-text="Status akan diubah menjadi confirmed.">
                             @csrf
                             <button type="submit"
-                                style="padding: 0.75rem 1.25rem; background: #6366f1; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;"
-                                onclick="return confirm('Confirm this order?')">✓ Confirm</button>
+                                style="padding: 0.75rem 1.25rem; background: #6366f1; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;">Confirm</button>
                         </form>
-                    @elseif($preorder->status === 'confirmed')
-                        <form action="{{ route('admin.preorders.markPaid', $preorder) }}" method="POST" style="display: inline;">
+                    @endif
+                    @if($preorder->status === 'confirmed')
+                        <form action="{{ route('admin.preorders.markPaid', $preorder) }}" method="POST" style="display: inline; margin-left: 0.5rem;" class="js-confirm" data-title="Mark as paid?" data-text="Status akan diubah menjadi paid.">
                             @csrf
                             <button type="submit"
-                                style="padding: 0.75rem 1.25rem; background: #22c55e; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;"
-                                onclick="return confirm('Mark this preorder as paid?')">✓ Mark as Paid</button>
+                                style="padding: 0.75rem 1.25rem; background: #22c55e; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;">✓ Mark as Paid</button>
                         </form>
                     @endif
                     <form action="{{ route('admin.preorders.destroy', $preorder) }}" method="POST"
-                        style="display: inline; margin-left: 0.5rem;">
+                        style="display: inline; margin-left: 0.5rem;" class="js-delete" data-title="Delete this preorder?" data-text="Tindakan ini tidak dapat dibatalkan.">
                         @csrf @method('DELETE')
                         <button type="submit"
-                            style="padding: 0.75rem 1.25rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;"
-                            onclick="return confirm('Delete this preorder?')">Delete</button>
+                            style="padding: 0.75rem 1.25rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;">Delete</button>
                     </form>
                 </div>
             </div>
@@ -166,4 +162,47 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.querySelectorAll('form.js-confirm').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const title = form.getAttribute('data-title') || 'Are you sure?';
+                const text = form.getAttribute('data-text') || '';
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6366f1',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+        document.querySelectorAll('form.js-delete').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const title = form.getAttribute('data-title') || 'Delete item?';
+                const text = form.getAttribute('data-text') || 'This action cannot be undone.';
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Delete'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 @endsection

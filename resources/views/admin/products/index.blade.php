@@ -5,7 +5,6 @@
 @section('content')
     <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h1 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin: 0;">Product Catalog</h1>
             <p style="color: #6b7280; margin: 0.5rem 0 0 0; font-size: 0.95rem;">Manage and organize your preorder products</p>
         </div>
         <a href="{{ route('admin.products.create') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #000; color: #fff; padding: 0.625rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s;">+ Add Product</a>

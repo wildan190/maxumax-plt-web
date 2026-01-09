@@ -9,7 +9,7 @@ class PreorderHistory extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['preorder_id','old_status','new_status','note'];
+    protected $fillable = ['preorder_id', 'old_status', 'new_status', 'note'];
 
     public function preorder()
     {

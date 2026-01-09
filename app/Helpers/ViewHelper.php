@@ -3,13 +3,11 @@
 /**
  * Breadcrumb Helper Functions
  */
-
-if (!function_exists('breadcrumbs')) {
+if (! function_exists('breadcrumbs')) {
     /**
      * Generate breadcrumb array
      *
-     * @param array $items
-     * @return array
+     * @param  array  $items
      */
     function breadcrumbs(...$items): array
     {
@@ -37,13 +35,9 @@ if (!function_exists('breadcrumbs')) {
     }
 }
 
-if (!function_exists('active_route')) {
+if (! function_exists('active_route')) {
     /**
      * Determine if route is active
-     *
-     * @param string $route
-     * @param string $class
-     * @return string
      */
     function active_route(string $route, string $class = 'active'): string
     {
@@ -51,12 +45,9 @@ if (!function_exists('active_route')) {
     }
 }
 
-if (!function_exists('page_breadcrumbs')) {
+if (! function_exists('page_breadcrumbs')) {
     /**
      * Set breadcrumbs in view
-     *
-     * @param array $breadcrumbs
-     * @return void
      */
     function page_breadcrumbs(array $breadcrumbs): void
     {

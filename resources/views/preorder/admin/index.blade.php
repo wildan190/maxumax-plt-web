@@ -15,7 +15,7 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Order Number</th>
                     <th>Name</th>
                     <th>Item</th>
                     <th>Qty</th>
@@ -28,7 +28,7 @@
             <tbody>
                 @foreach($preorders as $p)
                     <tr>
-                        <td>{{ $p->id }}</td>
+                        <td>{{ $p->order_number }}</td>
                         <td>{{ $p->name }}</td>
                         <td>{{ $p->jersey_type }} {{ $p->size ? '('.$p->size.')' : '' }}</td>
                         <td>{{ $p->quantity }}</td>
@@ -37,7 +37,7 @@
                         <td>{{ $p->created_at->format('Y-m-d H:i') }}</td>
                         <td>
                             @if($p->status !== 'paid')
-                                <form method="POST" action="{{ route('admin.preorders.markPaid', $p->id) }}" style="display:inline">
+                                <form method="POST" action="{{ route('admin.preorders.markPaid', $p) }}" style="display:inline">
                                     @csrf
                                     <button class="btn small">Mark Paid</button>
                                 </form>

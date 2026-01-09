@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -14,6 +15,7 @@ class ProductController extends Controller
         page_breadcrumbs(breadcrumbs(
             ['label' => 'Products', 'url' => route('admin.products.index')]
         ));
+
         return view('admin.products.index', compact('products'));
     }
 
@@ -23,6 +25,7 @@ class ProductController extends Controller
             ['label' => 'Products', 'url' => route('admin.products.index')],
             ['label' => 'Create', 'url' => route('admin.products.create')]
         ));
+
         return view('admin.products.create');
     }
 
@@ -38,21 +41,53 @@ class ProductController extends Controller
             'is_active' => 'sometimes|boolean',
             'available_for_preorder' => 'sometimes|boolean',
             'image' => 'nullable|image|max:2048',
+            'images.*' => 'nullable|image|max:4096',
         ]);
+
+        if ($request->hasFile('images')) {
+            $images = $request->file('images');
+            if (is_array($images) && count($images) > 4) {
+                return back()->withErrors(['images' => 'Max 4 images allowed'])->withInput();
+            }
+        }
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
             $data['image_path'] = $path;
         }
 
-        $data['slug'] = Str::slug($data['name']) . '-' . Str::random(6);
+        $gallery = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $idx => $file) {
+                if ($file->isValid()) {
+                    $gallery[] = [
+                        'path' => $file->store('products', 'public'),
+                        'position' => $idx,
+                    ];
+                }
+            }
+            if (! isset($data['image_path']) && count($gallery) > 0) {
+                $data['image_path'] = $gallery[0]['path'];
+            }
+        }
+
+        $data['slug'] = Str::slug($data['name']).'-'.Str::random(6);
         $data['uuid'] = (string) Str::uuid();
         $data['is_active'] = $request->boolean('is_active');
         $data['available_for_preorder'] = $request->boolean('available_for_preorder');
         $data['stock'] = $request->input('stock', 0);
         $data['sku'] = $request->input('sku');
 
-        Product::create($data);
+        $product = Product::create($data);
+        if (! empty($gallery)) {
+            foreach ($gallery as $g) {
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'path' => $g['path'],
+                    'position' => $g['position'],
+                ]);
+            }
+        }
 
         return redirect()->route('admin.products.index')->with('success', 'Product created');
     }
@@ -63,6 +98,7 @@ class ProductController extends Controller
             ['label' => 'Products', 'url' => route('admin.products.index')],
             ['label' => 'Edit', 'url' => route('admin.products.edit', $product)]
         ));
+
         return view('admin.products.edit', compact('product'));
     }
 
@@ -78,11 +114,29 @@ class ProductController extends Controller
             'is_active' => 'sometimes|boolean',
             'available_for_preorder' => 'sometimes|boolean',
             'image' => 'nullable|image|max:2048',
+            'images.*' => 'nullable|image|max:4096',
         ]);
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
             $data['image_path'] = $path;
+        }
+
+        if ($request->hasFile('images')) {
+            $existingCount = (int) $product->images()->count();
+            $images = $request->file('images');
+            if (is_array($images) && ($existingCount + count($images)) > 4) {
+                return back()->withErrors(['images' => 'Max 4 images allowed total'])->withInput();
+            }
+            foreach ($request->file('images') as $idx => $file) {
+                if ($file->isValid()) {
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'path' => $file->store('products', 'public'),
+                        'position' => $existingCount + $idx,
+                    ]);
+                }
+            }
         }
 
         $data['is_active'] = $request->boolean('is_active');
@@ -92,7 +146,7 @@ class ProductController extends Controller
 
         // update slug if name changed
         if ($product->name !== $data['name']) {
-            $data['slug'] = Str::slug($data['name']) . '-' . Str::random(6);
+            $data['slug'] = Str::slug($data['name']).'-'.Str::random(6);
         }
 
         $product->update($data);
@@ -103,6 +157,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
+
         return redirect()->route('admin.products.index')->with('success', 'Product deleted');
     }
 }

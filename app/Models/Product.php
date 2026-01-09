@@ -34,4 +34,9 @@ class Product extends Model
     {
         return 'uuid';
     }
+
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('position');
+    }
 }

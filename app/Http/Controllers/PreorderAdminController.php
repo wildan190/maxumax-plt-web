@@ -15,8 +15,8 @@ class PreorderAdminController extends Controller
         if ($request->filled('search')) {
             $search = $request->query('search');
             $query->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%");
         }
 
         if ($request->filled('status')) {
@@ -32,31 +32,30 @@ class PreorderAdminController extends Controller
         return view('admin.preorders.index', compact('preorders'));
     }
 
-    public function markPaid(Request $request, $id)
+    public function markPaid(Request $request, Preorder $preorder)
     {
-        $pre = Preorder::findOrFail($id);
-        if ($pre->status !== 'confirmed') {
+        if ($preorder->status !== 'confirmed') {
             return back()->with('error', 'Order harus dikonfirmasi admin terlebih dahulu sebelum ditandai sebagai paid');
         }
-        $old = $pre->status;
-        $pre->status = 'paid';
-        $pre->save();
+        $old = $preorder->status;
+        $preorder->status = 'paid';
+        $preorder->save();
 
         // decrement stock if product exists and stock available
         $note = 'Marked as paid by admin';
-        if ($pre->product) {
-            $product = $pre->product;
-            if ($product->stock >= $pre->quantity && $product->stock > 0) {
-                $product->stock = max(0, $product->stock - $pre->quantity);
+        if ($preorder->product) {
+            $product = $preorder->product;
+            if ($product->stock >= $preorder->quantity && $product->stock > 0) {
+                $product->stock = max(0, $product->stock - $preorder->quantity);
                 $product->save();
-                $note .= '. Stock decremented by ' . $pre->quantity . ' (remaining: ' . $product->stock . ')';
+                $note .= '. Stock decremented by '.$preorder->quantity.' (remaining: '.$product->stock.')';
             } else {
                 $note .= '. Product stock insufficient or zero; no decrement performed.';
             }
         }
 
         \App\Models\PreorderHistory::create([
-            'preorder_id' => $pre->id,
+            'preorder_id' => $preorder->id,
             'old_status' => $old,
             'new_status' => 'paid',
             'note' => $note,
@@ -65,24 +64,23 @@ class PreorderAdminController extends Controller
         return back()->with('status', 'Marked as paid');
     }
 
-    public function confirm(Request $request, $id)
+    public function confirm(Request $request, Preorder $preorder)
     {
-        $pre = Preorder::findOrFail($id);
-        $old = $pre->status;
+        $old = $preorder->status;
 
-        if ($pre->status === 'paid') {
+        if ($preorder->status === 'paid') {
             return back()->with('status', 'Order sudah paid');
         }
 
-        if ($pre->status === 'confirmed') {
+        if ($preorder->status === 'confirmed') {
             return back()->with('status', 'Order sudah dikonfirmasi');
         }
 
-        $pre->status = 'confirmed';
-        $pre->save();
+        $preorder->status = 'confirmed';
+        $preorder->save();
 
         \App\Models\PreorderHistory::create([
-            'preorder_id' => $pre->id,
+            'preorder_id' => $preorder->id,
             'old_status' => $old,
             'new_status' => 'confirmed',
             'note' => 'Confirmed by admin',
@@ -91,9 +89,8 @@ class PreorderAdminController extends Controller
         return back()->with('status', 'Order dikonfirmasi');
     }
 
-    public function destroy($id)
+    public function destroy(Preorder $preorder)
     {
-        $preorder = Preorder::findOrFail($id);
         // record deletion in history before deleting
         \App\Models\PreorderHistory::create([
             'preorder_id' => $preorder->id,
@@ -109,11 +106,11 @@ class PreorderAdminController extends Controller
 
     public function show(Preorder $preorder)
     {
-        $preorder->load('product','histories');
+        $preorder->load('product', 'histories');
 
         page_breadcrumbs(breadcrumbs(
             ['label' => 'Preorders', 'url' => route('admin.preorders.index')],
-            ['label' => '#'.$preorder->id, 'url' => route('admin.preorders.show', $preorder)]
+            ['label' => '#'.$preorder->order_number, 'url' => route('admin.preorders.show', $preorder)]
         ));
 
         return view('admin.preorders.show', compact('preorder'));
@@ -138,8 +135,8 @@ class PreorderAdminController extends Controller
             $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -147,8 +144,8 @@ class PreorderAdminController extends Controller
 
         $counts = [
             'all' => Preorder::count(),
-            'preorder' => Preorder::whereHas('product', fn($q) => $q->where('available_for_preorder', true))->count(),
-            'order' => Preorder::whereHas('product', fn($q) => $q->where('available_for_preorder', false)->where('is_active', true))->count(),
+            'preorder' => Preorder::whereHas('product', fn ($q) => $q->where('available_for_preorder', true))->count(),
+            'order' => Preorder::whereHas('product', fn ($q) => $q->where('available_for_preorder', false)->where('is_active', true))->count(),
         ];
 
         page_breadcrumbs(breadcrumbs(
@@ -165,7 +162,7 @@ class PreorderAdminController extends Controller
 
         $response = new StreamedResponse(function () {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['id','name','email','phone','jersey_type','size','long_sleeve','nameset','nameset_text','quantity','unit_price','total_amount','status','created_at']);
+            fputcsv($handle, ['id', 'name', 'email', 'phone', 'jersey_type', 'size', 'long_sleeve', 'nameset', 'nameset_text', 'quantity', 'unit_price', 'total_amount', 'status', 'created_at']);
 
             Preorder::orderByDesc('created_at')->chunk(200, function ($rows) use ($handle) {
                 foreach ($rows as $r) {
@@ -180,8 +177,8 @@ class PreorderAdminController extends Controller
                         $r->nameset ? '1' : '0',
                         $r->nameset_text,
                         $r->quantity,
-                        number_format($r->unit_price,2,'.',''),
-                        number_format($r->total_amount,2,'.',''),
+                        number_format($r->unit_price, 2, '.', ''),
+                        number_format($r->total_amount, 2, '.', ''),
                         $r->status,
                         $r->created_at,
                     ]);
