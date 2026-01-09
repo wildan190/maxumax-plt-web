@@ -523,9 +523,14 @@
                     <div class="payment-section">
                         <div class="payment-title">Payment Method</div>
                         <div class="payment-options">
-                            <label class="payment-option active">
+                            <label class="payment-option active" id="payment-cod">
                                 <input type="radio" name="payment_method" value="cod" checked>
                                 <span class="payment-label">Cash on Delivery (COD)</span>
+                                <span class="payment-badge badge-available">Available</span>
+                            </label>
+                            <label class="payment-option" id="payment-stripe">
+                                <input type="radio" name="payment_method" value="stripe">
+                                <span class="payment-label">Credit/Debit Card (Stripe)</span>
                                 <span class="payment-badge badge-available">Available</span>
                             </label>
                             <label class="payment-option disabled">
@@ -541,8 +546,8 @@
                         </div>
                     </div>
                     
-                    <!-- Checkout Form -->
-                    <form method="POST" action="{{ route('checkout.cod') }}" class="checkout-form">
+                    <!-- Checkout Form for COD -->
+                    <form method="POST" action="{{ route('checkout.cod') }}" class="checkout-form" id="checkoutCodForm">
                         @csrf
                         <input type="hidden" name="currency" value="{{ $currency }}">
                         <input type="hidden" name="payment_method" value="cod" id="paymentMethodInput">
@@ -572,9 +577,46 @@
                             <textarea name="notes" placeholder="Any special instructions or notes..." rows="2" class="form-textarea"></textarea>
                         </div>
                         
-                        <button type="submit" class="btn-checkout">
+                        <button type="submit" class="btn-checkout" id="codSubmitBtn">
                             <i data-feather="truck"></i>
                             Complete Order (COD)
+                        </button>
+                    </form>
+                    
+                    <!-- Checkout Form for Stripe -->
+                    <form method="POST" action="{{ route('checkout.stripe') }}" class="checkout-form" id="checkoutStripeForm" style="display: none;">
+                        @csrf
+                        <input type="hidden" name="currency" value="{{ $currency }}">
+                        <input type="hidden" name="payment_method" value="stripe">
+                        
+                        <div class="form-group">
+                            <label class="form-label">Full Name <span style="color: #ef4444;">*</span></label>
+                            <input type="text" name="name" placeholder="Enter your full name" required class="form-input" id="stripeName">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Email <span style="color: #ef4444;">*</span></label>
+                            <input type="email" name="email" placeholder="your.email@example.com" required class="form-input" id="stripeEmail">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Phone / WhatsApp <span style="color: #ef4444;">*</span></label>
+                            <input type="text" name="phone" placeholder="+673 1234 5678" required class="form-input" id="stripePhone">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Delivery Address <span style="color: #ef4444;">*</span></label>
+                            <textarea name="address" placeholder="Enter your complete delivery address" required rows="3" class="form-textarea" id="stripeAddress"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Notes (Optional)</label>
+                            <textarea name="notes" placeholder="Any special instructions or notes..." rows="2" class="form-textarea" id="stripeNotes"></textarea>
+                    </div>
+                        
+                        <button type="submit" class="btn-checkout" id="stripeSubmitBtn">
+                            <i data-feather="credit-card"></i>
+                            Pay with Stripe
                         </button>
                     </form>
                 </div>
@@ -620,12 +662,50 @@
         document.addEventListener('DOMContentLoaded', function() {
             const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
             const paymentMethodInput = document.getElementById('paymentMethodInput');
+            const codForm = document.getElementById('checkoutCodForm');
+            const stripeForm = document.getElementById('checkoutStripeForm');
+            const codOption = document.getElementById('payment-cod');
+            const stripeOption = document.getElementById('payment-stripe');
+            
+            function syncFormFields() {
+                const codName = codForm?.querySelector('input[name="name"]');
+                const codEmail = codForm?.querySelector('input[name="email"]');
+                const codPhone = codForm?.querySelector('input[name="phone"]');
+                const codAddress = codForm?.querySelector('textarea[name="address"]');
+                const codNotes = codForm?.querySelector('textarea[name="notes"]');
+                
+                const stripeName = stripeForm?.querySelector('#stripeName');
+                const stripeEmail = stripeForm?.querySelector('#stripeEmail');
+                const stripePhone = stripeForm?.querySelector('#stripePhone');
+                const stripeAddress = stripeForm?.querySelector('#stripeAddress');
+                const stripeNotes = stripeForm?.querySelector('#stripeNotes');
+                
+                if (codName && stripeName) stripeName.value = codName.value;
+                if (codEmail && stripeEmail) stripeEmail.value = codEmail.value;
+                if (codPhone && stripePhone) stripePhone.value = codPhone.value;
+                if (codAddress && stripeAddress) stripeAddress.value = codAddress.value;
+                if (codNotes && stripeNotes) stripeNotes.value = codNotes.value;
+            }
             
             paymentRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
                     if (this.checked && !this.disabled) {
                         if (paymentMethodInput) {
                             paymentMethodInput.value = this.value;
+                        }
+                        
+                        // Show/hide forms based on payment method
+                        if (this.value === 'cod') {
+                            if (codForm) codForm.style.display = 'block';
+                            if (stripeForm) stripeForm.style.display = 'none';
+                            if (codOption) codOption.classList.add('active');
+                            if (stripeOption) stripeOption.classList.remove('active');
+                        } else if (this.value === 'stripe') {
+                            if (codForm) codForm.style.display = 'none';
+                            if (stripeForm) stripeForm.style.display = 'block';
+                            if (codOption) codOption.classList.remove('active');
+                            if (stripeOption) stripeOption.classList.add('active');
+                            syncFormFields();
                         }
                     }
                 });
@@ -640,6 +720,11 @@
                     label.classList.add('disabled');
                 }
             });
+            
+            // Sync form fields when COD form changes
+            if (codForm) {
+                codForm.addEventListener('input', syncFormFields);
+            }
         });
     </script>
 @endsection
