@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PreorderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -79,5 +80,7 @@ Route::post('/cart/add', [PreorderController::class, 'cartAdd'])->name('cart.add
 Route::post('/cart/update', [PreorderController::class, 'cartUpdate'])->name('cart.update');
 Route::post('/cart/remove', [PreorderController::class, 'cartRemove'])->name('cart.remove');
 Route::post('/checkout/cod', [PreorderController::class, 'checkoutCod'])->name('checkout.cod');
-Route::post('/currency/set', [PreorderController::class, 'setCurrency'])->name('currency.set');
+Route::post('/checkout/stripe', [PaymentController::class, 'createCheckoutSession'])->name('checkout.stripe');
+Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
+Route::get('/payment/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
 Route::post('/currency/set', [PreorderController::class, 'setCurrency'])->name('currency.set');
