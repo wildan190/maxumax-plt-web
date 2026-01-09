@@ -63,6 +63,7 @@ Route::get('/order/thank-you/{id}', [PreorderController::class, 'thankyou'])->na
 
 Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 Route::get('/order/track', [PreorderController::class, 'track'])->name('order.track');
+Route::get('/products', [PreorderController::class, 'showProducts'])->name('products.index');
 Route::get('/product/{product}', [PreorderController::class, 'showProduct'])->name('product.show');
 
 Route::get('/cart', [PreorderController::class, 'cartShow'])->name('cart.show');

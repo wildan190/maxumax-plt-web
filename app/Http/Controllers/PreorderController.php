@@ -33,14 +33,11 @@ class PreorderController extends Controller
     }
 
     /**
-     * Show the preorder landing page with available products.
+     * Show the preorder landing page with preorder products only.
      */
     public function showLanding(Request $request)
     {
-        $products = Product::where(function ($q) {
-            $q->where('is_active', true)
-                ->orWhere('available_for_preorder', true);
-        })
+        $products = Product::where('available_for_preorder', true)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -192,11 +189,25 @@ class PreorderController extends Controller
     }
 
     /**
+     * Show products listing page (only available products, not preorder).
+     */
+    public function showProducts(Request $request)
+    {
+        $products = Product::where('is_active', true)
+            ->where('available_for_preorder', false)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('products.index', compact('products'));
+    }
+
+    /**
      * Show public product detail with feedback and rating.
+     * Only shows products that are available (not preorder).
      */
     public function showProduct(Request $request, Product $product)
     {
-        if (! ($product->is_active || $product->available_for_preorder)) {
+        if (! ($product->is_active && !$product->available_for_preorder)) {
             abort(404);
         }
 

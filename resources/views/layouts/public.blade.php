@@ -28,7 +28,7 @@
                 <div class="public-nav-links">
                     <a href="/" class="public-nav-link">Home</a>
                     <a href="{{ route('preorder.landing') }}" class="public-nav-link">Pre-order</a>
-                    <a href="{{ route('preorder.landing') }}#products" class="public-nav-link">Products</a>
+                    <a href="{{ route('products.index') }}" class="public-nav-link">Products</a>
                     <a href="{{ route('order.track') }}" class="public-nav-link">Track Order</a>
                     @php $cartCount = is_array(session('cart')) ? count(session('cart')) : 0; @endphp
                     <a href="{{ route('cart.show') }}" class="public-nav-link" aria-label="Cart" title="Cart" style="position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px;">

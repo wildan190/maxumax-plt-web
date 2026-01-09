@@ -12,5 +12,10 @@ class Feedback extends Model
         'email',
         'rating',
         'comment',
+        'images',
+    ];
+
+    protected $casts = [
+        'images' => 'array',
     ];
 }

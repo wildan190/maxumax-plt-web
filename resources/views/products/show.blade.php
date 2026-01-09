@@ -94,7 +94,7 @@
                 </div>
             </div>
             <div style="margin-top:0.75rem;">
-                <form method="POST" action="{{ route('feedback.store') }}" class="space-y-3">
+                <form method="POST" action="{{ route('feedback.store') }}" enctype="multipart/form-data" class="space-y-3">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
@@ -109,18 +109,22 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Rating</label>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-1" id="ratingStars">
                             @for ($r = 1; $r <= 5; $r++)
-                                <label class="inline-flex items-center gap-1 cursor-pointer">
-                                    <input type="radio" name="rating" value="{{ $r }}" class="accent-black" required />
-                                    <span class="text-slate-800">{{ $r }}</span>
-                                </label>
+                                <button type="button" class="star-btn text-2xl text-slate-300 hover:text-yellow-400 transition-colors cursor-pointer" data-rating="{{ $r }}" style="background: none; border: none; padding: 0; line-height: 1;">★</button>
                             @endfor
                         </div>
+                        <input type="hidden" name="rating" id="ratingInput" value="" required />
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Feedback</label>
                         <textarea name="comment" rows="3" class="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black" placeholder="Tulis masukan Anda di sini..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Upload Gambar (Maksimal 2 gambar)</label>
+                        <input type="file" name="images[]" id="feedbackImages" accept="image/*" multiple class="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
+                        <p class="text-xs text-slate-500 mt-1">Format: JPG, PNG, GIF. Maksimal 5MB per gambar.</p>
+                        <div id="imagePreview" class="mt-3 flex gap-3 flex-wrap"></div>
                     </div>
                     <div>
                         <button type="submit" class="inline-flex items-center bg-black text-white px-5 py-3 rounded-md font-semibold text-base transition hover:bg-slate-900 hover:-translate-y-0.5">Kirim Feedback</button>
@@ -143,6 +147,15 @@
                                 </div>
                             </div>
                             <div class="text-slate-600 text-sm">{{ $fb->comment ?? '-' }}</div>
+                            @if($fb->images && count($fb->images))
+                                <div class="flex gap-2 mt-2 flex-wrap">
+                                    @foreach(array_slice($fb->images, 0, 2) as $img)
+                                        <a href="{{ asset('storage/' . $img) }}" target="_blank" class="block">
+                                            <img src="{{ asset('storage/' . $img) }}" alt="Feedback image" class="w-20 h-20 object-cover rounded border border-slate-200 hover:opacity-80 transition" />
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                             <div class="text-slate-400 text-xs mt-2">{{ $fb->created_at->diffForHumans() }}</div>
                         </div>
                     @empty
@@ -219,6 +232,92 @@
             next?.addEventListener('click', () => {
                 if (!thumbs.length) return;
                 setIndex((idx + 1) % thumbs.length);
+            });
+        })();
+        (function(){
+            const ratingStars = document.getElementById('ratingStars');
+            const ratingInput = document.getElementById('ratingInput');
+            if (!ratingStars || !ratingInput) return;
+            
+            const stars = Array.from(ratingStars.querySelectorAll('.star-btn'));
+            let selectedRating = 0;
+            
+            function updateStars(rating) {
+                stars.forEach((star, index) => {
+                    const starRating = index + 1;
+                    if (starRating <= rating) {
+                        star.style.color = '#fbbf24'; // yellow-400
+                    } else {
+                        star.style.color = '#cbd5e1'; // slate-300
+                    }
+                });
+                ratingInput.value = rating;
+            }
+            
+            stars.forEach((star, index) => {
+                const starRating = index + 1;
+                
+                star.addEventListener('click', () => {
+                    selectedRating = starRating;
+                    updateStars(selectedRating);
+                });
+                
+                star.addEventListener('mouseenter', () => {
+                    updateStars(starRating);
+                });
+            });
+            
+            ratingStars.addEventListener('mouseleave', () => {
+                updateStars(selectedRating);
+            });
+        })();
+        (function(){
+            const imageInput = document.getElementById('feedbackImages');
+            const imagePreview = document.getElementById('imagePreview');
+            if (!imageInput || !imagePreview) return;
+            
+            imageInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                
+                // Limit to max 2 images
+                if (files.length > 2) {
+                    alert('Maksimal 2 gambar yang dapat diupload');
+                    e.target.value = '';
+                    imagePreview.innerHTML = '';
+                    return;
+                }
+                
+                imagePreview.innerHTML = '';
+                
+                files.forEach((file, index) => {
+                    if (!file.type.startsWith('image/')) {
+                        alert('File harus berupa gambar');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = 'relative';
+                        div.innerHTML = `
+                            <img src="${e.target.result}" alt="Preview ${index + 1}" class="w-24 h-24 object-cover rounded border border-slate-300" />
+                            <button type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600" data-index="${index}">×</button>
+                        `;
+                        imagePreview.appendChild(div);
+                        
+                        // Remove button functionality
+                        div.querySelector('button').addEventListener('click', function() {
+                            const dataTransfer = new DataTransfer();
+                            const newFiles = Array.from(imageInput.files).filter((_, i) => i !== parseInt(this.getAttribute('data-index')));
+                            newFiles.forEach(file => dataTransfer.items.add(file));
+                            imageInput.files = dataTransfer.files;
+                            div.remove();
+                            // Trigger change event to update preview
+                            imageInput.dispatchEvent(new Event('change'));
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
             });
         })();
     </script>
