@@ -20,6 +20,8 @@
 /storage/pail
 /vendor
 /tests/Feature/StripePaymentTest.php
+STRIPE_INSTRUCTIONS.md
+STRIPE_SETUP.md
 Homestead.json
 Homestead.yaml
 Thumbs.db
