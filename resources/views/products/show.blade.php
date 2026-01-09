@@ -5,6 +5,33 @@
 @push('styles')
     <style>
         .prod-container { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
+        .currency-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .currency-select {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .currency-select label {
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 0.875rem;
+        }
+        .currency-select select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            background: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
         .prod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
         .prod-image { background:#fff; border:1px solid #e2e8f0; border-radius:0.75rem; padding:0.75rem; display:flex; align-items:center; justify-content:center; min-height: 320px; }
         .prod-title { font-size:2rem; font-weight:800; color:#0f172a; margin:0 0 0.5rem; }
@@ -18,6 +45,17 @@
 
 @section('content')
     <section class="prod-container">
+        <!-- Currency Selector -->
+        <div class="currency-bar">
+            <div class="currency-select">
+                <label>Currency:</label>
+                <select id="currencySelector">
+                    <option value="MYR" {{ ($currency ?? 'MYR') === 'MYR' ? 'selected' : '' }}>RM (Malaysia)</option>
+                    <option value="BND" {{ ($currency ?? 'MYR') === 'BND' ? 'selected' : '' }}>$ (Brunei)</option>
+                    <option value="IDR" {{ ($currency ?? 'MYR') === 'IDR' ? 'selected' : '' }}>Rp (Indonesia)</option>
+                </select>
+            </div>
+        </div>
         <div class="prod-grid">
             <div class="prod-image" id="prodGallery">
                 @php
@@ -46,35 +84,56 @@
                     <span class="prod-type">{{ $product->jersey_type }}</span>
                 @endif
                 <p class="prod-desc">{{ $product->description ?: 'Premium quality jersey with breathable fabric.' }}</p>
-                <div class="prod-price"><span style="font-size:0.875rem; font-weight:600; color:#64748b;">RM</span> {{ number_format($product->price, 2) }}</div>
+                <div class="prod-price" id="priceDisplay">
+                    <span id="currencySymbol" style="font-size:0.875rem; font-weight:600; color:#64748b;">{{ $currency === 'MYR' ? 'RM' : ($currency === 'BND' ? '$' : 'Rp') }}</span> 
+                    <span id="basePrice">{{ number_format($product->price * ($currency === 'MYR' ? 1 : ($currency === 'BND' ? 1.05 : 5200)), 2) }}</span>
+                </div>
+                <div id="longSleevePrice" style="display:none; margin-top:0.5rem; color:#64748b; font-size:0.875rem;">
+                    <span>Base price: <span id="basePriceText"></span></span><br>
+                    <span>+ Long Sleeve: <span id="longSleeveAdd"></span></span>
+                </div>
                 <div style="margin-top:0.75rem;">
                     @if($product->available_for_preorder)
                         <a href="{{ route('preorder.create', $product) }}" class="btn"><i data-feather="shopping-cart"></i> Pre-order</a>
                     @elseif($product->is_active)
-                        <div id="configPanel" style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem; margin-bottom:0.75rem; max-width:420px;">
-                            <div>
-                                <label style="display:block; font-weight:600; color:#111827; margin-bottom:0.25rem;">Ukuran</label>
-                                <select id="sizeSelect" name="size" style="width:100%; padding:0.5rem; border:1px solid #e5e7eb; border-radius:0.5rem;">
-                                    <option value="">Pilih ukuran</option>
-                                    <option value="S">S</option>
-                                    <option value="M">M</option>
-                                    <option value="L">L</option>
-                                    <option value="XL">XL</option>
-                                    <option value="XXL">XXL</option>
-                                </select>
+                        @if($errors->any())
+                            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                                <ul style="margin: 0; padding-left: 1.25rem;">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
                             </div>
-                            <div>
-                                <label style="display:block; font-weight:600; color:#111827; margin-bottom:0.25rem;">Jumlah</label>
-                                <input type="number" id="qtyInput" name="quantity" value="1" min="1" style="width:100%; padding:0.5rem; border:1px solid #e5e7eb; border-radius:0.5rem;">
+                        @endif
+                        @if(session('success'))
+                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                                {{ session('success') }}
                             </div>
-                            <label style="grid-column: span 2; display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-                                <input type="checkbox" name="long_sleeve" value="1" style="width:1.25rem;height:1.25rem; cursor:pointer;">
-                                <span style="color:#111827;">Long Sleeve</span>
-                            </label>
-                        </div>
+                        @endif
                         <form id="activeAddToCartForm" method="POST" action="{{ route('cart.add') }}" style="display:inline-block;">
                             @csrf
                             <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <div id="configPanel" style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem; margin-bottom:0.75rem; max-width:420px;">
+                                <div>
+                                    <label style="display:block; font-weight:600; color:#111827; margin-bottom:0.25rem;">Ukuran <span style="color:#ef4444;">*</span></label>
+                                    <select id="sizeSelect" name="size" required style="width:100%; padding:0.5rem; border:1px solid #e5e7eb; border-radius:0.5rem;">
+                                        <option value="">Pilih ukuran</option>
+                                        <option value="S">S</option>
+                                        <option value="M">M</option>
+                                        <option value="L">L</option>
+                                        <option value="XL">XL</option>
+                                        <option value="XXL">XXL</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display:block; font-weight:600; color:#111827; margin-bottom:0.25rem;">Jumlah</label>
+                                    <input type="number" id="qtyInput" name="quantity" value="1" min="1" required style="width:100%; padding:0.5rem; border:1px solid #e5e7eb; border-radius:0.5rem;">
+                                </div>
+                                <label style="grid-column: span 2; display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                                    <input type="checkbox" id="longSleeveCheckbox" name="long_sleeve" value="1" style="width:1.25rem;height:1.25rem; cursor:pointer;">
+                                    <span style="color:#111827;">Long Sleeve <span id="longSleeveLabel" style="color:#64748b; font-size:0.875rem;">(+RM 3.00)</span></span>
+                                </label>
+                            </div>
                             <button type="submit" class="btn" style="background:#111827;"><i data-feather="shopping-bag"></i> Add to Cart</button>
                         </form>
                     @endif
@@ -172,6 +231,9 @@
                 form.addEventListener('submit', function(e){
                     const sizeSel = document.getElementById('sizeSelect');
                     const qty = document.getElementById('qtyInput');
+                    const longSleeveCheckbox = document.getElementById('longSleeveCheckbox');
+                    
+                    // Validate size
                     if (sizeSel && (!sizeSel.value || sizeSel.value === '')) {
                         e.preventDefault();
                         sizeSel.style.borderColor = '#ef4444';
@@ -179,26 +241,25 @@
                         sizeSel.focus();
                         const panel = document.getElementById('configPanel');
                         panel && panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        return;
+                        alert('Silakan pilih ukuran terlebih dahulu');
+                        return false;
                     }
-                    if (!form.querySelector('input[name="size"]')) {
-                        const hiddenSize = document.createElement('input');
-                        hiddenSize.type = 'hidden';
-                        hiddenSize.name = 'size';
-                        hiddenSize.value = sizeSel ? sizeSel.value : '';
-                        form.appendChild(hiddenSize);
-                    } else {
-                        form.querySelector('input[name="size"]').value = sizeSel ? sizeSel.value : '';
+                    
+                    // Reset border if valid
+                    if (sizeSel) {
+                        sizeSel.style.borderColor = '';
+                        sizeSel.style.boxShadow = '';
                     }
-                    if (!form.querySelector('input[name="quantity"]')) {
-                        const hiddenQty = document.createElement('input');
-                        hiddenQty.type = 'hidden';
-                        hiddenQty.name = 'quantity';
-                        hiddenQty.value = qty ? Math.max(1, parseInt(qty.value || '1', 10)) : 1;
-                        form.appendChild(hiddenQty);
-                    } else {
-                        form.querySelector('input[name="quantity"]').value = qty ? Math.max(1, parseInt(qty.value || '1', 10)) : 1;
+                    
+                    // Ensure quantity is valid
+                    if (qty) {
+                        const qtyValue = parseInt(qty.value || '1', 10);
+                        if (qtyValue < 1) {
+                            qty.value = 1;
+                        }
                     }
+                    
+                    // Form will submit normally with all fields (size, quantity, long_sleeve are already in form)
                 });
             }
         })();
@@ -271,6 +332,106 @@
                 updateStars(selectedRating);
             });
         })();
+        // Currency configuration
+        const currencies = {
+            MYR: { symbol: 'RM', rate: 1, longSleeve: 3 },
+            BND: { symbol: '$', rate: 1.05, longSleeve: 3 },
+            IDR: { symbol: 'Rp', rate: 5200, longSleeve: 15600 }
+        };
+        
+        let currentCurrency = '{{ $currency ?? 'MYR' }}';
+        const basePrice = parseFloat('{{ $product->price }}');
+        
+        function getCurrencySymbol() {
+            return currencies[currentCurrency].symbol;
+        }
+        
+        function formatPrice(price) {
+            const config = currencies[currentCurrency];
+            const converted = price * config.rate;
+            if (currentCurrency === 'IDR') {
+                return getCurrencySymbol() + ' ' + Math.round(converted).toLocaleString('id-ID');
+            }
+            return getCurrencySymbol() + ' ' + converted.toFixed(2);
+        }
+        
+        function updateCurrencyDisplay() {
+            const config = currencies[currentCurrency];
+            const currencySymbolEl = document.getElementById('currencySymbol');
+            const basePriceEl = document.getElementById('basePrice');
+            const longSleeveLabelEl = document.getElementById('longSleeveLabel');
+            const longSleeveAddEl = document.getElementById('longSleeveAdd');
+            const basePriceTextEl = document.getElementById('basePriceText');
+            
+            if (currencySymbolEl) currencySymbolEl.textContent = config.symbol;
+            if (longSleeveLabelEl) longSleeveLabelEl.textContent = '(+' + formatPrice(config.longSleeve / config.rate) + ')';
+            if (longSleeveAddEl) longSleeveAddEl.textContent = formatPrice(config.longSleeve / config.rate);
+            if (basePriceTextEl) basePriceTextEl.textContent = formatPrice(basePrice);
+            
+            updatePrice();
+        }
+        
+        function updatePrice() {
+            const longSleeveCheckbox = document.getElementById('longSleeveCheckbox');
+            const basePriceEl = document.getElementById('basePrice');
+            const longSleevePriceEl = document.getElementById('longSleevePrice');
+            
+            if (!longSleeveCheckbox || !basePriceEl) return;
+            
+            const config = currencies[currentCurrency];
+            const isLongSleeve = longSleeveCheckbox.checked;
+            let price = basePrice * config.rate;
+            
+            if (isLongSleeve) {
+                price += config.longSleeve;
+                if (longSleevePriceEl) {
+                    longSleevePriceEl.style.display = 'block';
+                }
+            } else {
+                if (longSleevePriceEl) {
+                    longSleevePriceEl.style.display = 'none';
+                }
+            }
+            
+            if (currentCurrency === 'IDR') {
+                basePriceEl.textContent = Math.round(price).toLocaleString('id-ID');
+            } else {
+                basePriceEl.textContent = price.toFixed(2);
+            }
+        }
+        
+        // Currency selector
+        const currencySelector = document.getElementById('currencySelector');
+        if (currencySelector) {
+            currencySelector.addEventListener('change', async function() {
+                currentCurrency = this.value;
+                
+                // Save to session
+                try {
+                    await fetch('{{ route('currency.set') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ currency: currentCurrency })
+                    });
+                } catch (e) {
+                    console.error('Failed to save currency:', e);
+                }
+                
+                updateCurrencyDisplay();
+            });
+        }
+        
+        // Long sleeve checkbox
+        const longSleeveCheckbox = document.getElementById('longSleeveCheckbox');
+        if (longSleeveCheckbox) {
+            longSleeveCheckbox.addEventListener('change', updatePrice);
+        }
+        
+        // Initial display
+        updateCurrencyDisplay();
         (function(){
             const imageInput = document.getElementById('feedbackImages');
             const imagePreview = document.getElementById('imagePreview');

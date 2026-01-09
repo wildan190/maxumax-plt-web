@@ -416,6 +416,18 @@
 
 @section('content')
     <section class="cart-container">
+        <!-- Currency Selector -->
+        <div class="currency-bar" style="display: flex; justify-content: flex-end; margin-bottom: 1rem; padding: 0.75rem 1rem; background: #f8fafc; border-radius: 0.5rem; border: 1px solid #e2e8f0;">
+            <div class="currency-select" style="display: flex; align-items: center; gap: 0.5rem;">
+                <label style="font-weight: 600; color: #0f172a; font-size: 0.875rem;">Currency:</label>
+                <select id="currencySelector" style="padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; background: #fff; font-weight: 600; cursor: pointer;">
+                    <option value="MYR" {{ $currency === 'MYR' ? 'selected' : '' }}>RM (Malaysia)</option>
+                    <option value="BND" {{ $currency === 'BND' ? 'selected' : '' }}>$ (Brunei)</option>
+                    <option value="IDR" {{ $currency === 'IDR' ? 'selected' : '' }}>Rp (Indonesia)</option>
+                </select>
+            </div>
+        </div>
+        
         <div class="cart-header">
             <h1 class="cart-title">Shopping Cart</h1>
             <p class="cart-subtitle">Review your order before checkout</p>
@@ -451,10 +463,17 @@
                                 <div class="cart-item-name">{{ $it['name'] }}</div>
                                 <div class="cart-item-meta">
                                     {{ $it['jersey_type'] ?? '-' }} • Size {{ $it['size'] ?? '-' }} • Qty {{ $it['quantity'] }}
-                                    @if(!empty($it['long_sleeve'])) • Long Sleeve @endif
+                                    @if(!empty($it['long_sleeve'])) 
+                                        <br><span style="color: #10b981; font-weight: 600;">✓ Long Sleeve (+{{ $it['currency'] }} {{ number_format(3.00, 2) }})</span>
+                                    @endif
                                 </div>
                                 <div class="cart-item-price">
                                     <span style="font-size: 0.875rem; color: #64748b; font-weight: 500;">{{ $it['currency'] }}</span> {{ number_format($it['line_total'], 2) }}
+                                    @if(!empty($it['long_sleeve']))
+                                        <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">
+                                            ({{ $it['currency'] }} {{ number_format($it['unit'], 2) }} × {{ $it['quantity'] }})
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                             <div class="cart-actions">
@@ -462,9 +481,16 @@
                                     @csrf
                                     <input type="hidden" name="product_id" value="{{ $it['product_id'] }}">
                                     <input type="hidden" name="size" value="{{ $it['size'] }}">
-                                    <input type="hidden" name="long_sleeve" value="{{ $it['long_sleeve'] ? 1 : 0 }}">
-                                    <input type="number" name="quantity" value="{{ $it['quantity'] }}" min="1" class="cart-qty-input">
-                                    <button type="submit" class="btn-update">Update</button>
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
+                                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                            <input type="number" name="quantity" value="{{ $it['quantity'] }}" min="1" class="cart-qty-input">
+                                            <button type="submit" class="btn-update">Update</button>
+                                        </div>
+                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.875rem;">
+                                            <input type="checkbox" name="long_sleeve" value="1" {{ !empty($it['long_sleeve']) ? 'checked' : '' }} onchange="this.form.submit()" style="width: 1rem; height: 1rem; cursor: pointer;">
+                                            <span style="color: #64748b;">Long Sleeve (+{{ $it['currency'] }} 3.00)</span>
+                                        </label>
+                                    </div>
                                 </form>
                                 <form method="POST" action="{{ route('cart.remove') }}">
                                     @csrf
@@ -557,6 +583,39 @@
     </section>
     
     <script>
+        // Currency configuration
+        const currencies = {
+            MYR: { symbol: 'RM', rate: 1, longSleeve: 3 },
+            BND: { symbol: '$', rate: 1.05, longSleeve: 3 },
+            IDR: { symbol: 'Rp', rate: 5200, longSleeve: 15600 }
+        };
+        
+        let currentCurrency = '{{ $currency }}';
+        
+        // Currency selector
+        const currencySelector = document.getElementById('currencySelector');
+        if (currencySelector) {
+            currencySelector.addEventListener('change', async function() {
+                currentCurrency = this.value;
+                
+                // Save to session and reload
+                try {
+                    await fetch('{{ route('currency.set') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ currency: currentCurrency })
+                    });
+                    // Reload page to update prices
+                    window.location.reload();
+                } catch (e) {
+                    console.error('Failed to save currency:', e);
+                }
+            });
+        }
+        
         // Update payment method input when radio button changes
         document.addEventListener('DOMContentLoaded', function() {
             const paymentRadios = document.querySelectorAll('input[name="payment_method"]');

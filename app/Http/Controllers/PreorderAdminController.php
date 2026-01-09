@@ -10,13 +10,20 @@ class PreorderAdminController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Preorder::query()->orderByDesc('created_at');
+        // Only show preorders (available_for_preorder = true)
+        $query = Preorder::query()
+            ->whereHas('product', function ($q) {
+                $q->where('available_for_preorder', true);
+            })
+            ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
             $search = $request->query('search');
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%")
-                ->orWhere('phone', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
         }
 
         if ($request->filled('status')) {
@@ -164,7 +171,9 @@ class PreorderAdminController extends Controller
             $handle = fopen('php://output', 'w');
             fputcsv($handle, ['id', 'name', 'email', 'phone', 'jersey_type', 'size', 'long_sleeve', 'nameset', 'nameset_text', 'quantity', 'unit_price', 'total_amount', 'status', 'created_at']);
 
-            Preorder::orderByDesc('created_at')->chunk(200, function ($rows) use ($handle) {
+            Preorder::whereHas('product', function ($q) {
+                $q->where('available_for_preorder', true);
+            })->orderByDesc('created_at')->chunk(200, function ($rows) use ($handle) {
                 foreach ($rows as $r) {
                     fputcsv($handle, [
                         $r->id,

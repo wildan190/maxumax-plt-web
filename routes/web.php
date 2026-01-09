@@ -28,6 +28,17 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::delete('/preorders/{preorder}', [App\Http\Controllers\PreorderAdminController::class, 'destroy'])->name('admin.preorders.destroy');
     Route::get('/preorders/export/csv', [App\Http\Controllers\PreorderAdminController::class, 'exportCsv'])->name('admin.preorders.export');
 
+    // Orders history (all orders including preorders) - must be before /orders/{order}
+    Route::get('/orders/history', [App\Http\Controllers\PreorderAdminController::class, 'history'])->name('admin.orders.history');
+
+    // Admin order management (product orders, not preorders)
+    Route::get('/orders', [App\Http\Controllers\OrderAdminController::class, 'index'])->name('admin.orders.index');
+    Route::get('/orders/export/csv', [App\Http\Controllers\OrderAdminController::class, 'exportCsv'])->name('admin.orders.export');
+    Route::get('/orders/{order}', [App\Http\Controllers\OrderAdminController::class, 'show'])->name('admin.orders.show');
+    Route::post('/orders/{order}/confirm', [App\Http\Controllers\OrderAdminController::class, 'confirm'])->name('admin.orders.confirm');
+    Route::post('/orders/{order}/mark-paid', [App\Http\Controllers\OrderAdminController::class, 'markPaid'])->name('admin.orders.markPaid');
+    Route::delete('/orders/{order}', [App\Http\Controllers\OrderAdminController::class, 'destroy'])->name('admin.orders.destroy');
+
     // Product management
     Route::get('/products', [ProductController::class, 'index'])->name('admin.products.index');
     Route::get('/products/create', [ProductController::class, 'create'])->name('admin.products.create');
@@ -35,9 +46,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('admin.products.edit');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('admin.products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('admin.products.destroy');
-
-    // Orders history
-    Route::get('/orders/history', [App\Http\Controllers\PreorderAdminController::class, 'history'])->name('admin.orders.history');
 });
 
 // Preorder landing (supports optional subdomain via PREORDER_DOMAIN env)
@@ -71,3 +79,5 @@ Route::post('/cart/add', [PreorderController::class, 'cartAdd'])->name('cart.add
 Route::post('/cart/update', [PreorderController::class, 'cartUpdate'])->name('cart.update');
 Route::post('/cart/remove', [PreorderController::class, 'cartRemove'])->name('cart.remove');
 Route::post('/checkout/cod', [PreorderController::class, 'checkoutCod'])->name('checkout.cod');
+Route::post('/currency/set', [PreorderController::class, 'setCurrency'])->name('currency.set');
+Route::post('/currency/set', [PreorderController::class, 'setCurrency'])->name('currency.set');

@@ -211,6 +211,7 @@ class PreorderController extends Controller
             abort(404);
         }
 
+        $currency = session()->get('currency', 'MYR');
         $avg = round((float) Feedback::where('product_id', $product->id)->avg('rating'), 2);
         $count = (int) Feedback::where('product_id', $product->id)->count();
         $latest = Feedback::where('product_id', $product->id)->orderByDesc('created_at')->limit(6)->get();
@@ -220,7 +221,19 @@ class PreorderController extends Controller
             'feedbackAvg' => $avg,
             'feedbackCount' => $count,
             'latestFeedback' => $latest,
+            'currency' => $currency,
         ]);
+    }
+    
+    public function setCurrency(Request $request)
+    {
+        $request->validate([
+            'currency' => 'required|string|in:MYR,BND,IDR',
+        ]);
+        
+        session()->put('currency', $request->currency);
+        
+        return response()->json(['success' => true, 'currency' => $request->currency]);
     }
 
     public function cartAdd(Request $request)
@@ -271,15 +284,15 @@ class PreorderController extends Controller
             return ['ok' => true];
         });
         if (isset($result['error'])) {
-            return back()->withErrors($result['error']);
+            return back()->withErrors($result['error'])->withInput();
         }
-        return redirect()->route('cart.show')->with('success', 'Produk ditambahkan ke cart');
+        return redirect()->route('cart.show')->with('success', 'Produk berhasil ditambahkan ke cart');
     }
 
     public function cartShow(Request $request)
     {
         $cart = session()->get('cart', []);
-        $currency = 'MYR';
+        $currency = session()->get('currency', 'MYR');
         $config = $this->getCurrencyConfig($currency);
         $items = [];
         $total = 0.0;
@@ -346,7 +359,7 @@ class PreorderController extends Controller
         if (empty($cart)) {
             return back()->withErrors(['cart' => 'Cart kosong']);
         }
-        $currency = $data['currency'] ?? 'MYR';
+        $currency = $data['currency'] ?? session()->get('currency', 'MYR');
         $config = $this->getCurrencyConfig($currency);
         $orders = [];
         foreach ($cart as $it) {

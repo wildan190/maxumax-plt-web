@@ -1,0 +1,202 @@
+@extends('layouts.app')
+
+@section('page-title', 'Order #'.$order->order_number)
+
+@section('content')
+    <div style="max-width: 1200px;">
+        <div style="margin-bottom: 2rem;">
+            <a href="{{ route('admin.orders.index') }}"
+                style="color: #6b7280; text-decoration: none; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.5rem;"
+                title="Back">← Back to Orders</a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 340px; gap: 2rem;">
+            <!-- Main Details -->
+            <div
+                style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <p
+                                style="font-size: 0.875rem; color: #6b7280; font-weight: 600; text-transform: uppercase; margin: 0 0 0.5rem 0;">
+                                Customer Name</p>
+                            <p style="font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0;">
+                                {{ $order->name }}</p>
+                        </div>
+                        <div>
+                            <p
+                                style="font-size: 0.875rem; color: #6b7280; font-weight: 600; text-transform: uppercase; margin: 0 0 0.5rem 0;">
+                                Status</p>
+                            @if($order->status === 'paid')
+                                <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.875rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.875rem; background: #d1fae5; color: #065f46;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
+                                    Paid
+                                </span>
+                            @elseif($order->status === 'confirmed')
+                                <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.875rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.875rem; background: #e0e7ff; color: #3730a3;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #4f46e5;"></span>
+                                    Confirmed
+                                </span>
+                            @else
+                                <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.875rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.875rem; background: #fef3c7; color: #92400e;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
+                                    Pending
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0; margin-bottom: 0.25rem;">Email</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0;">{{ $order->email ?? '—' }}</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0; margin-bottom: 0.25rem;">Phone</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0;">{{ $order->phone ?? '—' }}</p>
+                        </div>
+                    </div>
+                    
+                    @if($order->address)
+                        <div style="margin-top: 1rem;">
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0; margin-bottom: 0.25rem;">Delivery Address</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0;">{{ $order->address }}</p>
+                        </div>
+                    @endif
+                </div>
+
+                <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #111827; margin: 0 0 1rem 0;">Order Details</h3>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Product</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
+                                {{ optional($order->product)->name ?? $order->jersey_type }}</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Size</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
+                                {{ $order->size }}
+                                @if($order->long_sleeve)
+                                    <span style="background: #f0f9ff; color: #0369a1; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.8rem; margin-left: 0.5rem;">+ Long Sleeve</span>
+                                @endif
+                            </p>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Quantity</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
+                                {{ $order->quantity }}</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Total Amount</p>
+                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 600;">
+                                {{ $order->currency ?? 'MYR' }} {{ number_format($order->total_amount, 2) }}</p>
+                        </div>
+                    </div>
+
+                    @if($order->notes)
+                        <div style="margin-top: 1rem;">
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Notes</p>
+                            <p
+                                style="font-size: 0.95rem; color: #374151; margin: 0; padding: 0.75rem; background: #f9fafb; border-radius: 0.375rem;">
+                                {{ $order->notes }}</p>
+                        </div>
+                    @endif
+                </div>
+
+                <div style="padding: 1.5rem;">
+                    @if($order->status === 'pending')
+                        <form action="{{ route('admin.orders.confirm', $order) }}" method="POST" style="display: inline;" class="js-confirm" data-title="Confirm this order?" data-text="Status akan diubah menjadi confirmed.">
+                            @csrf
+                            <button type="submit"
+                                style="padding: 0.75rem 1.25rem; background: #6366f1; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;">Confirm</button>
+                        </form>
+                    @endif
+                    @if($order->status === 'confirmed')
+                        <form action="{{ route('admin.orders.markPaid', $order) }}" method="POST" style="display: inline; margin-left: 0.5rem;" class="js-confirm" data-title="Mark as paid?" data-text="Status akan diubah menjadi paid.">
+                            @csrf
+                            <button type="submit"
+                                style="padding: 0.75rem 1.25rem; background: #22c55e; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;">✓ Mark as Paid</button>
+                        </form>
+                    @endif
+                    <form action="{{ route('admin.orders.destroy', $order) }}" method="POST"
+                        style="display: inline; margin-left: 0.5rem;" class="js-delete" data-title="Delete this order?" data-text="Tindakan ini tidak dapat dibatalkan.">
+                        @csrf @method('DELETE')
+                        <button type="submit"
+                            style="padding: 0.75rem 1.25rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s;">Delete</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- History Sidebar -->
+            <div
+                style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; height: fit-content;">
+                <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #111827; margin: 0;">Order History</h3>
+                </div>
+                <div style="padding: 1.5rem; max-height: 500px; overflow-y: auto;">
+                    @if($order->histories->count())
+                        <ul style="margin: 0; padding: 0; list-style: none;">
+                            @foreach($order->histories as $h)
+                                <li style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
+                                    <div style="font-weight: 600; color: #111827; margin-bottom: 0.25rem;">
+                                        {{ ucfirst($h->new_status) }}</div>
+                                    @if($h->note)
+                                        <div style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.5rem;">{{ $h->note }}</div>
+                                    @endif
+                                    <div style="color: #9ca3af; font-size: 0.8rem;">{{ $h->created_at->format('M d, Y H:i') }}</div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p style="color: #6b7280; font-size: 0.95rem; margin: 0;">No history records.</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.querySelectorAll('form.js-confirm').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const title = form.getAttribute('data-title') || 'Are you sure?';
+                const text = form.getAttribute('data-text') || '';
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6366f1',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+        document.querySelectorAll('form.js-delete').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const title = form.getAttribute('data-title') || 'Delete item?';
+                const text = form.getAttribute('data-text') || 'This action cannot be undone.';
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Delete'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+@endsection
