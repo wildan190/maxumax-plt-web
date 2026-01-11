@@ -252,8 +252,36 @@
         <div class="success-icon">✓</div>
         <h1 class="thankyou-title">Thank You!</h1>
         <p class="thankyou-subtitle">Your pre-order has been successfully received</p>
-        <div style="display:inline-block; background:#fff7ed; color:#9a3412; border:1px solid #fed7aa; border-radius: 9999px; padding:0.5rem 1rem; font-weight:600; margin-bottom:1.5rem;">
-            Status: Pending admin confirmation
+        @php
+            $statusLabels = [
+                'pending' => 'Pending Admin Confirmation',
+                'confirmed' => 'Order Confirmed',
+                'paid' => 'Payment Successful',
+                'packing' => 'Packing',
+                'shipped' => 'Shipped',
+                'delivered' => 'Delivered',
+                'cancelled' => 'Cancelled',
+                'refunded' => 'Refunded',
+            ];
+            
+            $statusStyles = [
+                'pending' => 'background:#fff7ed; color:#9a3412; border-color:#fed7aa;',
+                'confirmed' => 'background:#ecfdf5; color:#065f46; border-color:#a7f3d0;',
+                'paid' => 'background:#ecfdf5; color:#065f46; border-color:#a7f3d0;',
+                'packing' => 'background:#eff6ff; color:#1e40af; border-color:#bfdbfe;',
+                'shipped' => 'background:#eff6ff; color:#1e40af; border-color:#bfdbfe;',
+                'delivered' => 'background:#f0fdf4; color:#166534; border-color:#bbf7d0;',
+                'cancelled' => 'background:#fef2f2; color:#991b1b; border-color:#fecaca;',
+                'refunded' => 'background:#fef2f2; color:#991b1b; border-color:#fecaca;',
+            ];
+
+            $currentStatus = $preorder->status ?? 'pending';
+            $label = $statusLabels[$currentStatus] ?? ucfirst($currentStatus);
+            $style = $statusStyles[$currentStatus] ?? $statusStyles['pending'];
+        @endphp
+        
+        <div style="display:inline-block; {{ $style }} border:1px solid; border-radius: 9999px; padding:0.5rem 1rem; font-weight:600; margin-bottom:1.5rem;">
+            Status: {{ $label }}
         </div>
 
         <!-- Order Details Card -->

@@ -27,6 +27,14 @@ class Preorder extends Model
         'currency',
         'status',
         'notes',
+        'stripe_payment_intent_id',
+        'stripe_session_id',
+        'refund_status',
+        'refund_amount',
+        'stripe_refund_id',
+        'refund_reason',
+        'tracking_number',
+        'shipping_status',
     ];
 
     protected $casts = [
@@ -50,6 +58,9 @@ class Preorder extends Model
     protected static function booted()
     {
         static::creating(function (Preorder $pre) {
+            if (empty($pre->uuid)) {
+                $pre->uuid = (string) Str::uuid();
+            }
             if (empty($pre->order_number)) {
                 $prefix = 'MM-PO-';
                 if ($pre->product_id) {

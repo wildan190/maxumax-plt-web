@@ -241,22 +241,27 @@
                             <div class="price" id="reviewTotal">RM {{ number_format($product->price, 2) }}</div>
                         </div>
 
-                        <div class="review-note">
-                            <strong>📦 Pay on Delivery:</strong> No payment required now. We will contact you to confirm
-                            your order and arrange delivery.
+                        <div class="payment-method-selection" style="margin: 1.5rem 0;">
+                            <h4 style="margin-bottom: 1rem; font-size: 1.1rem;">Select Payment Method</h4>
+                            
+                            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                                <label class="payment-option" id="payment-cod" style="flex: 1; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s;">
+                                    <input type="radio" name="payment_method" value="cod" checked style="margin-right: 0.5rem;">
+                                    <span style="font-weight: 500;">💵 Cash on Delivery (COD)</span>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">Pay when you receive the order</p>
+                                </label>
+                                
+                                <label class="payment-option" id="payment-stripe" style="flex: 1; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s;">
+                                    <input type="radio" name="payment_method" value="stripe" style="margin-right: 0.5rem;">
+                                    <span style="font-weight: 500;">💳 Credit/Debit Card (Stripe)</span>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">Pay securely with Stripe</p>
+                                </label>
+                            </div>
                         </div>
 
                         <div class="form-nav">
                             <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                            <button type="submit" class="btn btn-success">✓ Confirm Pre-order</button>
-                            <form method="POST" action="{{ route('cart.add') }}" id="addToCartForm" style="display:inline-block; margin-left:0.5rem;">
-                                @csrf
-                                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                <input type="hidden" name="quantity" id="cartQuantity" value="1">
-                                <input type="hidden" name="size" id="cartSize" value="M">
-                                <input type="hidden" name="long_sleeve" id="cartLongSleeve" value="0">
-                                <button type="submit" class="btn"><i data-feather="shopping-bag"></i> Add to Cart</button>
-                            </form>
+                            <button type="button" class="btn btn-success" onclick="handlePreorderSubmit()">✓ Continue to Payment</button>
                         </div>
                     </div>
                 </form>
@@ -298,7 +303,7 @@
             IDR: { symbol: 'Rp', rate: 5200, longSleeve: 15600, nameset: 67600 }
         };
 
-        let currentCurrency = 'MYR';
+        let currentCurrency = '{{ $currency }}';
         let currentStep = 1;
         const totalSteps = 4;
         const basePrice = parseFloat('{{ number_format($product->price, 2, ".", "") }}');
@@ -326,25 +331,6 @@
             return getCurrencySymbol() + ' ' + converted.toFixed(2);
         }
 
-        document.addEventListener('DOMContentLoaded', function(){
-            const qtyInput = document.querySelector('input[name="quantity"]');
-            const sizeSelect = document.querySelector('select[name="size"]');
-            const longSleeve = document.getElementById('longSleeve');
-            const cartQty = document.getElementById('cartQuantity');
-            const cartSize = document.getElementById('cartSize');
-            const cartLs = document.getElementById('cartLongSleeve');
-            function syncCartFields(){
-                cartQty.value = qtyInput ? (qtyInput.value || 1) : 1;
-                cartSize.value = sizeSelect ? (sizeSelect.value || 'M') : 'M';
-                cartLs.value = longSleeve && longSleeve.checked ? 1 : 0;
-            }
-            ['change','input'].forEach(ev => {
-                qtyInput && qtyInput.addEventListener(ev, syncCartFields);
-                sizeSelect && sizeSelect.addEventListener(ev, syncCartFields);
-                longSleeve && longSleeve.addEventListener(ev, syncCartFields);
-            });
-            syncCartFields();
-        });
 
         function updateCurrencyDisplay() {
             const config = currencies[currentCurrency];
@@ -508,6 +494,73 @@
 
         if (longSleeve) longSleeve.addEventListener('change', recalc);
         if (qty) qty.addEventListener('input', recalc);
+
+        // Payment method selection styling
+        document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.payment-option').forEach(opt => {
+                    opt.style.borderColor = '#e2e8f0';
+                    opt.style.backgroundColor = '';
+                });
+                const selected = document.getElementById('payment-' + this.value);
+                if (selected) {
+                    selected.style.borderColor = '#111827';
+                    selected.style.backgroundColor = '#f9fafb';
+                }
+            });
+        });
+        // Initialize first option
+        document.getElementById('payment-cod').style.borderColor = '#111827';
+        document.getElementById('payment-cod').style.backgroundColor = '#f9fafb';
+
+        // Handle preorder submission with payment method
+        function handlePreorderSubmit() {
+            const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+            const form = document.getElementById('preorderForm');
+            
+            // Validate required fields before proceeding
+            if (currentStep === 4) {
+                const nameInput = document.querySelector('input[name="name"]');
+                const phoneInput = document.querySelector('input[name="phone"]');
+                const addressInput = document.querySelector('textarea[name="address"]');
+                const sizeInput = document.querySelector('select[name="size"]');
+
+                if (!nameInput || !nameInput.value.trim()) {
+                    alert('Full name is required');
+                    showStep(2);
+                    nameInput.focus();
+                    return;
+                }
+                if (!phoneInput || !phoneInput.value.trim()) {
+                    alert('Phone number is required');
+                    showStep(2);
+                    phoneInput.focus();
+                    return;
+                }
+                if (!addressInput || !addressInput.value.trim()) {
+                    alert('Delivery address is required');
+                    showStep(2);
+                    addressInput.focus();
+                    return;
+                }
+                if (!sizeInput || !sizeInput.value) {
+                    alert('Size is required');
+                    showStep(3);
+                    sizeInput.focus();
+                    return;
+                }
+            }
+            
+            if (paymentMethod === 'stripe') {
+                // For Stripe, submit to Stripe checkout endpoint
+                form.action = '{{ route("preorder.checkout.stripe") }}';
+                form.submit();
+            } else {
+                // For COD, submit normally to store endpoint
+                form.action = '{{ route($product->available_for_preorder ? "preorder.store" : "order.store") }}';
+                form.submit();
+            }
+        }
 
         // Initial setup
         updateCurrencyDisplay();

@@ -7,6 +7,10 @@ use App\Models\PreorderHistory;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderCreated;
+use App\Mail\PaymentSuccess;
+use App\Jobs\SendEmailJob;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Stripe\Exception\ApiErrorException;
@@ -147,6 +151,9 @@ class PaymentController extends Controller
             $config = $this->getCurrencyConfig($currency);
             $orders = [];
 
+            // Get payment intent ID from checkout session for refund purposes
+            $paymentIntentId = $checkoutSession->payment_intent ?? null;
+            
             // Create orders for each item
             foreach ($checkoutData['order_items'] as $orderItem) {
                 $product = $orderItem['product'];
@@ -154,7 +161,7 @@ class PaymentController extends Controller
                 $unit = $orderItem['unit'];
                 $lineTotal = $orderItem['line_total'];
 
-                $pre = DB::transaction(function () use ($product, $it, $checkoutData, $unit, $lineTotal, $currency, $sessionId) {
+                $pre = DB::transaction(function () use ($product, $it, $checkoutData, $unit, $lineTotal, $currency, $sessionId, $paymentIntentId) {
                     $product = Product::where('id', $product->id)->lockForUpdate()->first();
                     if (!$product || (!$product->is_active && !$product->available_for_preorder)) {
                         return null;
@@ -184,15 +191,17 @@ class PaymentController extends Controller
                         'unit_price' => $unit,
                         'total_amount' => $lineTotal,
                         'currency' => $currency,
-                        'status' => 'paid', // Mark as paid since Stripe payment succeeded
+                        'status' => 'paid', // Set to paid since payment succeeded via Stripe
                         'notes' => $checkoutData['order_data']['notes'] ?? null,
+                        'stripe_payment_intent_id' => $paymentIntentId,
+                        'stripe_session_id' => $sessionId,
                     ]);
 
                     PreorderHistory::create([
                         'preorder_id' => $pre->id,
                         'old_status' => null,
                         'new_status' => 'paid',
-                        'note' => 'Order via Stripe payment (Session: ' . ($checkoutData['session_id'] ?? 'unknown') . ')',
+                        'note' => 'Order via Stripe payment - automatically paid (Session: ' . ($checkoutData['session_id'] ?? 'unknown') . ')',
                     ]);
 
                     // Decrement stock if product exists
@@ -209,6 +218,12 @@ class PaymentController extends Controller
 
                 if ($pre) {
                     $orders[] = $pre;
+
+                    if ($pre->email) {
+                        // Send emails with delay to avoid rate limiting
+                        SendEmailJob::dispatch($pre->email, new OrderCreated($pre), 2);
+                        SendEmailJob::dispatch($pre->email, new PaymentSuccess($pre), 5);
+                    }
                 }
             }
 
@@ -229,6 +244,255 @@ class PaymentController extends Controller
     {
         session()->forget('stripe_checkout');
         return redirect()->route('cart.show')->with('error', 'Payment was cancelled');
+    }
+
+    /**
+     * Create Stripe checkout session for single preorder item (from preorder form)
+     */
+    public function createPreorderCheckoutSession(Request $request)
+    {
+        $data = $request->validate([
+            'product_id' => 'required|integer|exists:products,id',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'address' => 'nullable|string',
+            'size' => 'nullable|string|max:10',
+            'long_sleeve' => 'sometimes|boolean',
+            'custom_fields' => 'nullable|array',
+            'custom_fields.*.key' => 'required_with:custom_fields|string',
+            'custom_fields.*.value' => 'required_with:custom_fields|string',
+            'quantity' => 'required|integer|min:1',
+            'currency' => 'nullable|string|in:MYR,BND,IDR',
+            'notes' => 'nullable|string',
+        ]);
+
+        $product = DB::transaction(function () use ($data) {
+            $p = Product::where('id', $data['product_id'])->lockForUpdate()->first();
+            if (!$p || (!$p->is_active && !$p->available_for_preorder)) {
+                throw new \RuntimeException('Product not available');
+            }
+            if (!$p->available_for_preorder) {
+                $reserved = $this->getReservedQty($p);
+                $free = (int) $p->stock - $reserved;
+                if ($free < (int) $data['quantity']) {
+                    throw new \RuntimeException('Not enough stock available.');
+                }
+            }
+            return $p;
+        });
+
+        $currency = $data['currency'] ?? 'MYR';
+        $config = $this->getCurrencyConfig($currency);
+
+        $unit = (float) $product->price * $config['rate'];
+        $longSleeve = $request->boolean('long_sleeve');
+
+        if ($longSleeve) {
+            $unit += $config['longSleeve'];
+        }
+
+        // Add nameset cost if custom fields are provided
+        $hasCustomization = !empty($data['custom_fields']);
+        if ($hasCustomization) {
+            $unit += $config['nameset'];
+        }
+
+        $quantity = (int) ($data['quantity'] ?? 1);
+        $total = round($unit * $quantity, 2);
+
+        // Convert to cents for Stripe
+        $amountInCents = $this->convertToCents($total, $currency);
+
+        // Build product description
+        $description = $product->name;
+        if ($product->jersey_type) {
+            $description .= ' - ' . $product->jersey_type;
+        }
+        if (!empty($data['size'])) {
+            $description .= ', Size: ' . $data['size'];
+        }
+        if ($request->boolean('long_sleeve')) {
+            $description .= ', Long Sleeve';
+        }
+        if ($hasCustomization) {
+            $customText = [];
+            foreach ($data['custom_fields'] as $field) {
+                $customText[] = $field['key'] . ': ' . $field['value'];
+            }
+            $description .= ', ' . implode(', ', $customText);
+        }
+
+        try {
+            // Create Stripe checkout session
+            $checkoutSession = Session::create([
+                'payment_method_types' => ['card'],
+                'line_items' => [[
+                    'price_data' => [
+                        'currency' => strtolower($currency),
+                        'product_data' => [
+                            'name' => $product->name,
+                            'description' => $description,
+                        ],
+                        'unit_amount' => $amountInCents,
+                    ],
+                    'quantity' => $quantity,
+                ]],
+                'mode' => 'payment',
+                'success_url' => route('payment.preorder.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('payment.preorder.cancel'),
+                'customer_email' => $data['email'] ?? null,
+                'metadata' => [
+                    'name' => $data['name'],
+                    'phone' => $data['phone'] ?? '',
+                    'address' => $data['address'] ?? '',
+                    'currency' => $currency,
+                    'notes' => $data['notes'] ?? '',
+                    'product_id' => $product->id,
+                    'size' => $data['size'] ?? '',
+                    'long_sleeve' => $request->boolean('long_sleeve') ? '1' : '0',
+                    'quantity' => $quantity,
+                ],
+            ]);
+
+            // Store checkout session data in session for later use
+            // Ensure long_sleeve is properly stored as boolean
+            $orderData = $data;
+            $orderData['long_sleeve'] = $longSleeve;
+            
+            session()->put('stripe_preorder_checkout', [
+                'session_id' => $checkoutSession->id,
+                'order_data' => $orderData,
+                'product_id' => $product->id,
+                'unit_price' => $unit,
+                'total_amount' => $total,
+                'currency' => $currency,
+            ]);
+
+            return redirect($checkoutSession->url);
+        } catch (ApiErrorException $e) {
+            return back()->withErrors(['stripe' => 'Error creating payment session: ' . $e->getMessage()])->withInput();
+        }
+    }
+
+    /**
+     * Handle successful payment for single preorder
+     */
+    public function preorderSuccess(Request $request)
+    {
+        $sessionId = $request->query('session_id');
+        
+        if (!$sessionId) {
+            return redirect()->route('preorder.landing')->withErrors(['payment' => 'Invalid payment session']);
+        }
+
+        try {
+            $checkoutSession = Session::retrieve($sessionId);
+            
+            if ($checkoutSession->payment_status !== 'paid') {
+                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Payment not completed']);
+            }
+
+            $checkoutData = session()->get('stripe_preorder_checkout');
+            if (!$checkoutData || $checkoutData['session_id'] !== $sessionId) {
+                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Invalid checkout session']);
+            }
+
+            $product = Product::find($checkoutData['product_id']);
+            if (!$product) {
+                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Product not found']);
+            }
+
+            // Get payment intent ID from checkout session for refund purposes
+            $paymentIntentId = $checkoutSession->payment_intent ?? null;
+            
+            $orderData = $checkoutData['order_data'];
+            $currency = $checkoutData['currency'];
+            $unit = $checkoutData['unit_price'];
+            $total = $checkoutData['total_amount'];
+
+            $pre = DB::transaction(function () use ($product, $orderData, $unit, $total, $currency, $sessionId, $paymentIntentId, $checkoutData) {
+                $product = Product::where('id', $product->id)->lockForUpdate()->first();
+                if (!$product || (!$product->is_active && !$product->available_for_preorder)) {
+                    return null;
+                }
+
+                if (!$product->available_for_preorder) {
+                    $reserved = $this->getReservedQty($product);
+                    $free = (int) $product->stock - $reserved;
+                    if ($free < (int) $orderData['quantity']) {
+                        return null;
+                    }
+                }
+
+                $orderNumber = $this->generateOrderNumberForProduct($product);
+                $pre = Preorder::create([
+                    'order_number' => $orderNumber,
+                    'product_id' => $product->id,
+                    'name' => $orderData['name'],
+                    'email' => $orderData['email'] ?? null,
+                    'phone' => $orderData['phone'] ?? null,
+                    'address' => $orderData['address'] ?? null,
+                    'jersey_type' => $product->jersey_type ?? null,
+                    'size' => $orderData['size'] ?? null,
+                    'long_sleeve' => !empty($orderData['long_sleeve']),
+                    'custom_fields' => $orderData['custom_fields'] ?? null,
+                    'quantity' => (int) $orderData['quantity'],
+                    'unit_price' => $unit,
+                    'total_amount' => $total,
+                    'currency' => $currency,
+                    'status' => 'paid', // Set to paid since payment succeeded via Stripe
+                    'notes' => $orderData['notes'] ?? null,
+                    'stripe_payment_intent_id' => $paymentIntentId,
+                    'stripe_session_id' => $sessionId,
+                ]);
+
+                PreorderHistory::create([
+                    'preorder_id' => $pre->id,
+                    'old_status' => null,
+                    'new_status' => 'paid',
+                    'note' => 'Order via Stripe payment - automatically paid (Session: ' . $sessionId . ')',
+                ]);
+
+                // Decrement stock if product exists
+                if ($pre->product && !$product->available_for_preorder) {
+                    $product = $pre->product;
+                    if ($product->stock >= $pre->quantity && $product->stock > 0) {
+                        $product->stock = max(0, $product->stock - $pre->quantity);
+                        $product->save();
+                    }
+                }
+
+                if ($pre->email) {
+                    // Send emails with delay to avoid rate limiting
+                    SendEmailJob::dispatch($pre->email, new OrderCreated($pre), 2);
+                    SendEmailJob::dispatch($pre->email, new PaymentSuccess($pre), 5);
+                }
+
+                return $pre;
+            });
+
+            if (!$pre) {
+                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Failed to create order']);
+            }
+
+            // Clear checkout session
+            session()->forget('stripe_preorder_checkout');
+
+            $redirect = $product->available_for_preorder ? 'preorder.thankyou' : 'order.thankyou';
+            return redirect()->route($redirect, ['uuid' => $pre->uuid]);
+        } catch (ApiErrorException $e) {
+            return redirect()->route('preorder.landing')->withErrors(['payment' => 'Error verifying payment: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Handle cancelled payment for single preorder
+     */
+    public function preorderCancel()
+    {
+        session()->forget('stripe_preorder_checkout');
+        return redirect()->route('preorder.landing')->with('error', 'Payment was cancelled');
     }
 
     /**
