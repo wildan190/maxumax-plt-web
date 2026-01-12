@@ -14,6 +14,8 @@ use App\Jobs\SendEmailJob;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Stripe\Exception\ApiErrorException;
+use Stripe\Refund;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -135,6 +137,15 @@ class PaymentController extends Controller
             return redirect()->route('cart.show')->withErrors(['payment' => 'Invalid payment session']);
         }
 
+        // Prevent double processing (Idempotency)
+        $existingOrder = Preorder::where('stripe_session_id', $sessionId)->first();
+        if ($existingOrder) {
+            session()->forget('cart');
+            session()->forget('stripe_checkout');
+            $orders = Preorder::where('stripe_session_id', $sessionId)->get();
+            return view('cart.thankyou', ['orders' => $orders, 'currency' => $existingOrder->currency]);
+        }
+
         try {
             $checkoutSession = Session::retrieve($sessionId);
             
@@ -144,34 +155,35 @@ class PaymentController extends Controller
 
             $checkoutData = session()->get('stripe_checkout');
             if (!$checkoutData || $checkoutData['session_id'] !== $sessionId) {
-                return redirect()->route('cart.show')->withErrors(['payment' => 'Invalid checkout session']);
+                // If session lost but payment successful, auto-refund
+                if (isset($checkoutSession->payment_intent)) {
+                    $this->refundStripePayment($checkoutSession->payment_intent);
+                }
+                return redirect()->route('cart.show')->withErrors(['payment' => 'Session expired or invalid. Payment refunded automatically.']);
             }
 
             $currency = $checkoutData['currency'];
-            $config = $this->getCurrencyConfig($currency);
             $orders = [];
-
-            // Get payment intent ID from checkout session for refund purposes
             $paymentIntentId = $checkoutSession->payment_intent ?? null;
             
-            // Create orders for each item
-            foreach ($checkoutData['order_items'] as $orderItem) {
-                $product = $orderItem['product'];
-                $it = $orderItem['item'];
-                $unit = $orderItem['unit'];
-                $lineTotal = $orderItem['line_total'];
+            DB::beginTransaction();
+            
+            try {
+                foreach ($checkoutData['order_items'] as $orderItem) {
+                    $product = Product::where('id', $orderItem['product']->id)->lockForUpdate()->first();
+                    $it = $orderItem['item'];
+                    $unit = $orderItem['unit'];
+                    $lineTotal = $orderItem['line_total'];
 
-                $pre = DB::transaction(function () use ($product, $it, $checkoutData, $unit, $lineTotal, $currency, $sessionId, $paymentIntentId) {
-                    $product = Product::where('id', $product->id)->lockForUpdate()->first();
                     if (!$product || (!$product->is_active && !$product->available_for_preorder)) {
-                        return null;
+                        throw new \Exception("Product " . ($product->name ?? 'Unknown') . " not available");
                     }
 
                     if (!$product->available_for_preorder) {
                         $reserved = $this->getReservedQty($product);
                         $free = (int) $product->stock - $reserved;
                         if ($free < (int) $it['quantity']) {
-                            return null;
+                            throw new \Exception("Insufficient stock for " . $product->name);
                         }
                     }
 
@@ -191,7 +203,7 @@ class PaymentController extends Controller
                         'unit_price' => $unit,
                         'total_amount' => $lineTotal,
                         'currency' => $currency,
-                        'status' => 'paid', // Set to paid since payment succeeded via Stripe
+                        'status' => 'paid',
                         'notes' => $checkoutData['order_data']['notes'] ?? null,
                         'stripe_payment_intent_id' => $paymentIntentId,
                         'stripe_session_id' => $sessionId,
@@ -201,37 +213,39 @@ class PaymentController extends Controller
                         'preorder_id' => $pre->id,
                         'old_status' => null,
                         'new_status' => 'paid',
-                        'note' => 'Order via Stripe payment - automatically paid (Session: ' . ($checkoutData['session_id'] ?? 'unknown') . ')',
+                        'note' => 'Order via Stripe payment - automatically paid (Session: ' . $sessionId . ')',
                     ]);
 
-                    // Decrement stock if product exists
                     if ($pre->product && !$product->available_for_preorder) {
-                        $product = $pre->product;
-                        if ($product->stock >= $pre->quantity && $product->stock > 0) {
-                            $product->stock = max(0, $product->stock - $pre->quantity);
-                            $product->save();
-                        }
+                        $product->stock = max(0, $product->stock - $pre->quantity);
+                        $product->save();
                     }
-
-                    return $pre;
-                });
-
-                if ($pre) {
+                    
                     $orders[] = $pre;
+                }
+                
+                DB::commit();
+                
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $this->refundStripePayment($paymentIntentId);
+                Log::error('Order creation failed after payment: ' . $e->getMessage());
+                return redirect()->route('cart.show')->withErrors(['payment' => 'Order creation failed. Payment refunded automatically. Error: ' . $e->getMessage()]);
+            }
 
-                    if ($pre->email) {
-                        // Send emails with delay to avoid rate limiting
-                        SendEmailJob::dispatch($pre->email, new OrderCreated($pre), 2);
-                        SendEmailJob::dispatch($pre->email, new PaymentSuccess($pre), 5);
-                    }
+            // Success flow
+            foreach ($orders as $pre) {
+                if ($pre->email) {
+                    SendEmailJob::dispatch($pre->email, new OrderCreated($pre), 2);
+                    SendEmailJob::dispatch($pre->email, new PaymentSuccess($pre), 5);
                 }
             }
 
-            // Clear cart and checkout session
             session()->forget('cart');
             session()->forget('stripe_checkout');
 
             return view('cart.thankyou', ['orders' => $orders, 'currency' => $currency]);
+            
         } catch (ApiErrorException $e) {
             return redirect()->route('cart.show')->withErrors(['payment' => 'Error verifying payment: ' . $e->getMessage()]);
         }
@@ -386,6 +400,14 @@ class PaymentController extends Controller
             return redirect()->route('preorder.landing')->withErrors(['payment' => 'Invalid payment session']);
         }
 
+        // Idempotency Check
+        $existingOrder = Preorder::where('stripe_session_id', $sessionId)->first();
+        if ($existingOrder) {
+            session()->forget('stripe_preorder_checkout');
+            $redirect = $existingOrder->product->available_for_preorder ? 'preorder.thankyou' : 'order.thankyou';
+            return redirect()->route($redirect, ['uuid' => $existingOrder->uuid]);
+        }
+
         try {
             $checkoutSession = Session::retrieve($sessionId);
             
@@ -395,33 +417,42 @@ class PaymentController extends Controller
 
             $checkoutData = session()->get('stripe_preorder_checkout');
             if (!$checkoutData || $checkoutData['session_id'] !== $sessionId) {
-                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Invalid checkout session']);
+                // Auto refund if session lost
+                if (isset($checkoutSession->payment_intent)) {
+                    $this->refundStripePayment($checkoutSession->payment_intent);
+                }
+                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Session expired or invalid. Payment refunded automatically.']);
             }
 
             $product = Product::find($checkoutData['product_id']);
             if (!$product) {
-                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Product not found']);
+                // Refund
+                if (isset($checkoutSession->payment_intent)) {
+                    $this->refundStripePayment($checkoutSession->payment_intent);
+                }
+                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Product not found. Payment refunded.']);
             }
 
-            // Get payment intent ID from checkout session for refund purposes
             $paymentIntentId = $checkoutSession->payment_intent ?? null;
-            
             $orderData = $checkoutData['order_data'];
             $currency = $checkoutData['currency'];
             $unit = $checkoutData['unit_price'];
             $total = $checkoutData['total_amount'];
+            $pre = null;
 
-            $pre = DB::transaction(function () use ($product, $orderData, $unit, $total, $currency, $sessionId, $paymentIntentId, $checkoutData) {
+            DB::beginTransaction();
+
+            try {
                 $product = Product::where('id', $product->id)->lockForUpdate()->first();
                 if (!$product || (!$product->is_active && !$product->available_for_preorder)) {
-                    return null;
+                    throw new \Exception('Product not available');
                 }
 
                 if (!$product->available_for_preorder) {
                     $reserved = $this->getReservedQty($product);
                     $free = (int) $product->stock - $reserved;
                     if ($free < (int) $orderData['quantity']) {
-                        return null;
+                        throw new \Exception('Not enough stock available');
                     }
                 }
 
@@ -441,7 +472,7 @@ class PaymentController extends Controller
                     'unit_price' => $unit,
                     'total_amount' => $total,
                     'currency' => $currency,
-                    'status' => 'paid', // Set to paid since payment succeeded via Stripe
+                    'status' => 'paid',
                     'notes' => $orderData['notes'] ?? null,
                     'stripe_payment_intent_id' => $paymentIntentId,
                     'stripe_session_id' => $sessionId,
@@ -454,33 +485,30 @@ class PaymentController extends Controller
                     'note' => 'Order via Stripe payment - automatically paid (Session: ' . $sessionId . ')',
                 ]);
 
-                // Decrement stock if product exists
                 if ($pre->product && !$product->available_for_preorder) {
-                    $product = $pre->product;
-                    if ($product->stock >= $pre->quantity && $product->stock > 0) {
-                        $product->stock = max(0, $product->stock - $pre->quantity);
-                        $product->save();
-                    }
+                    $product->stock = max(0, $product->stock - $pre->quantity);
+                    $product->save();
                 }
+                
+                DB::commit();
 
-                if ($pre->email) {
-                    // Send emails with delay to avoid rate limiting
-                    SendEmailJob::dispatch($pre->email, new OrderCreated($pre), 2);
-                    SendEmailJob::dispatch($pre->email, new PaymentSuccess($pre), 5);
-                }
-
-                return $pre;
-            });
-
-            if (!$pre) {
-                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Failed to create order']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $this->refundStripePayment($paymentIntentId);
+                Log::error('Preorder creation failed after payment: ' . $e->getMessage());
+                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Order creation failed. Payment refunded. Error: ' . $e->getMessage()]);
             }
 
-            // Clear checkout session
+            if ($pre && $pre->email) {
+                SendEmailJob::dispatch($pre->email, new OrderCreated($pre), 2);
+                SendEmailJob::dispatch($pre->email, new PaymentSuccess($pre), 5);
+            }
+
             session()->forget('stripe_preorder_checkout');
 
             $redirect = $product->available_for_preorder ? 'preorder.thankyou' : 'order.thankyou';
             return redirect()->route($redirect, ['uuid' => $pre->uuid]);
+
         } catch (ApiErrorException $e) {
             return redirect()->route('preorder.landing')->withErrors(['payment' => 'Error verifying payment: ' . $e->getMessage()]);
         }
@@ -561,5 +589,20 @@ class PaymentController extends Controller
             $desc .= ', Long Sleeve';
         }
         return $desc;
+    }
+
+    /**
+     * Refund Stripe payment
+     */
+    private function refundStripePayment(?string $paymentIntentId)
+    {
+        if ($paymentIntentId) {
+            try {
+                Refund::create(['payment_intent' => $paymentIntentId]);
+                Log::info("Auto-refunded payment $paymentIntentId due to order creation failure.");
+            } catch (\Exception $e) {
+                Log::error("Failed to auto-refund payment $paymentIntentId: " . $e->getMessage());
+            }
+        }
     }
 }

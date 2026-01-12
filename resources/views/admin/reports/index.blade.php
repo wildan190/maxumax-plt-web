@@ -47,8 +47,8 @@
         </div>
         <div style="background: var(--secondary); border: 1px solid var(--border-gray); border-radius: 0.75rem; padding: 1.5rem;">
             <p style="font-size: 0.875rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0.5rem;">Total Refunded</p>
-            <p style="font-size: 2rem; font-weight: 700; color: #ef4444; margin: 0;">{{ $currencySymbol }} {{ number_format($totalRefunded, 0, ',', '.') }}</p>
-            <p style="font-size: 0.8rem; color: var(--text-light); margin: 0.25rem 0 0;">{{ $refundedOrdersCount }} orders</p>
+            <p style="font-size: 2rem; font-weight: 700; color: #ef4444; margin: 0;">{{ $currencySymbol }} {{ number_format($totalRefunded ?? 0, 0, ',', '.') }}</p>
+            <p style="font-size: 0.8rem; color: var(--text-light); margin: 0.25rem 0 0;">{{ $refundedOrdersCount ?? 0 }} orders</p>
         </div>
         <div style="background: var(--secondary); border: 1px solid var(--border-gray); border-radius: 0.75rem; padding: 1.5rem;">
             <p style="font-size: 0.875rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0.5rem;">Total Transactions</p>
