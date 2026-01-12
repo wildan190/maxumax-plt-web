@@ -66,28 +66,65 @@
                 <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
                     <h3 style="font-size: 1rem; font-weight: 600; color: #111827; margin: 0 0 1rem 0;">Order Details</h3>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                        <div>
-                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Jersey Type</p>
-                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
-                                {{ $preorder->jersey_type }}</p>
+                    @if(!empty($preorder->items) && is_array($preorder->items) && count($preorder->items) > 0)
+                        <div style="margin-bottom: 1.5rem;">
+                             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                                 <thead>
+                                     <tr style="border-bottom: 2px solid #e5e7eb; color: #6b7280; text-align: left;">
+                                         <th style="padding: 0.5rem 0;">Item</th>
+                                         <th style="padding: 0.5rem 0;">Size</th>
+                                         <th style="padding: 0.5rem 0;">Qty</th>
+                                          <th style="padding: 0.5rem 0;">Price</th>
+                                         <th style="padding: 0.5rem 0; text-align: right;">Total</th>
+                                     </tr>
+                                 </thead>
+                                 <tbody>
+                                     @foreach($preorder->items as $item)
+                                         <tr style="border-bottom: 1px solid #f3f4f6;">
+                                             <td style="padding: 0.5rem 0; font-weight: 500;">
+                                                 {{ $preorder->product->name ?? 'Jersey' }} {{ $preorder->jersey_type ? '('.$preorder->jersey_type.')' : '' }}
+                                             </td>
+                                              <td style="padding: 0.5rem 0;">{{ $item['variant_name'] ?? '-' }}</td>
+                                             <td style="padding: 0.5rem 0;">{{ $item['quantity'] ?? 1 }}</td>
+                                             <td style="padding: 0.5rem 0;">{{ $preorder->currency }} {{ number_format($item['unit_price'] ?? 0, 2) }}</td>
+                                             <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">
+                                                 {{ $preorder->currency }} {{ number_format($item['total_price'] ?? ($item['line_total']??0), 2) }}
+                                             </td>
+                                         </tr>
+                                     @endforeach
+                                     <tr style="border-top: 2px solid #e5e7eb;">
+                                         <td colspan="4" style="padding: 0.75rem 0; font-weight: 700; text-align: right;">Grand Total</td>
+                                         <td style="padding: 0.75rem 0; font-weight: 800; text-align: right; color: #111827;">
+                                              {{ $preorder->currency }} {{ number_format($preorder->total_amount, 2) }}
+                                         </td>
+                                     </tr>
+                                 </tbody>
+                             </table>
                         </div>
-                        <div>
-                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Size</p>
-                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
-                                {{ $preorder->size }}</p>
+                    @else
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div>
+                                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Jersey Type</p>
+                                <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
+                                    {{ $preorder->jersey_type }}</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Size</p>
+                                <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
+                                    {{ $preorder->size }}</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Quantity</p>
+                                <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
+                                    {{ $preorder->quantity }}</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Total Amount</p>
+                                <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 600;">
+                                    {{ $preorder->currency ?? 'MYR' }} {{ number_format($preorder->total_amount, 2) }}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Quantity</p>
-                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 500;">
-                                {{ $preorder->quantity }}</p>
-                        </div>
-                        <div>
-                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Total Amount</p>
-                            <p style="font-size: 0.95rem; color: #111827; margin: 0; font-weight: 600;">
-                                {{ $preorder->currency ?? 'MYR' }} {{ number_format($preorder->total_amount, 2) }}</p>
-                        </div>
-                    </div>
+                    @endif
 
                     @if($preorder->notes)
                         <div style="margin-top: 1rem;">

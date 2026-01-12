@@ -493,8 +493,7 @@
                             <div class="cart-actions">
                                 <form method="POST" action="{{ route('cart.update') }}" class="cart-qty-update">
                                     @csrf
-                                    <input type="hidden" name="product_id" value="{{ $it['product_id'] }}">
-                                    <input type="hidden" name="size" value="{{ $it['size'] }}">
+                                    <input type="hidden" name="key" value="{{ $it['key'] ?? $it['product_id'] }}">
                                     <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
                                         <div style="display: flex; gap: 0.5rem; align-items: center;">
                                             <input type="number" name="quantity" value="{{ $it['quantity'] }}" min="1" class="cart-qty-input">
@@ -508,7 +507,7 @@
                                 </form>
                                 <form method="POST" action="{{ route('cart.remove') }}">
                                     @csrf
-                                    <input type="hidden" name="product_id" value="{{ $it['product_id'] }}">
+                                    <input type="hidden" name="key" value="{{ $it['key'] ?? $it['product_id'] }}">
                                     <button type="submit" class="btn-remove">Remove</button>
                                 </form>
                             </div>

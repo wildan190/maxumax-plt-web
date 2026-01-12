@@ -23,7 +23,7 @@ class OrderAdminController extends Controller
         $query = Preorder::query()
             ->whereHas('product', function ($q) {
                 $q->where('available_for_preorder', false)
-                  ->where('is_active', true);
+                    ->where('is_active', true);
             })
             ->orderByDesc('created_at');
 
@@ -41,13 +41,21 @@ class OrderAdminController extends Controller
             $query->where('status', $request->query('status'));
         }
 
-        $orders = $query->paginate(30)->withQueryString();
+        $allQuery = clone $query;
+        $counts = [
+            'total' => $allQuery->count(),
+            'pending' => $allQuery->clone()->where('status', 'pending')->count(),
+            'confirmed' => $allQuery->clone()->where('status', 'confirmed')->count(),
+            'paid' => $allQuery->clone()->where('status', 'paid')->count(),
+        ];
+
+        $orders = $query->paginate(10)->withQueryString();
 
         page_breadcrumbs(breadcrumbs(
             ['label' => 'Orders', 'url' => route('admin.orders.index')]
         ));
 
-        return view('admin.orders.index', compact('orders'));
+        return view('admin.orders.index', compact('orders', 'counts'));
     }
 
     public function markPaid(Request $request, Preorder $order)
@@ -62,13 +70,42 @@ class OrderAdminController extends Controller
         // decrement stock if product exists and stock available
         $note = 'Marked as paid by admin';
         if ($order->product) {
-            $product = $order->product;
-            if ($product->stock >= $order->quantity && $product->stock > 0) {
-                $product->stock = max(0, $product->stock - $order->quantity);
-                $product->save();
-                $note .= '. Stock decremented by '.$order->quantity.' (remaining: '.$product->stock.')';
+            // Check if order has multiple items in JSON
+            if (!empty($order->items) && is_array($order->items)) {
+                $note .= '. Stock decremented for items:';
+                foreach ($order->items as $item) {
+                    $vid = $item['variant_id'] ?? null;
+                    $qty = $item['quantity'] ?? 0;
+                    if ($vid && $qty > 0) {
+                        $variant = \App\Models\ProductVariant::lockForUpdate()->find($vid);
+                        if ($variant) {
+                            $variant->stock = max(0, $variant->stock - $qty);
+                            $variant->save();
+                            $note .= " [{$variant->name}: -{$qty}]";
+                        }
+                    }
+                }
+            }
+            // Check if order has a specific variant
+            elseif ($order->product_variant_id) {
+                $variant = \App\Models\ProductVariant::find($order->product_variant_id);
+                if ($variant && $variant->stock >= $order->quantity && $variant->stock > 0) {
+                    $variant->stock = max(0, $variant->stock - $order->quantity);
+                    $variant->save();
+                    $note .= '. Variant stock decremented by ' . $order->quantity . ' (variant: ' . $variant->name . ', remaining: ' . $variant->stock . ')';
+                } else {
+                    $note .= '. Variant stock insufficient or zero; no decrement performed.';
+                }
             } else {
-                $note .= '. Product stock insufficient or zero; no decrement performed.';
+                // Fallback to product stock if no variant
+                $product = $order->product;
+                if ($product->stock >= $order->quantity && $product->stock > 0) {
+                    $product->stock = max(0, $product->stock - $order->quantity);
+                    $product->save();
+                    $note .= '. Stock decremented by ' . $order->quantity . ' (remaining: ' . $product->stock . ')';
+                } else {
+                    $note .= '. Product stock insufficient or zero; no decrement performed.';
+                }
             }
         }
 
@@ -191,7 +228,7 @@ class OrderAdminController extends Controller
 
         page_breadcrumbs(breadcrumbs(
             ['label' => 'Orders', 'url' => route('admin.orders.index')],
-            ['label' => '#'.$order->order_number, 'url' => route('admin.orders.show', $order)]
+            ['label' => '#' . $order->order_number, 'url' => route('admin.orders.show', $order)]
         ));
 
         return view('admin.orders.show', compact('order'));
@@ -199,7 +236,7 @@ class OrderAdminController extends Controller
 
     public function exportCsv(Request $request): StreamedResponse
     {
-        $fileName = 'orders_'.date('Ymd_His').'.csv';
+        $fileName = 'orders_' . date('Ymd_His') . '.csv';
 
         $response = new StreamedResponse(function () {
             $handle = fopen('php://output', 'w');
@@ -207,7 +244,7 @@ class OrderAdminController extends Controller
 
             Preorder::whereHas('product', function ($q) {
                 $q->where('available_for_preorder', false)
-                  ->where('is_active', true);
+                    ->where('is_active', true);
             })->orderByDesc('created_at')->chunk(200, function ($rows) use ($handle) {
                 foreach ($rows as $r) {
                     fputcsv($handle, [
@@ -235,7 +272,7 @@ class OrderAdminController extends Controller
         });
 
         $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$fileName.'"');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $fileName . '"');
 
         return $response;
     }
@@ -259,7 +296,7 @@ class OrderAdminController extends Controller
         }
 
         $refundAmount = $request->input('refund_amount', $order->total_amount);
-        
+
         $order->refund_status = 'pending';
         $order->refund_amount = $refundAmount;
         $order->refund_reason = $request->input('refund_reason');
@@ -293,7 +330,7 @@ class OrderAdminController extends Controller
 
             // Create refund in Stripe
             $refundAmount = $this->convertToCents($order->refund_amount, $order->currency);
-            
+
             $refund = Refund::create([
                 'payment_intent' => $order->stripe_payment_intent_id,
                 'amount' => $refundAmount,
@@ -319,9 +356,32 @@ class OrderAdminController extends Controller
 
             // Restore stock if product exists
             if ($order->product && !$order->product->available_for_preorder) {
-                $product = $order->product;
-                $product->stock = $product->stock + $order->quantity;
-                $product->save();
+                if (!empty($order->items) && is_array($order->items)) {
+                    foreach ($order->items as $item) {
+                        $vid = $item['variant_id'] ?? null;
+                        $qty = $item['quantity'] ?? 0;
+                        if ($vid && $qty > 0) {
+                            $variant = \App\Models\ProductVariant::lockForUpdate()->find($vid);
+                            if ($variant) {
+                                $variant->stock += $qty;
+                                $variant->save();
+                            }
+                        }
+                    }
+                }
+                // Check if order has a specific variant
+                elseif ($order->product_variant_id) {
+                    $variant = \App\Models\ProductVariant::find($order->product_variant_id);
+                    if ($variant) {
+                        $variant->stock = $variant->stock + $order->quantity;
+                        $variant->save();
+                    }
+                } else {
+                    // Fallback to product stock if no variant
+                    $product = $order->product;
+                    $product->stock = $product->stock + $order->quantity;
+                    $product->save();
+                }
             }
 
             DB::commit();

@@ -13,6 +13,7 @@ class Preorder extends Model
     protected $fillable = [
         'order_number',
         'product_id',
+        'product_variant_id',
         'name',
         'email',
         'phone',
@@ -35,6 +36,8 @@ class Preorder extends Model
         'refund_reason',
         'tracking_number',
         'shipping_status',
+        'items', // JSON column for multi-item orders
+        'uuid',  // Ensure UUID is fillable if manually setting it (though booted logic handles it)
     ];
 
     protected $casts = [
@@ -43,11 +46,17 @@ class Preorder extends Model
         'unit_price' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'custom_fields' => 'array',
+        'items' => 'array',
     ];
 
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 
     public function histories()
@@ -70,7 +79,7 @@ class Preorder extends Model
                     }
                 }
                 do {
-                    $candidate = $prefix.strtoupper(Str::random(8));
+                    $candidate = $prefix . strtoupper(Str::random(8));
                 } while (Preorder::where('order_number', $candidate)->exists());
                 $pre->order_number = $candidate;
             }

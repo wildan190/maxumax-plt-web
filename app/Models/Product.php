@@ -39,4 +39,25 @@ class Product extends Model
     {
         return $this->hasMany(ProductImage::class)->orderBy('position');
     }
+
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class)->orderBy('name');
+    }
+
+    /**
+     * Get total stock across all variants.
+     */
+    public function getTotalVariantStockAttribute()
+    {
+        return $this->variants()->sum('stock');
+    }
+
+    /**
+     * Check if product has variants.
+     */
+    public function hasVariants()
+    {
+        return $this->variants()->count() > 0;
+    }
 }

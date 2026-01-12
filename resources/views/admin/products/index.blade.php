@@ -67,5 +67,10 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        <div style="padding: 1.5rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: center;">
+            {{ $products->links() }}
+        </div>
     </div>
 @endsection

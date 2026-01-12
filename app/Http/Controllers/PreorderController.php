@@ -28,7 +28,7 @@ class PreorderController extends Controller
 
         return $currencies[$currency] ?? $currencies['MYR'];
     }
- 
+
     private function getReservedQty(Product $product): int
     {
         return (int) Preorder::where('product_id', $product->id)
@@ -44,9 +44,9 @@ class PreorderController extends Controller
         $products = Product::where('available_for_preorder', true)
             ->orderBy('created_at', 'desc')
             ->get();
-            
+
         $highlightedGallery = \App\Models\Gallery::where('is_highlight', true)->latest()->take(6)->get();
-        
+
         $currency = session()->get('currency', 'MYR');
         $currencyConfig = $this->getCurrencyConfig($currency);
 
@@ -58,11 +58,14 @@ class PreorderController extends Controller
      */
     public function create(Request $request, Product $product)
     {
-        if (! ($product->is_active || $product->available_for_preorder)) {
+        if (!($product->is_active || $product->available_for_preorder)) {
             abort(404);
         }
 
-        return view('preorder.create', ['product' => $product]);
+        $product->load('variants');
+        $currency = session()->get('currency', 'MYR');
+
+        return view('preorder.create', ['product' => $product, 'currency' => $currency]);
     }
 
     /**
@@ -72,89 +75,155 @@ class PreorderController extends Controller
     {
         $data = $request->validate([
             'product_id' => 'required|integer|exists:products,id',
+            'items' => 'required|array',
+            'items.*' => 'integer|min:0', // variant_id => quantity
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
-            'size' => 'nullable|string|max:10',
             'long_sleeve' => 'sometimes|boolean',
             'custom_fields' => 'nullable|array',
             'custom_fields.*.key' => 'required_with:custom_fields|string',
             'custom_fields.*.value' => 'required_with:custom_fields|string',
-            'quantity' => 'required|integer|min:1',
-            'currency' => 'nullable|string|in:MYR,BND,IDR',
+            'currency' => 'nullable|string|in:MYR,SGD,IDR,USD',
             'notes' => 'nullable|string',
         ]);
 
-        $product = DB::transaction(function () use ($data) {
-            $p = Product::where('id', $data['product_id'])->lockForUpdate()->first();
-            if (! $p || (! $p->is_active && ! $p->available_for_preorder)) {
-                throw new \RuntimeException('Product not available');
-            }
-            if (! $p->available_for_preorder) {
-                $reserved = $this->getReservedQty($p);
-                $free = (int) $p->stock - $reserved;
-                if ($free < (int) $data['quantity']) {
-                    throw new \RuntimeException('Not enough stock available.');
-                }
-            }
-            return $p;
-        });
+        $product = Product::findOrFail($data['product_id']);
+        if (!$product->is_active && !$product->available_for_preorder) {
+            abort(404);
+        }
+
+        // Filter items with quantity > 0
+        $items = array_filter($data['items'] ?? [], fn($q) => $q > 0);
+        if (empty($items)) {
+            return back()->withErrors(['items' => 'Please select at least one item quantity.'])->withInput();
+        }
 
         $currency = $data['currency'] ?? 'MYR';
         $config = $this->getCurrencyConfig($currency);
+        $uuid = (string) \Illuminate\Support\Str::uuid();
 
-        $unit = (float) $product->price * $config['rate'];
+        // Transaction for Stock Check & Order Creation
+        $orders = DB::transaction(function () use ($data, $items, $product, $config, $currency, $uuid, $request) {
+            $totalQty = 0;
+            $totalAmount = 0;
+            $orderItems = [];
+            $firstVariantId = null;
+            $firstVariantName = null;
 
-        if ($request->boolean('long_sleeve')) {
-            $unit += $config['longSleeve'];
-        }
+            foreach ($items as $variantId => $qty) {
+                // Stock Check
+                if (!$product->available_for_preorder) {
+                    $variant = \App\Models\ProductVariant::lockForUpdate()->find($variantId);
+                    if ($variant && $variant->product_id == $product->id) {
+                        if ($variant->stock < $qty) {
+                            throw new \RuntimeException("Not enough stock for variant {$variant->name}");
+                        }
+                        // Deduct Stock immediately
+                        $variant->stock -= $qty;
+                        $variant->save();
+                    }
+                } else {
+                    $variant = \App\Models\ProductVariant::find($variantId);
+                }
 
-        // Add nameset cost if custom fields are provided
-        $hasCustomization = ! empty($data['custom_fields']);
-        if ($hasCustomization) {
-            $unit += $config['nameset'];
-        }
+                if (!$firstVariantId) {
+                    $firstVariantId = $variantId;
+                    $firstVariantName = $variant ? $variant->name : null;
+                }
 
-        $quantity = (int) ($data['quantity'] ?? 1);
-        $total = round($unit * $quantity, 2);
+                $unit = (float) $product->price * $config['rate'];
+                if ($request->boolean('long_sleeve')) {
+                    $unit += $config['longSleeve'];
+                }
 
-        $orderNumber = $this->generateOrderNumberForProduct($product);
+                $lineTotal = round($unit * $qty, 2);
+                $totalQty += $qty;
+                $totalAmount += $lineTotal;
 
-        $pre = Preorder::create([
-            'order_number' => $orderNumber,
-            'product_id' => $product->id,
-            'name' => $data['name'],
-            'email' => $data['email'] ?? null,
-            'phone' => $data['phone'] ?? null,
-            'address' => $data['address'] ?? null,
-            'jersey_type' => $product->jersey_type ?? null,
-            'size' => $data['size'] ?? null,
-            'long_sleeve' => $request->boolean('long_sleeve'),
-            'custom_fields' => $data['custom_fields'] ?? null,
-            'quantity' => $quantity,
-            'unit_price' => $unit,
-            'total_amount' => $total,
-            'currency' => $currency,
-            'status' => 'pending',
-            'notes' => $data['notes'] ?? null,
-        ]);
+                $orderItems[] = [
+                    'variant_id' => $variantId,
+                    'variant_name' => $variant ? $variant->name : 'Unknown', // Store name in case variant is deleted
+                    'quantity' => $qty,
+                    'unit_price' => $unit,
+                    'total_price' => $lineTotal
+                ];
+            }
 
-        PreorderHistory::create([
-            'preorder_id' => $pre->id,
-            'old_status' => null,
-            'new_status' => $pre->status,
-            'note' => 'Order created',
-        ]);
+            // Nameset Calculation
+            if (!empty($data['custom_fields'])) {
+                // Add nameset cost to Grand Total.
+                $namesetCost = count($data['custom_fields']) * $config['nameset'];
+                $totalAmount += $namesetCost;
+            }
 
-        if ($pre->email) {
-            // Send email with delay to avoid rate limiting
-            SendEmailJob::dispatch($pre->email, new OrderCreated($pre), 2);
+            $orderNumber = $this->generateOrderNumberForProduct($product);
+
+            $pre = Preorder::create([
+                'uuid' => $uuid,
+                'order_number' => $orderNumber,
+                'product_id' => $product->id,
+                'product_variant_id' => $firstVariantId, // Primary variant for reference
+                'name' => $data['name'],
+                'email' => $data['email'] ?? null,
+                'phone' => $data['phone'] ?? null,
+                'address' => $data['address'] ?? null,
+                'jersey_type' => $product->jersey_type ?? null,
+                'size' => $firstVariantName, // Primary size for reference
+                'long_sleeve' => $request->boolean('long_sleeve'),
+                'custom_fields' => $data['custom_fields'] ?? null,
+                'quantity' => $totalQty,
+                'unit_price' => $totalQty > 0 ? ($totalAmount / $totalQty) : 0, // Approx avg unit price
+                'total_amount' => $totalAmount,
+                'currency' => $currency,
+                'status' => 'pending', // Pending payment/confirmation
+                'notes' => $data['notes'] ?? null,
+                'items' => $orderItems, // JSON Data
+            ]);
+
+            PreorderHistory::create([
+                'preorder_id' => $pre->id,
+                'old_status' => null,
+                'new_status' => 'pending',
+                'note' => 'Order created via ' . ($product->available_for_preorder ? 'Preorder' : 'Ready Stock') . ' (COD)',
+            ]);
+
+            return [$pre];
+        });
+
+        // Send Email for the newly created order
+        if (!empty($orders) && $orders[0]->email) {
+            SendEmailJob::dispatch($orders[0]->email, new OrderCreated($orders[0]), 2);
         }
 
         $redirect = $product->available_for_preorder ? 'preorder.thankyou' : 'order.thankyou';
+        return redirect()->route($redirect, ['uuid' => $orders[0]->uuid]);
+    }
 
-        return redirect()->route($redirect, ['uuid' => $pre->uuid]);
+    /**
+     * Show the thank you page after placing a preorder.
+     */
+    public function thankyou(Request $request, $uuid)
+    {
+        // Fetch all orders with this UUID
+        $preorders = Preorder::with('product')->where('uuid', $uuid)->get();
+
+        if ($preorders->isEmpty()) {
+            // Fallback for old single-ID links if strictly UUID? 
+            // If $uuid is integer, try find by ID?
+            if (is_numeric($uuid)) {
+                $pre = Preorder::find($uuid);
+                if ($pre)
+                    $preorders = collect([$pre]);
+                else
+                    abort(404);
+            } else {
+                abort(404);
+            }
+        }
+
+        return view('preorder.thankyou', ['preorders' => $preorders]);
     }
 
     /**
@@ -164,7 +233,7 @@ class PreorderController extends Controller
     {
         $prefix = $product->available_for_preorder ? 'MM-PO-' : 'MM-OR-';
         do {
-            $code = $prefix.strtoupper(str()->random(8));
+            $code = $prefix . strtoupper(str()->random(8));
         } while (Preorder::where('order_number', $code)->exists());
 
         return $code;
@@ -180,7 +249,7 @@ class PreorderController extends Controller
         $error = null;
         if ($order) {
             $pre = Preorder::with(['product', 'histories'])->where('order_number', $order)->first();
-            if (! $pre) {
+            if (!$pre) {
                 $error = 'Order tidak ditemukan';
             }
         }
@@ -190,16 +259,6 @@ class PreorderController extends Controller
             'preorder' => $pre,
             'error' => $error,
         ]);
-    }
-
-    /**
-     * Show the thank you page after placing a preorder.
-     */
-    public function thankyou(Request $request, $id)
-    {
-        $pre = Preorder::findOrFail($id);
-
-        return view('preorder.thankyou', ['preorder' => $pre]);
     }
 
     /**
@@ -221,9 +280,11 @@ class PreorderController extends Controller
      */
     public function showProduct(Request $request, Product $product)
     {
-        if (! ($product->is_active && !$product->available_for_preorder)) {
+        if (!($product->is_active && !$product->available_for_preorder)) {
             abort(404);
         }
+
+        $product->load('variants');
 
         $currency = session()->get('currency', 'MYR');
         $avg = round((float) Feedback::where('product_id', $product->id)->avg('rating'), 2);
@@ -238,15 +299,15 @@ class PreorderController extends Controller
             'currency' => $currency,
         ]);
     }
-    
+
     public function setCurrency(Request $request)
     {
         $request->validate([
             'currency' => 'required|string|in:MYR,BND,IDR',
         ]);
-        
+
         session()->put('currency', $request->currency);
-        
+
         return response()->json(['success' => true, 'currency' => $request->currency]);
     }
 
@@ -254,41 +315,76 @@ class PreorderController extends Controller
     {
         $data = $request->validate([
             'product_id' => 'required|integer|exists:products,id',
+            'product_variant_id' => 'nullable|integer|exists:product_variants,id',
             'quantity' => 'required|integer|min:1',
             'size' => 'nullable|string|max:10',
             'long_sleeve' => 'sometimes|boolean',
         ]);
         $result = DB::transaction(function () use ($data, $request) {
             $product = Product::where('id', $data['product_id'])->lockForUpdate()->first();
-            if (! $product || (! $product->is_active && ! $product->available_for_preorder)) {
+            if (!$product || (!$product->is_active && !$product->available_for_preorder)) {
                 return ['error' => ['product_id' => 'Product not available']];
             }
-            if (! $product->available_for_preorder && empty($data['size'])) {
-                return ['error' => ['size' => 'Please select a size']];
-            }
-            $cart = session()->get('cart', []);
-            $key = (string) $product->id;
-            $existingQty = isset($cart[$key]) ? (int) $cart[$key]['quantity'] : 0;
-            $requestedTotal = $existingQty + (int) $data['quantity'];
-            if (! $product->available_for_preorder) {
-                $reserved = $this->getReservedQty($product);
-                $free = (int) $product->stock - $reserved;
-                if ($free < $requestedTotal) {
-                    return ['error' => ['quantity' => 'Not enough stock available']];
+
+            // Check variant if provided
+            $variant = null;
+            if (!empty($data['product_variant_id'])) {
+                $variant = \App\Models\ProductVariant::where('id', $data['product_variant_id'])
+                    ->where('product_id', $product->id)
+                    ->first();
+                if (!$variant) {
+                    return ['error' => ['product_variant_id' => 'Invalid variant']];
                 }
             }
+
+            if (!$product->available_for_preorder && empty($data['size']) && !$variant) {
+                return ['error' => ['size' => 'Please select a size']];
+            }
+
+            $cart = session()->get('cart', []);
+
+            // Generate unique key
+            $key = (string) $product->id;
+            if ($variant) {
+                $key .= '-' . $variant->id;
+            } elseif (!empty($data['size'])) {
+                // Fallback for unique key by size if no variant ID (legacy support)
+                $key .= '-' . preg_replace('/[^a-zA-Z0-9]/', '', $data['size']);
+            }
+
+            $existingQty = isset($cart[$key]) ? (int) $cart[$key]['quantity'] : 0;
+            $requestedTotal = $existingQty + (int) $data['quantity'];
+
+            if (!$product->available_for_preorder) {
+                if ($variant) {
+                    if ($variant->stock < $requestedTotal) {
+                        return ['error' => ['quantity' => 'Not enough stock available for this variant']];
+                    }
+                } else {
+                    $reserved = $this->getReservedQty($product);
+                    $free = (int) $product->stock - $reserved;
+                    if ($free < $requestedTotal) {
+                        return ['error' => ['quantity' => 'Not enough stock available']];
+                    }
+                }
+            }
+
             if (isset($cart[$key])) {
                 $cart[$key]['quantity'] = $requestedTotal;
                 $cart[$key]['size'] = $data['size'] ?? $cart[$key]['size'];
                 $cart[$key]['long_sleeve'] = $request->boolean('long_sleeve');
+                // Ensure variant ID is set if it wasn't before (though key implies it)
+                $cart[$key]['product_variant_id'] = $variant ? $variant->id : ($cart[$key]['product_variant_id'] ?? null);
             } else {
                 $cart[$key] = [
+                    'key' => $key,
                     'product_id' => $product->id,
+                    'product_variant_id' => $variant ? $variant->id : null,
                     'name' => $product->name,
                     'jersey_type' => $product->jersey_type,
                     'price' => (float) $product->price,
                     'quantity' => (int) $data['quantity'],
-                    'size' => $data['size'] ?? null,
+                    'size' => $data['size'] ?? ($variant ? $variant->name : null),
                     'long_sleeve' => $request->boolean('long_sleeve'),
                     'image' => $product->image_path,
                     'is_preorder' => (bool) $product->available_for_preorder,
@@ -312,7 +408,7 @@ class PreorderController extends Controller
         $total = 0.0;
         foreach ($cart as $it) {
             $unit = (float) $it['price'] * $config['rate'];
-            if (! empty($it['long_sleeve'])) {
+            if (!empty($it['long_sleeve'])) {
                 $unit += $config['longSleeve'];
             }
             $line = round($unit * (int) $it['quantity'], 2);
@@ -330,19 +426,20 @@ class PreorderController extends Controller
     public function cartUpdate(Request $request)
     {
         $data = $request->validate([
-            'product_id' => 'required|integer',
+            'key' => 'required|string',
             'quantity' => 'required|integer|min:1',
-            'size' => 'nullable|string|max:10',
             'long_sleeve' => 'sometimes|boolean',
         ]);
         $cart = session()->get('cart', []);
-        $key = (string) $data['product_id'];
-        if (! isset($cart[$key])) {
-            return back()->withErrors(['product_id' => 'Item tidak ditemukan di cart']);
+        $key = $data['key'];
+
+        if (!isset($cart[$key])) {
+            return back()->withErrors(['key' => 'Item tidak ditemukan di cart']);
         }
+
         $cart[$key]['quantity'] = (int) $data['quantity'];
-        $cart[$key]['size'] = $data['size'] ?? $cart[$key]['size'];
         $cart[$key]['long_sleeve'] = $request->boolean('long_sleeve');
+
         session()->put('cart', $cart);
         return back()->with('success', 'Cart diperbarui');
     }
@@ -350,13 +447,18 @@ class PreorderController extends Controller
     public function cartRemove(Request $request)
     {
         $data = $request->validate([
-            'product_id' => 'required|integer',
+            'key' => 'required|string',
         ]);
         $cart = session()->get('cart', []);
-        $key = (string) $data['product_id'];
-        unset($cart[$key]);
-        session()->put('cart', $cart);
-        return back()->with('success', 'Item dihapus dari cart');
+        $key = $data['key'];
+
+        if (isset($cart[$key])) {
+            unset($cart[$key]);
+            session()->put('cart', $cart);
+            return back()->with('success', 'Item dihapus dari cart');
+        }
+
+        return back()->with('error', 'Item tidak ditemukan');
     }
 
     public function checkoutCod(Request $request)
@@ -379,18 +481,30 @@ class PreorderController extends Controller
         foreach ($cart as $it) {
             $pre = DB::transaction(function () use ($it, $data, $config, $currency) {
                 $product = Product::where('id', $it['product_id'])->lockForUpdate()->first();
-                if (! $product || (! $product->is_active && ! $product->available_for_preorder)) {
+                if (!$product || (!$product->is_active && !$product->available_for_preorder)) {
                     return null;
                 }
-                if (! $product->available_for_preorder) {
-                    $reserved = $this->getReservedQty($product);
-                    $free = (int) $product->stock - $reserved;
-                    if ($free < (int) $it['quantity']) {
-                        return null;
+
+                $variant = null;
+                if (!empty($it['product_variant_id'])) {
+                    $variant = \App\Models\ProductVariant::lockForUpdate()->find($it['product_variant_id']);
+                }
+
+                if (!$product->available_for_preorder) {
+                    if ($variant) {
+                        if ($variant->stock < (int) $it['quantity']) {
+                            return null;
+                        }
+                    } else {
+                        $reserved = $this->getReservedQty($product);
+                        $free = (int) $product->stock - $reserved;
+                        if ($free < (int) $it['quantity']) {
+                            return null;
+                        }
                     }
                 }
                 $unit = (float) $product->price * $config['rate'];
-                if (! empty($it['long_sleeve'])) {
+                if (!empty($it['long_sleeve'])) {
                     $unit += $config['longSleeve'];
                 }
                 $quantity = (int) $it['quantity'];
@@ -399,13 +513,14 @@ class PreorderController extends Controller
                 $pre = Preorder::create([
                     'order_number' => $orderNumber,
                     'product_id' => $product->id,
+                    'product_variant_id' => $variant ? $variant->id : null,
                     'name' => $data['name'],
                     'email' => $data['email'] ?? null,
                     'phone' => $data['phone'] ?? null,
                     'address' => $data['address'] ?? null,
                     'jersey_type' => $product->jersey_type ?? null,
-                    'size' => $it['size'] ?? null,
-                    'long_sleeve' => ! empty($it['long_sleeve']),
+                    'size' => $it['size'] ?? ($variant ? $variant->name : null),
+                    'long_sleeve' => !empty($it['long_sleeve']),
                     'custom_fields' => null,
                     'quantity' => $quantity,
                     'unit_price' => $unit,
@@ -420,7 +535,7 @@ class PreorderController extends Controller
                     'new_status' => $pre->status,
                     'note' => 'Order via COD checkout',
                 ]);
-                
+
                 if ($pre->email) {
                     Mail::to($pre->email)->send(new OrderCreated($pre));
                 }
@@ -461,11 +576,11 @@ class PreorderController extends Controller
         ]);
 
         if ($order->shipping_status !== 'delivered') {
-             return back()->with('error', 'Barang harus diterima terlebih dahulu sebelum request refund');
+            return back()->with('error', 'Barang harus diterima terlebih dahulu sebelum request refund');
         }
 
         if (!$order->stripe_payment_intent_id) {
-             return back()->with('error', 'Refund otomatis hanya tersedia untuk pembayaran via Stripe');
+            return back()->with('error', 'Refund otomatis hanya tersedia untuk pembayaran via Stripe');
         }
 
         if ($order->refund_status && in_array($order->refund_status, ['pending', 'approved', 'completed'])) {

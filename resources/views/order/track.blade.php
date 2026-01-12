@@ -173,7 +173,7 @@
                 @endif
 
                 <div style="margin-top:1.5rem;">
-                    <a href="{{ route('preorder.thankyou', ['id' => $preorder->id]) }}" class="inline-block bg-black text-white px-4 py-2 rounded-md font-semibold text-sm">Lihat detail</a>
+                    <a href="{{ route('preorder.thankyou', ['uuid' => $preorder->uuid]) }}" class="inline-block bg-black text-white px-4 py-2 rounded-md font-semibold text-sm">Lihat detail</a>
                 </div>
             </div>
         @endif
