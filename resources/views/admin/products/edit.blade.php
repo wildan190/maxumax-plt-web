@@ -193,13 +193,27 @@
             const grid = document.getElementById('imagePreviewGridEdit');
             const status = document.getElementById('imageStatusTextEdit');
             const clearBtn = document.getElementById('clearImagesBtnEdit');
+            
+            // Store current files in memory
+            let currentFiles = [];
+            
+            function updateInputFiles(files) {
+                const dt = new DataTransfer();
+                files.forEach(f => dt.items.add(f));
+                input.files = dt.files;
+                currentFiles = Array.from(files);
+            }
+            
             function render(files){
                 grid.innerHTML = '';
-                const max = Math.min(files.length, 4);
-                for (let i = 0; i < max; i++) {
+                for (let i = 0; i < files.length; i++) {
                     const f = files[i];
                     const reader = new FileReader();
                     reader.onload = function(evt){
+                        const container = document.createElement('div');
+                        container.style.position = 'relative';
+                        container.style.width = '100%';
+                        
                         const img = document.createElement('img');
                         img.src = evt.target.result;
                         img.style.width = '100%';
@@ -207,41 +221,111 @@
                         img.style.objectFit = 'cover';
                         img.style.borderRadius = '0.375rem';
                         img.style.border = '1px solid #e5e7eb';
-                        grid.appendChild(img);
+                        
+                        const removeBtn = document.createElement('button');
+                        removeBtn.textContent = '×';
+                        removeBtn.type = 'button';
+                        removeBtn.style.position = 'absolute';
+                        removeBtn.style.top = '2px';
+                        removeBtn.style.right = '2px';
+                        removeBtn.style.background = '#dc2626';
+                        removeBtn.style.color = 'white';
+                        removeBtn.style.border = 'none';
+                        removeBtn.style.borderRadius = '50%';
+                        removeBtn.style.width = '20px';
+                        removeBtn.style.height = '20px';
+                        removeBtn.style.cursor = 'pointer';
+                        removeBtn.style.fontSize = '14px';
+                        removeBtn.style.fontWeight = 'bold';
+                        removeBtn.style.display = 'flex';
+                        removeBtn.style.alignItems = 'center';
+                        removeBtn.style.justifyContent = 'center';
+                        removeBtn.style.lineHeight = '1';
+                        removeBtn.onclick = function() {
+                            removeFile(i);
+                        };
+                        
+                        container.appendChild(img);
+                        container.appendChild(removeBtn);
+                        grid.appendChild(container);
                     };
                     reader.readAsDataURL(f);
                 }
-                status.style.display = files.length > 4 ? 'block' : 'none';
+                status.style.display = files.length >= 4 ? 'block' : 'none';
             }
-            function setFiles(fileList){
-                const dt = new DataTransfer();
-                const arr = Array.from(fileList).slice(0,4);
-                arr.forEach(f => dt.items.add(f));
-                input.files = dt.files;
-                render(arr);
+            
+            function removeFile(index){
+                currentFiles.splice(index, 1);
+                updateInputFiles(currentFiles);
+                render(currentFiles);
             }
+            
+            function addFiles(newFiles){
+                // Filter only image files
+                const imageFiles = Array.from(newFiles).filter(f => f.type.startsWith('image/'));
+                if (imageFiles.length === 0) return;
+                
+                // Calculate remaining slots
+                const remainingSlots = 4 - currentFiles.length;
+                if (remainingSlots <= 0) {
+                    status.textContent = 'Maksimal 4 gambar sudah tercapai';
+                    status.style.display = 'block';
+                    setTimeout(() => {
+                        if (currentFiles.length < 4) status.style.display = 'none';
+                    }, 2000);
+                    return;
+                }
+                
+                // Add new files, avoiding duplicates
+                const seen = new Set();
+                currentFiles.forEach(f => {
+                    seen.add(`${f.name}-${f.size}`);
+                });
+                
+                for (const file of imageFiles) {
+                    if (currentFiles.length >= 4) break;
+                    const key = `${file.name}-${file.size}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        currentFiles.push(file);
+                    }
+                }
+                
+                updateInputFiles(currentFiles);
+                render(currentFiles);
+            }
+            
             dz.addEventListener('click', function(){
                 input.click();
             });
+            
             dz.addEventListener('dragover', function(e){
                 e.preventDefault();
                 dz.style.background = '#f9fafb';
             });
+            
             dz.addEventListener('dragleave', function(){
                 dz.style.background = 'transparent';
             });
+            
             dz.addEventListener('drop', function(e){
                 e.preventDefault();
                 dz.style.background = 'transparent';
                 const files = e.dataTransfer.files;
-                const imgs = Array.from(files).filter(f => f.type.startsWith('image/'));
-                if (imgs.length) setFiles(imgs);
+                if (files.length) {
+                    addFiles(files);
+                }
             });
+            
             input.addEventListener('change', function(e){
-                const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
-                if (files.length) setFiles(files);
+                // When user selects files via file picker, add them to existing files
+                if (e.target.files.length) {
+                    addFiles(e.target.files);
+                }
             });
+            
             clearBtn.addEventListener('click', function(){
+                currentFiles = [];
                 input.value = '';
                 grid.innerHTML = '';
                 status.style.display = 'none';

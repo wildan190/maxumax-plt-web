@@ -8,6 +8,10 @@ use App\Models\PreorderHistory;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderCreated;
+use App\Mail\RefundRequested;
+use App\Jobs\SendEmailJob;
 
 class PreorderController extends Controller
 {
@@ -40,8 +44,13 @@ class PreorderController extends Controller
         $products = Product::where('available_for_preorder', true)
             ->orderBy('created_at', 'desc')
             ->get();
+            
+        $highlightedGallery = \App\Models\Gallery::where('is_highlight', true)->latest()->take(6)->get();
+        
+        $currency = session()->get('currency', 'MYR');
+        $currencyConfig = $this->getCurrencyConfig($currency);
 
-        return view('preorder.landing', compact('products'));
+        return view('preorder.landing', compact('products', 'highlightedGallery', 'currency', 'currencyConfig'));
     }
 
     /**
@@ -138,9 +147,14 @@ class PreorderController extends Controller
             'note' => 'Order created',
         ]);
 
+        if ($pre->email) {
+            // Send email with delay to avoid rate limiting
+            SendEmailJob::dispatch($pre->email, new OrderCreated($pre), 2);
+        }
+
         $redirect = $product->available_for_preorder ? 'preorder.thankyou' : 'order.thankyou';
 
-        return redirect()->route($redirect, ['id' => $pre->id]);
+        return redirect()->route($redirect, ['uuid' => $pre->uuid]);
     }
 
     /**
@@ -165,7 +179,7 @@ class PreorderController extends Controller
         $pre = null;
         $error = null;
         if ($order) {
-            $pre = Preorder::where('order_number', $order)->first();
+            $pre = Preorder::with(['product', 'histories'])->where('order_number', $order)->first();
             if (! $pre) {
                 $error = 'Order tidak ditemukan';
             }
@@ -247,10 +261,10 @@ class PreorderController extends Controller
         $result = DB::transaction(function () use ($data, $request) {
             $product = Product::where('id', $data['product_id'])->lockForUpdate()->first();
             if (! $product || (! $product->is_active && ! $product->available_for_preorder)) {
-                return ['error' => ['product_id' => 'Produk tidak tersedia']];
+                return ['error' => ['product_id' => 'Product not available']];
             }
             if (! $product->available_for_preorder && empty($data['size'])) {
-                return ['error' => ['size' => 'Pilih ukuran terlebih dahulu']];
+                return ['error' => ['size' => 'Please select a size']];
             }
             $cart = session()->get('cart', []);
             $key = (string) $product->id;
@@ -260,7 +274,7 @@ class PreorderController extends Controller
                 $reserved = $this->getReservedQty($product);
                 $free = (int) $product->stock - $reserved;
                 if ($free < $requestedTotal) {
-                    return ['error' => ['quantity' => 'Stok tidak cukup untuk jumlah yang diminta']];
+                    return ['error' => ['quantity' => 'Not enough stock available']];
                 }
             }
             if (isset($cart[$key])) {
@@ -406,6 +420,11 @@ class PreorderController extends Controller
                     'new_status' => $pre->status,
                     'note' => 'Order via COD checkout',
                 ]);
+                
+                if ($pre->email) {
+                    Mail::to($pre->email)->send(new OrderCreated($pre));
+                }
+
                 return $pre;
             });
             if ($pre) {
@@ -414,5 +433,61 @@ class PreorderController extends Controller
         }
         session()->forget('cart');
         return view('cart.thankyou', ['orders' => $orders, 'currency' => $currency]);
+    }
+
+    public function markDelivered(Request $request, Preorder $order)
+    {
+        if ($order->shipping_status !== 'shipped') {
+            return back()->with('error', 'Order belum dikirim atau sudah diterima');
+        }
+
+        $order->shipping_status = 'delivered';
+        $order->save();
+
+        PreorderHistory::create([
+            'preorder_id' => $order->id,
+            'old_status' => $order->status,
+            'new_status' => $order->status,
+            'note' => 'Order marked as received by customer',
+        ]);
+
+        return back()->with('status', 'Terima kasih! Order telah diterima.');
+    }
+
+    public function requestRefund(Request $request, Preorder $order)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        if ($order->shipping_status !== 'delivered') {
+             return back()->with('error', 'Barang harus diterima terlebih dahulu sebelum request refund');
+        }
+
+        if (!$order->stripe_payment_intent_id) {
+             return back()->with('error', 'Refund otomatis hanya tersedia untuk pembayaran via Stripe');
+        }
+
+        if ($order->refund_status && in_array($order->refund_status, ['pending', 'approved', 'completed'])) {
+            return back()->with('error', 'Refund request sudah diajukan');
+        }
+
+        $order->refund_status = 'pending';
+        $order->refund_reason = $request->input('reason');
+        $order->refund_amount = $order->total_amount; // Default to full refund
+        $order->save();
+
+        PreorderHistory::create([
+            'preorder_id' => $order->id,
+            'old_status' => $order->status,
+            'new_status' => $order->status,
+            'note' => 'Refund requested by customer: ' . $request->input('reason'),
+        ]);
+
+        if ($order->email) {
+            Mail::to($order->email)->send(new RefundRequested($order));
+        }
+
+        return back()->with('status', 'Permintaan refund telah dikirim dan menunggu persetujuan admin.');
     }
 }

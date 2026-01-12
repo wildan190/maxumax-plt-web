@@ -3,11 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Preorder;
+use App\Models\PreorderHistory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Stripe\Stripe;
+use Stripe\Refund;
+use Stripe\Exception\ApiErrorException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderAdminController extends Controller
 {
+    public function __construct()
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+    }
     public function index(Request $request)
     {
         // Only show orders (available_for_preorder = false, is_active = true)
@@ -98,6 +107,69 @@ class OrderAdminController extends Controller
         return back()->with('status', 'Order dikonfirmasi');
     }
 
+    public function markPacking(Request $request, Preorder $order)
+    {
+        if (!in_array($order->status, ['confirmed', 'paid'])) {
+            return back()->with('error', 'Order harus dalam status confirmed atau paid sebelum dipacking');
+        }
+
+        $oldShippingStatus = $order->shipping_status;
+        $order->shipping_status = 'packing';
+        $order->save();
+
+        PreorderHistory::create([
+            'preorder_id' => $order->id,
+            'old_status' => $order->status,
+            'new_status' => $order->status,
+            'note' => 'Order sedang dipacking' . ($oldShippingStatus ? ' (dari: ' . $oldShippingStatus . ')' : ''),
+        ]);
+
+        return back()->with('status', 'Order ditandai sebagai packing');
+    }
+
+    public function markShipped(Request $request, Preorder $order)
+    {
+        $request->validate([
+            'tracking_number' => 'required|string|max:255',
+        ]);
+
+        if ($order->shipping_status !== 'packing') {
+            return back()->with('error', 'Order harus dalam status packing sebelum dikirim');
+        }
+
+        $order->shipping_status = 'shipped';
+        $order->tracking_number = $request->input('tracking_number');
+        $order->save();
+
+        PreorderHistory::create([
+            'preorder_id' => $order->id,
+            'old_status' => $order->status,
+            'new_status' => $order->status,
+            'note' => 'Order telah dikirim. Nomor resi: ' . $order->tracking_number,
+        ]);
+
+        return back()->with('status', 'Order ditandai sebagai shipped dengan nomor resi: ' . $order->tracking_number);
+    }
+
+    public function markDelivered(Request $request, Preorder $order)
+    {
+        if ($order->shipping_status !== 'shipped') {
+            return back()->with('error', 'Order harus dalam status shipped sebelum ditandai sebagai delivered');
+        }
+
+        $order->shipping_status = 'delivered';
+        $order->save();
+
+        PreorderHistory::create([
+            'preorder_id' => $order->id,
+            'old_status' => $order->status,
+            'new_status' => $order->status,
+            'note' => 'Order telah diterima oleh customer',
+        ]);
+
+        return back()->with('status', 'Order ditandai sebagai delivered');
+    }
+
     public function destroy(Preorder $order)
     {
         // record deletion in history before deleting
@@ -166,5 +238,131 @@ class OrderAdminController extends Controller
         $response->headers->set('Content-Disposition', 'attachment; filename="'.$fileName.'"');
 
         return $response;
+    }
+
+    /**
+     * Request refund for an order
+     */
+    public function requestRefund(Request $request, Preorder $order)
+    {
+        $request->validate([
+            'refund_reason' => 'required|string|max:1000',
+            'refund_amount' => 'nullable|numeric|min:0|max:' . $order->total_amount,
+        ]);
+
+        if (!$order->stripe_payment_intent_id) {
+            return back()->with('error', 'Order ini tidak menggunakan Stripe payment, tidak dapat direfund');
+        }
+
+        if ($order->refund_status && in_array($order->refund_status, ['pending', 'approved', 'completed'])) {
+            return back()->with('error', 'Refund request sudah ada untuk order ini');
+        }
+
+        $refundAmount = $request->input('refund_amount', $order->total_amount);
+        
+        $order->refund_status = 'pending';
+        $order->refund_amount = $refundAmount;
+        $order->refund_reason = $request->input('refund_reason');
+        $order->save();
+
+        PreorderHistory::create([
+            'preorder_id' => $order->id,
+            'old_status' => $order->status,
+            'new_status' => $order->status,
+            'note' => 'Refund requested: ' . $request->input('refund_reason') . ' (Amount: ' . $order->currency . ' ' . number_format($refundAmount, 2) . ')',
+        ]);
+
+        return back()->with('status', 'Refund request telah dibuat, menunggu konfirmasi admin');
+    }
+
+    /**
+     * Approve and process refund
+     */
+    public function approveRefund(Request $request, Preorder $order)
+    {
+        if ($order->refund_status !== 'pending') {
+            return back()->with('error', 'Refund request tidak dalam status pending');
+        }
+
+        if (!$order->stripe_payment_intent_id) {
+            return back()->with('error', 'Order ini tidak memiliki Stripe payment intent ID');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Create refund in Stripe
+            $refundAmount = $this->convertToCents($order->refund_amount, $order->currency);
+            
+            $refund = Refund::create([
+                'payment_intent' => $order->stripe_payment_intent_id,
+                'amount' => $refundAmount,
+                'reason' => 'requested_by_customer',
+                'metadata' => [
+                    'order_number' => $order->order_number,
+                    'refund_reason' => $order->refund_reason ?? 'Admin approved refund',
+                ],
+            ]);
+
+            // Update order
+            $order->refund_status = 'approved';
+            $order->stripe_refund_id = $refund->id;
+            $order->status = 'refunded';
+            $order->save();
+
+            PreorderHistory::create([
+                'preorder_id' => $order->id,
+                'old_status' => 'pending',
+                'new_status' => 'refunded',
+                'note' => 'Refund approved and processed via Stripe. Refund ID: ' . $refund->id . ' (Amount: ' . $order->currency . ' ' . number_format($order->refund_amount, 2) . ')',
+            ]);
+
+            // Restore stock if product exists
+            if ($order->product && !$order->product->available_for_preorder) {
+                $product = $order->product;
+                $product->stock = $product->stock + $order->quantity;
+                $product->save();
+            }
+
+            DB::commit();
+
+            return back()->with('status', 'Refund telah disetujui dan diproses melalui Stripe');
+        } catch (ApiErrorException $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error processing refund: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Reject refund request
+     */
+    public function rejectRefund(Request $request, Preorder $order)
+    {
+        if ($order->refund_status !== 'pending') {
+            return back()->with('error', 'Refund request tidak dalam status pending');
+        }
+
+        $order->refund_status = 'rejected';
+        $order->save();
+
+        PreorderHistory::create([
+            'preorder_id' => $order->id,
+            'old_status' => $order->status,
+            'new_status' => $order->status,
+            'note' => 'Refund request rejected by admin',
+        ]);
+
+        return back()->with('status', 'Refund request telah ditolak');
+    }
+
+    /**
+     * Convert amount to cents for Stripe
+     */
+    private function convertToCents(float $amount, string $currency): int
+    {
+        if ($currency === 'IDR') {
+            return (int) round($amount);
+        }
+        return (int) round($amount * 100);
     }
 }

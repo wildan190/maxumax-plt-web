@@ -41,13 +41,7 @@
             <span>Pengguna</span>
         </a>
 
-        <a href="#" class="admin-nav-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2v20M2 12h20"></path>
-                <circle cx="12" cy="12" r="10"></circle>
-            </svg>
-            <span>Pengaturan</span>
-        </a>
+
 
         <a href="{{ route('admin.preorders.index') }}" class="admin-nav-item {{ request()->routeIs('admin.preorders.*') ? 'active' : '' }}">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -86,14 +80,32 @@
             <span>Orders History</span>
         </a>
 
+        <a href="{{ route('admin.reports.index') }}" class="admin-nav-item {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span>Reports</span>
+        </a>
+
+        <a href="{{ route('admin.galleries.index') }}" class="admin-nav-item {{ request()->routeIs('admin.galleries.*') ? 'active' : '' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <span>Gallery</span>
+        </a>
+
         <!-- Tools Section -->
-        <div class="admin-nav-section-title">Alat</div>
+        <div class="admin-nav-section-title">Tools</div>
 
         <a href="#" class="admin-nav-item">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
-            <span>Pesan</span>
+            <span>Messages</span>
         </a>
 
         <a href="#" class="admin-nav-item">
@@ -102,11 +114,11 @@
                 <circle cx="19" cy="12" r="1"></circle>
                 <circle cx="5" cy="12" r="1"></circle>
             </svg>
-            <span>Bantuan</span>
+            <span>Help</span>
         </a>
 
         <!-- Account Section -->
-        <div class="admin-nav-section-title">Akun</div>
+        <div class="admin-nav-section-title">Account</div>
 
         <form method="POST" action="{{ route('logout') }}" style="display: contents;">
             @csrf
@@ -116,7 +128,7 @@
                     <polyline points="16 17 21 12 16 7"></polyline>
                     <line x1="21" y1="12" x2="9" y2="12"></line>
                 </svg>
-                <span>Keluar</span>
+                <span>Logout</span>
             </button>
         </form>
     </nav>

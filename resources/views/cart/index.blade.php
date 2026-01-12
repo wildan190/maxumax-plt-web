@@ -434,7 +434,21 @@
         </div>
         
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success" style="padding: 1rem; background: #d1fae5; color: #065f46; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #a7f3d0;">{{ session('success') }}</div>
+        @endif
+        
+        @if(session('error'))
+            <div class="alert alert-error" style="padding: 1rem; background: #fee2e2; color: #991b1b; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #fca5a5;">{{ session('error') }}</div>
+        @endif
+        
+        @if($errors->any())
+            <div class="alert alert-error" style="padding: 1rem; background: #fee2e2; color: #991b1b; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #fca5a5;">
+                <ul style="margin: 0; padding-left: 1.5rem;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
         @endif
         
         @if(!count($items))

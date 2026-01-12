@@ -220,7 +220,25 @@
             <div class="success-icon">✓</div>
             <h1 class="thankyou-title">Order Confirmed!</h1>
             <p class="thankyou-subtitle">Your order has been successfully received</p>
-            <span class="status-badge">Status: Pending Confirmation</span>
+            @php
+                $status = 'pending';
+                $isStripe = false;
+                if(isset($orders) && count($orders) > 0) {
+                    $firstOrder = $orders[0];
+                    $status = $firstOrder->status;
+                    if($firstOrder->stripe_payment_intent_id) {
+                        $isStripe = true;
+                    }
+                }
+            @endphp
+            
+            @if($status === 'paid')
+                <span class="status-badge" style="background: #dcfce7; color: #166534; border-color: #bbf7d0;">Status: Payment Successful</span>
+            @elseif($status === 'confirmed')
+                <span class="status-badge" style="background: #e0f2fe; color: #075985; border-color: #bae6fd;">Status: Confirmed</span>
+            @else
+                <span class="status-badge">Status: Pending Confirmation</span>
+            @endif
         </div>
         
         <div class="order-card">
@@ -234,6 +252,11 @@
                                 <div class="order-number">{{ $o->order_number }}</div>
                                 <div class="order-product">{{ optional($o->product)->name ?? $o->jersey_type ?? 'Product' }}</div>
                             </div>
+                            <div class="order-status">
+                                <span style="font-size: 0.8rem; padding: 0.25rem 0.5rem; border-radius: 4px; background: #f3f4f6; color: #4b5563;">
+                                    {{ ucfirst($o->status) }}
+                                </span>
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -244,8 +267,12 @@
                         Important Information
                     </div>
                     <p class="info-box-text">
-                        Please save your order number(s) above for tracking. You will receive a confirmation call or message from us soon. 
-                        For COD orders, payment will be collected upon delivery.
+                        Please save your order number(s) above for tracking. 
+                        @if($isStripe)
+                            Payment has been securely processed via Stripe. We will process your order shortly.
+                        @else
+                            For COD orders, payment will be collected upon delivery. You will receive a confirmation call or message from us soon.
+                        @endif
                     </p>
                 </div>
             @else

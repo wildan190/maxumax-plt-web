@@ -26,6 +26,12 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/preorders/{preorder}', [App\Http\Controllers\PreorderAdminController::class, 'show'])->name('admin.preorders.show');
     Route::post('/preorders/{preorder}/confirm', [App\Http\Controllers\PreorderAdminController::class, 'confirm'])->name('admin.preorders.confirm');
     Route::post('/preorders/{preorder}/mark-paid', [App\Http\Controllers\PreorderAdminController::class, 'markPaid'])->name('admin.preorders.markPaid');
+    Route::post('/preorders/{preorder}/mark-packing', [App\Http\Controllers\PreorderAdminController::class, 'markPacking'])->name('admin.preorders.markPacking');
+    Route::post('/preorders/{preorder}/mark-shipped', [App\Http\Controllers\PreorderAdminController::class, 'markShipped'])->name('admin.preorders.markShipped');
+    Route::post('/preorders/{preorder}/mark-delivered', [App\Http\Controllers\PreorderAdminController::class, 'markDelivered'])->name('admin.preorders.markDelivered');
+    Route::post('/preorders/{preorder}/request-refund', [App\Http\Controllers\PreorderAdminController::class, 'requestRefund'])->name('admin.preorders.requestRefund');
+    Route::post('/preorders/{preorder}/approve-refund', [App\Http\Controllers\PreorderAdminController::class, 'approveRefund'])->name('admin.preorders.approveRefund');
+    Route::post('/preorders/{preorder}/reject-refund', [App\Http\Controllers\PreorderAdminController::class, 'rejectRefund'])->name('admin.preorders.rejectRefund');
     Route::delete('/preorders/{preorder}', [App\Http\Controllers\PreorderAdminController::class, 'destroy'])->name('admin.preorders.destroy');
     Route::get('/preorders/export/csv', [App\Http\Controllers\PreorderAdminController::class, 'exportCsv'])->name('admin.preorders.export');
 
@@ -38,6 +44,12 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/orders/{order}', [App\Http\Controllers\OrderAdminController::class, 'show'])->name('admin.orders.show');
     Route::post('/orders/{order}/confirm', [App\Http\Controllers\OrderAdminController::class, 'confirm'])->name('admin.orders.confirm');
     Route::post('/orders/{order}/mark-paid', [App\Http\Controllers\OrderAdminController::class, 'markPaid'])->name('admin.orders.markPaid');
+    Route::post('/orders/{order}/mark-packing', [App\Http\Controllers\OrderAdminController::class, 'markPacking'])->name('admin.orders.markPacking');
+    Route::post('/orders/{order}/mark-shipped', [App\Http\Controllers\OrderAdminController::class, 'markShipped'])->name('admin.orders.markShipped');
+    Route::post('/orders/{order}/mark-delivered', [App\Http\Controllers\OrderAdminController::class, 'markDelivered'])->name('admin.orders.markDelivered');
+    Route::post('/orders/{order}/request-refund', [App\Http\Controllers\OrderAdminController::class, 'requestRefund'])->name('admin.orders.requestRefund');
+    Route::post('/orders/{order}/approve-refund', [App\Http\Controllers\OrderAdminController::class, 'approveRefund'])->name('admin.orders.approveRefund');
+    Route::post('/orders/{order}/reject-refund', [App\Http\Controllers\OrderAdminController::class, 'rejectRefund'])->name('admin.orders.rejectRefund');
     Route::delete('/orders/{order}', [App\Http\Controllers\OrderAdminController::class, 'destroy'])->name('admin.orders.destroy');
 
     // Product management
@@ -47,7 +59,17 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('admin.products.edit');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('admin.products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('admin.products.destroy');
+
+    // Reports
+    Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('admin.reports.index');
+    Route::get('/reports/export', [App\Http\Controllers\ReportController::class, 'export'])->name('admin.reports.export');
+
+    // Gallery
+    Route::resource('galleries', App\Http\Controllers\GalleryAdminController::class)->names('admin.galleries');
 });
+
+// Public Gallery
+Route::get('/gallery', [App\Http\Controllers\PageController::class, 'gallery'])->name('gallery.index');
 
 // Preorder landing (supports optional subdomain via PREORDER_DOMAIN env)
 Route::group(['domain' => env('PREORDER_DOMAIN', null)], function () {
@@ -65,13 +87,15 @@ Route::group(['domain' => env('PREORDER_DOMAIN', null)], function () {
 Route::get('/preorder', [PreorderController::class, 'showLanding'])->name('preorder.landing');
 Route::get('/preorder/create/{product}', [PreorderController::class, 'create'])->name('preorder.create');
 Route::post('/preorder', [PreorderController::class, 'store'])->name('preorder.store');
-Route::get('/preorder/thank-you/{id}', [PreorderController::class, 'thankyou'])->name('preorder.thankyou');
+Route::get('/preorder/thank-you/{uuid}', [PreorderController::class, 'thankyou'])->name('preorder.thankyou');
 Route::get('/order/create/{product}', [PreorderController::class, 'create'])->name('order.create');
 Route::post('/order', [PreorderController::class, 'store'])->name('order.store');
-Route::get('/order/thank-you/{id}', [PreorderController::class, 'thankyou'])->name('order.thankyou');
+Route::get('/order/thank-you/{uuid}', [PreorderController::class, 'thankyou'])->name('order.thankyou');
 
 Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 Route::get('/order/track', [PreorderController::class, 'track'])->name('order.track');
+Route::post('/preorder/{order}/mark-delivered', [PreorderController::class, 'markDelivered'])->name('preorder.markDelivered');
+Route::post('/preorder/{order}/request-refund', [PreorderController::class, 'requestRefund'])->name('preorder.requestRefund');
 Route::get('/products', [PreorderController::class, 'showProducts'])->name('products.index');
 Route::get('/product/{product}', [PreorderController::class, 'showProduct'])->name('product.show');
 
@@ -83,4 +107,7 @@ Route::post('/checkout/cod', [PreorderController::class, 'checkoutCod'])->name('
 Route::post('/checkout/stripe', [PaymentController::class, 'createCheckoutSession'])->name('checkout.stripe');
 Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
+Route::post('/preorder/checkout/stripe', [PaymentController::class, 'createPreorderCheckoutSession'])->name('preorder.checkout.stripe');
+Route::get('/payment/preorder/success', [PaymentController::class, 'preorderSuccess'])->name('payment.preorder.success');
+Route::get('/payment/preorder/cancel', [PaymentController::class, 'preorderCancel'])->name('payment.preorder.cancel');
 Route::post('/currency/set', [PreorderController::class, 'setCurrency'])->name('currency.set');

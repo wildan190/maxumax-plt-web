@@ -42,6 +42,35 @@
         </div>
     </section>
 
+    <!-- Gallery Section -->
+    @if(isset($highlightedGallery) && $highlightedGallery->count() > 0)
+    <section class="bg-slate-50 py-16 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">Our Gallery</h2>
+                <p class="text-slate-500 text-base">Check out our latest collection highlights</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach($highlightedGallery as $gallery)
+                    <div class="relative h-64 rounded-xl overflow-hidden group shadow-lg">
+                        <img src="{{ Storage::url($gallery->image_path) }}" alt="{{ $gallery->title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <h3 class="text-white font-bold text-lg">{{ $gallery->title }}</h3>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            
+            <div class="text-center mt-10">
+                <a href="{{ route('gallery.index') }}" class="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-800 transition">
+                    See More Gallery <i data-feather="arrow-right" style="width:16px;height:16px;"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+    @endif
+
     <!-- Product Showcase Section -->
     <section id="products" class="bg-slate-100 py-16 px-4">
         <div class="max-w-7xl mx-auto">
@@ -85,7 +114,7 @@
                                 {{ $product->description ?: 'Premium quality jersey with breathable fabric.' }}</p>
                             <div class="flex items-center justify-between pt-3 border-t border-slate-200">
                                 <div class="text-xl font-extrabold text-black">
-                                    <span class="text-sm font-medium text-slate-500">RM</span> {{ number_format($product->price, 2) }}
+                                    <span class="text-sm font-medium text-slate-500">{{ $currency }}</span> {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
                                 </div>
                                 <div class="inline-flex items-center rounded-full bg-black text-white px-4 py-2 text-sm font-semibold group-hover:bg-slate-900 transition">Order Now →</div>
                             </div>
