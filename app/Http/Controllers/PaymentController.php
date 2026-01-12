@@ -45,7 +45,7 @@ class PaymentController extends Controller
 
         $currency = $data['currency'] ?? session()->get('currency', 'MYR');
         $config = $this->getCurrencyConfig($currency);
-        
+
         // Calculate total and create line items
         $lineItems = [];
         $totalAmount = 0;
@@ -132,7 +132,7 @@ class PaymentController extends Controller
     public function success(Request $request)
     {
         $sessionId = $request->query('session_id');
-        
+
         if (!$sessionId) {
             return redirect()->route('cart.show')->withErrors(['payment' => 'Invalid payment session']);
         }
@@ -148,7 +148,7 @@ class PaymentController extends Controller
 
         try {
             $checkoutSession = Session::retrieve($sessionId);
-            
+
             if ($checkoutSession->payment_status !== 'paid') {
                 return redirect()->route('cart.show')->withErrors(['payment' => 'Payment not completed']);
             }
@@ -165,13 +165,13 @@ class PaymentController extends Controller
             $currency = $checkoutData['currency'];
             $orders = [];
             $paymentIntentId = $checkoutSession->payment_intent ?? null;
-            
+
             DB::beginTransaction();
-            
+
             try {
                 foreach ($checkoutData['order_items'] as $orderItem) {
-                    $product = Product::where('id', $orderItem['product']->id)->lockForUpdate()->first();
                     $it = $orderItem['item'];
+                    $product = Product::where('id', $orderItem['product']->id)->lockForUpdate()->first();
                     $unit = $orderItem['unit'];
                     $lineTotal = $orderItem['line_total'];
 
@@ -179,11 +179,22 @@ class PaymentController extends Controller
                         throw new \Exception("Product " . ($product->name ?? 'Unknown') . " not available");
                     }
 
+                    $variant = null;
+                    if (!empty($it['product_variant_id'])) {
+                        $variant = \App\Models\ProductVariant::lockForUpdate()->find($it['product_variant_id']);
+                    }
+
                     if (!$product->available_for_preorder) {
-                        $reserved = $this->getReservedQty($product);
-                        $free = (int) $product->stock - $reserved;
-                        if ($free < (int) $it['quantity']) {
-                            throw new \Exception("Insufficient stock for " . $product->name);
+                        if ($variant) {
+                            if ($variant->stock < (int) $it['quantity']) {
+                                throw new \Exception("Insufficient stock for variant " . $variant->name);
+                            }
+                        } else {
+                            $reserved = $this->getReservedQty($product);
+                            $free = (int) $product->stock - $reserved;
+                            if ($free < (int) $it['quantity']) {
+                                throw new \Exception("Insufficient stock for " . $product->name);
+                            }
                         }
                     }
 
@@ -191,12 +202,13 @@ class PaymentController extends Controller
                     $pre = Preorder::create([
                         'order_number' => $orderNumber,
                         'product_id' => $product->id,
+                        'product_variant_id' => $variant ? $variant->id : null,
                         'name' => $checkoutData['order_data']['name'],
                         'email' => $checkoutData['order_data']['email'] ?? null,
                         'phone' => $checkoutData['order_data']['phone'] ?? null,
                         'address' => $checkoutData['order_data']['address'] ?? null,
                         'jersey_type' => $product->jersey_type ?? null,
-                        'size' => $it['size'] ?? null,
+                        'size' => $it['size'] ?? ($variant ? $variant->name : null),
                         'long_sleeve' => !empty($it['long_sleeve']),
                         'custom_fields' => null,
                         'quantity' => (int) $it['quantity'],
@@ -217,15 +229,20 @@ class PaymentController extends Controller
                     ]);
 
                     if ($pre->product && !$product->available_for_preorder) {
-                        $product->stock = max(0, $product->stock - $pre->quantity);
-                        $product->save();
+                        if ($variant) {
+                            $variant->stock = max(0, $variant->stock - $pre->quantity);
+                            $variant->save();
+                        } else {
+                            $product->stock = max(0, $product->stock - $pre->quantity);
+                            $product->save();
+                        }
                     }
-                    
+
                     $orders[] = $pre;
                 }
-                
+
                 DB::commit();
-                
+
             } catch (\Exception $e) {
                 DB::rollBack();
                 $this->refundStripePayment($paymentIntentId);
@@ -245,7 +262,7 @@ class PaymentController extends Controller
             session()->forget('stripe_checkout');
 
             return view('cart.thankyou', ['orders' => $orders, 'currency' => $currency]);
-            
+
         } catch (ApiErrorException $e) {
             return redirect()->route('cart.show')->withErrors(['payment' => 'Error verifying payment: ' . $e->getMessage()]);
         }
@@ -263,95 +280,123 @@ class PaymentController extends Controller
     /**
      * Create Stripe checkout session for single preorder item (from preorder form)
      */
+    /**
+     * Create Stripe checkout session for single preorder item (from preorder form)
+     */
     public function createPreorderCheckoutSession(Request $request)
     {
         $data = $request->validate([
             'product_id' => 'required|integer|exists:products,id',
+            'items' => 'required|array',
+            'items.*' => 'integer|min:0',
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
-            'size' => 'nullable|string|max:10',
             'long_sleeve' => 'sometimes|boolean',
             'custom_fields' => 'nullable|array',
             'custom_fields.*.key' => 'required_with:custom_fields|string',
             'custom_fields.*.value' => 'required_with:custom_fields|string',
-            'quantity' => 'required|integer|min:1',
             'currency' => 'nullable|string|in:MYR,BND,IDR',
             'notes' => 'nullable|string',
         ]);
 
-        $product = DB::transaction(function () use ($data) {
-            $p = Product::where('id', $data['product_id'])->lockForUpdate()->first();
-            if (!$p || (!$p->is_active && !$p->available_for_preorder)) {
-                throw new \RuntimeException('Product not available');
-            }
-            if (!$p->available_for_preorder) {
-                $reserved = $this->getReservedQty($p);
-                $free = (int) $p->stock - $reserved;
-                if ($free < (int) $data['quantity']) {
-                    throw new \RuntimeException('Not enough stock available.');
-                }
-            }
-            return $p;
-        });
+        // Filter items
+        $items = array_filter($data['items'] ?? [], fn($q) => $q > 0);
+        if (empty($items)) {
+            return back()->withErrors(['items' => 'Please select at least one item quantity.'])->withInput();
+        }
 
         $currency = $data['currency'] ?? 'MYR';
         $config = $this->getCurrencyConfig($currency);
 
-        $unit = (float) $product->price * $config['rate'];
-        $longSleeve = $request->boolean('long_sleeve');
-
-        if ($longSleeve) {
-            $unit += $config['longSleeve'];
+        // Pre-validate product and stock
+        // We will do a robust check
+        $product = Product::where('id', $data['product_id'])->firstOrFail();
+        if (!$product->is_active && !$product->available_for_preorder) {
+            abort(404);
         }
 
-        // Add nameset cost if custom fields are provided
-        $hasCustomization = !empty($data['custom_fields']);
-        if ($hasCustomization) {
-            $unit += $config['nameset'];
-        }
+        $orderItems = [];
+        $lineItems = [];
+        $totalAmount = 0;
 
-        $quantity = (int) ($data['quantity'] ?? 1);
-        $total = round($unit * $quantity, 2);
-
-        // Convert to cents for Stripe
-        $amountInCents = $this->convertToCents($total, $currency);
-
-        // Build product description
-        $description = $product->name;
-        if ($product->jersey_type) {
-            $description .= ' - ' . $product->jersey_type;
-        }
-        if (!empty($data['size'])) {
-            $description .= ', Size: ' . $data['size'];
-        }
-        if ($request->boolean('long_sleeve')) {
-            $description .= ', Long Sleeve';
-        }
-        if ($hasCustomization) {
-            $customText = [];
-            foreach ($data['custom_fields'] as $field) {
-                $customText[] = $field['key'] . ': ' . $field['value'];
+        foreach ($items as $variantId => $qty) {
+            $variant = \App\Models\ProductVariant::find($variantId);
+            if (!$variant || $variant->product_id != $product->id) {
+                return back()->withErrors(['items' => 'Invalid variant selected.'])->withInput();
             }
-            $description .= ', ' . implode(', ', $customText);
+
+            if (!$product->available_for_preorder) {
+                if ($variant->stock < $qty) {
+                    return back()->withErrors(['items' => "Not enough stock for {$variant->name}."])->withInput();
+                }
+            }
+
+            $unit = (float) $product->price * $config['rate'];
+            if ($request->boolean('long_sleeve')) {
+                $unit += $config['longSleeve'];
+            }
+
+            $lineTotal = round($unit * $qty, 2);
+            $totalAmount += $lineTotal;
+
+            $amountInCents = $this->convertToCents($unit, $currency); // Unit amount per item
+
+            // Description
+            $desc = $product->name;
+            if ($product->jersey_type)
+                $desc .= ' - ' . $product->jersey_type;
+            $desc .= ', Size: ' . $variant->name;
+            if ($request->boolean('long_sleeve'))
+                $desc .= ', Long Sleeve';
+
+            $lineItems[] = [
+                'price_data' => [
+                    'currency' => strtolower($currency),
+                    'product_data' => [
+                        'name' => $product->name . ' (' . $variant->name . ')',
+                        'description' => $desc,
+                    ],
+                    'unit_amount' => $amountInCents,
+                ],
+                'quantity' => $qty,
+            ];
+
+            $orderItems[] = [
+                'variant_id' => $variantId,
+                'variant_name' => $variant->name,
+                'quantity' => $qty,
+                'unit_price' => $unit,
+                'line_total' => $lineTotal
+            ];
+        }
+
+        // Add Customization (Nameset) Charge as separate line item
+        if (!empty($data['custom_fields'])) {
+            $namesetCount = count($data['custom_fields']);
+            $namesetPrice = $config['nameset'];
+            $namesetTotal = round($namesetPrice * $namesetCount, 2);
+            $totalAmount += $namesetTotal;
+
+            $lineItems[] = [
+                'price_data' => [
+                    'currency' => strtolower($currency),
+                    'product_data' => [
+                        'name' => 'Jersey Customization (Nameset)',
+                        'description' => 'Custom Name & Number',
+                    ],
+                    'unit_amount' => $this->convertToCents($namesetPrice, $currency),
+                ],
+                'quantity' => $namesetCount,
+            ];
         }
 
         try {
             // Create Stripe checkout session
             $checkoutSession = Session::create([
                 'payment_method_types' => ['card'],
-                'line_items' => [[
-                    'price_data' => [
-                        'currency' => strtolower($currency),
-                        'product_data' => [
-                            'name' => $product->name,
-                            'description' => $description,
-                        ],
-                        'unit_amount' => $amountInCents,
-                    ],
-                    'quantity' => $quantity,
-                ]],
+                'line_items' => $lineItems,
                 'mode' => 'payment',
                 'success_url' => route('payment.preorder.success') . '?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('payment.preorder.cancel'),
@@ -359,28 +404,20 @@ class PaymentController extends Controller
                 'metadata' => [
                     'name' => $data['name'],
                     'phone' => $data['phone'] ?? '',
-                    'address' => $data['address'] ?? '',
                     'currency' => $currency,
-                    'notes' => $data['notes'] ?? '',
                     'product_id' => $product->id,
-                    'size' => $data['size'] ?? '',
-                    'long_sleeve' => $request->boolean('long_sleeve') ? '1' : '0',
-                    'quantity' => $quantity,
+                    'item_count' => count($items),
                 ],
             ]);
 
-            // Store checkout session data in session for later use
-            // Ensure long_sleeve is properly stored as boolean
-            $orderData = $data;
-            $orderData['long_sleeve'] = $longSleeve;
-            
+            // Store checkout session data
             session()->put('stripe_preorder_checkout', [
                 'session_id' => $checkoutSession->id,
-                'order_data' => $orderData,
+                'order_data' => $data, // Contains items array
+                'order_items' => $orderItems, // Processed items with variant details
                 'product_id' => $product->id,
-                'unit_price' => $unit,
-                'total_amount' => $total,
                 'currency' => $currency,
+                'total_amount' => $totalAmount,
             ]);
 
             return redirect($checkoutSession->url);
@@ -392,10 +429,13 @@ class PaymentController extends Controller
     /**
      * Handle successful payment for single preorder
      */
+    /**
+     * Handle successful payment for single preorder
+     */
     public function preorderSuccess(Request $request)
     {
         $sessionId = $request->query('session_id');
-        
+
         if (!$sessionId) {
             return redirect()->route('preorder.landing')->withErrors(['payment' => 'Invalid payment session']);
         }
@@ -410,7 +450,7 @@ class PaymentController extends Controller
 
         try {
             $checkoutSession = Session::retrieve($sessionId);
-            
+
             if ($checkoutSession->payment_status !== 'paid') {
                 return redirect()->route('preorder.landing')->withErrors(['payment' => 'Payment not completed']);
             }
@@ -436,9 +476,10 @@ class PaymentController extends Controller
             $paymentIntentId = $checkoutSession->payment_intent ?? null;
             $orderData = $checkoutData['order_data'];
             $currency = $checkoutData['currency'];
-            $unit = $checkoutData['unit_price'];
-            $total = $checkoutData['total_amount'];
-            $pre = null;
+
+            // Generate UUID
+            $uuid = (string) \Illuminate\Support\Str::uuid();
+            $order = null;
 
             DB::beginTransaction();
 
@@ -448,48 +489,73 @@ class PaymentController extends Controller
                     throw new \Exception('Product not available');
                 }
 
-                if (!$product->available_for_preorder) {
-                    $reserved = $this->getReservedQty($product);
-                    $free = (int) $product->stock - $reserved;
-                    if ($free < (int) $orderData['quantity']) {
-                        throw new \Exception('Not enough stock available');
+                // Prepare Items & Stock Deduction
+                $totalQty = 0;
+                $finalItems = [];
+                // order_items from session is: [['variant_id', 'variant_name', 'quantity', 'unit_price', 'line_total'], ...]
+
+                foreach ($checkoutData['order_items'] as $item) {
+                    $variantId = $item['variant_id'];
+                    $qty = (int) $item['quantity'];
+                    $totalQty += $qty;
+
+                    $variant = \App\Models\ProductVariant::lockForUpdate()->find($variantId);
+
+                    // Stock Check
+                    if (!$product->available_for_preorder) {
+                        if ($variant && $variant->stock < $qty) {
+                            throw new \Exception("Stock no longer available for {$variant->name}");
+                        }
                     }
+
+                    // Deduct Stock
+                    if (!$product->available_for_preorder && $variant) {
+                        $variant->stock = max(0, $variant->stock - $qty);
+                        $variant->save();
+                    }
+
+                    $finalItems[] = $item;
                 }
 
+                // Identify primary variant for legacy fields
+                $firstItem = $checkoutData['order_items'][0] ?? null;
+                $firstVariantId = $firstItem['variant_id'] ?? null;
+                $firstVariantName = $firstItem['variant_name'] ?? null;
+
                 $orderNumber = $this->generateOrderNumberForProduct($product);
-                $pre = Preorder::create([
+                $totalAmount = $checkoutData['total_amount']; // Includes nameset
+
+                $order = Preorder::create([
+                    'uuid' => $uuid,
                     'order_number' => $orderNumber,
                     'product_id' => $product->id,
+                    'product_variant_id' => $firstVariantId,
                     'name' => $orderData['name'],
                     'email' => $orderData['email'] ?? null,
                     'phone' => $orderData['phone'] ?? null,
                     'address' => $orderData['address'] ?? null,
                     'jersey_type' => $product->jersey_type ?? null,
-                    'size' => $orderData['size'] ?? null,
+                    'size' => $firstVariantName,
                     'long_sleeve' => !empty($orderData['long_sleeve']),
                     'custom_fields' => $orderData['custom_fields'] ?? null,
-                    'quantity' => (int) $orderData['quantity'],
-                    'unit_price' => $unit,
-                    'total_amount' => $total,
+                    'quantity' => $totalQty,
+                    'unit_price' => $totalQty > 0 ? ($totalAmount / $totalQty) : 0,
+                    'total_amount' => $totalAmount,
                     'currency' => $currency,
                     'status' => 'paid',
                     'notes' => $orderData['notes'] ?? null,
+                    'items' => $finalItems, // JSON
                     'stripe_payment_intent_id' => $paymentIntentId,
                     'stripe_session_id' => $sessionId,
                 ]);
 
                 PreorderHistory::create([
-                    'preorder_id' => $pre->id,
+                    'preorder_id' => $order->id,
                     'old_status' => null,
                     'new_status' => 'paid',
                     'note' => 'Order via Stripe payment - automatically paid (Session: ' . $sessionId . ')',
                 ]);
 
-                if ($pre->product && !$product->available_for_preorder) {
-                    $product->stock = max(0, $product->stock - $pre->quantity);
-                    $product->save();
-                }
-                
                 DB::commit();
 
             } catch (\Exception $e) {
@@ -499,15 +565,16 @@ class PaymentController extends Controller
                 return redirect()->route('preorder.landing')->withErrors(['payment' => 'Order creation failed. Payment refunded. Error: ' . $e->getMessage()]);
             }
 
-            if ($pre && $pre->email) {
-                SendEmailJob::dispatch($pre->email, new OrderCreated($pre), 2);
-                SendEmailJob::dispatch($pre->email, new PaymentSuccess($pre), 5);
+            // Send Email
+            if ($order && $order->email) {
+                SendEmailJob::dispatch($order->email, new OrderCreated($order), 2);
+                SendEmailJob::dispatch($order->email, new PaymentSuccess($order), 5);
             }
 
             session()->forget('stripe_preorder_checkout');
 
             $redirect = $product->available_for_preorder ? 'preorder.thankyou' : 'order.thankyou';
-            return redirect()->route($redirect, ['uuid' => $pre->uuid]);
+            return redirect()->route($redirect, ['uuid' => $uuid]);
 
         } catch (ApiErrorException $e) {
             return redirect()->route('preorder.landing')->withErrors(['payment' => 'Error verifying payment: ' . $e->getMessage()]);

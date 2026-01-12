@@ -9,7 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => view('home'));
+Route::get('/', fn() => view('home'));
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
@@ -77,10 +77,10 @@ Route::group(['domain' => env('PREORDER_DOMAIN', null)], function () {
     Route::get('/preorder', [PreorderController::class, 'showLanding'])->name('preorder.landing');
     Route::get('/preorder/create/{product}', [PreorderController::class, 'create'])->name('preorder.create');
     Route::post('/preorder', [PreorderController::class, 'store'])->name('preorder.store');
-    Route::get('/preorder/thank-you/{id}', [PreorderController::class, 'thankyou'])->name('preorder.thankyou');
+    Route::get('/preorder/thank-you/{uuid}', [PreorderController::class, 'thankyou'])->name('preorder.thankyou');
     Route::get('/order/create/{product}', [PreorderController::class, 'create'])->name('order.create');
     Route::post('/order', [PreorderController::class, 'store'])->name('order.store');
-    Route::get('/order/thank-you/{id}', [PreorderController::class, 'thankyou'])->name('order.thankyou');
+    Route::get('/order/thank-you/{uuid}', [PreorderController::class, 'thankyou'])->name('order.thankyou');
 });
 
 // Fallback registration if domain not configured (simple routes)

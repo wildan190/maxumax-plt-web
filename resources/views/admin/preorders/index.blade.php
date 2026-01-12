@@ -25,19 +25,19 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
         <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #000; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
             <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0; font-weight: 600; text-transform: uppercase;">Total Orders</p>
-            <p style="font-size: 1.875rem; font-weight: 800; color: #000; margin: 0;">{{ $preorders->total() }}</p>
+            <p style="font-size: 1.875rem; font-weight: 800; color: #000; margin: 0;">{{ $counts['total'] }}</p>
         </div>
         <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #f97316; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
             <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0; font-weight: 600; text-transform: uppercase;">Pending</p>
-            <p style="font-size: 1.875rem; font-weight: 800; color: #f97316; margin: 0;">{{ $preorders->where('status', 'pending')->count() }}</p>
+            <p style="font-size: 1.875rem; font-weight: 800; color: #f97316; margin: 0;">{{ $counts['pending'] }}</p>
         </div>
         <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #6366f1; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
             <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0; font-weight: 600; text-transform: uppercase;">Confirmed</p>
-            <p style="font-size: 1.875rem; font-weight: 800; color: #6366f1; margin: 0;">{{ $preorders->where('status', 'confirmed')->count() }}</p>
+            <p style="font-size: 1.875rem; font-weight: 800; color: #6366f1; margin: 0;">{{ $counts['confirmed'] }}</p>
         </div>
         <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #22c55e; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
             <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0; font-weight: 600; text-transform: uppercase;">Paid</p>
-            <p style="font-size: 1.875rem; font-weight: 800; color: #22c55e; margin: 0;">{{ $preorders->where('status', 'paid')->count() }}</p>
+            <p style="font-size: 1.875rem; font-weight: 800; color: #22c55e; margin: 0;">{{ $counts['paid'] }}</p>
         </div>
     </div>
 

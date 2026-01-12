@@ -43,13 +43,21 @@ class PreorderAdminController extends Controller
             $query->where('status', $request->query('status'));
         }
 
-        $preorders = $query->paginate(30)->withQueryString();
+        $allQuery = clone $query;
+        $counts = [
+            'total' => $allQuery->count(),
+            'pending' => $allQuery->clone()->where('status', 'pending')->count(),
+            'confirmed' => $allQuery->clone()->where('status', 'confirmed')->count(),
+            'paid' => $allQuery->clone()->where('status', 'paid')->count(),
+        ];
+
+        $preorders = $query->paginate(10)->withQueryString();
 
         page_breadcrumbs(breadcrumbs(
             ['label' => 'Preorders', 'url' => route('admin.preorders.index')]
         ));
 
-        return view('admin.preorders.index', compact('preorders'));
+        return view('admin.preorders.index', compact('preorders', 'counts'));
     }
 
     public function markPaid(Request $request, Preorder $preorder)
@@ -64,13 +72,42 @@ class PreorderAdminController extends Controller
         // decrement stock if product exists and stock available
         $note = 'Marked as paid by admin';
         if ($preorder->product) {
-            $product = $preorder->product;
-            if ($product->stock >= $preorder->quantity && $product->stock > 0) {
-                $product->stock = max(0, $product->stock - $preorder->quantity);
-                $product->save();
-                $note .= '. Stock decremented by '.$preorder->quantity.' (remaining: '.$product->stock.')';
+            // Check if order has multiple items in JSON
+            if (!empty($preorder->items) && is_array($preorder->items)) {
+                $note .= '. Stock decremented for items:';
+                foreach ($preorder->items as $item) {
+                    $vid = $item['variant_id'] ?? null;
+                    $qty = $item['quantity'] ?? 0;
+                    if ($vid && $qty > 0) {
+                        $variant = \App\Models\ProductVariant::lockForUpdate()->find($vid);
+                        if ($variant) {
+                            $variant->stock = max(0, $variant->stock - $qty);
+                            $variant->save();
+                            $note .= " [{$variant->name}: -{$qty}]";
+                        }
+                    }
+                }
+            }
+            // Fallback / Legacy: Check if order has a specific variant
+            elseif ($preorder->product_variant_id) {
+                $variant = \App\Models\ProductVariant::find($preorder->product_variant_id);
+                if ($variant && $variant->stock >= $preorder->quantity && $variant->stock > 0) {
+                    $variant->stock = max(0, $variant->stock - $preorder->quantity);
+                    $variant->save();
+                    $note .= '. Variant stock decremented by ' . $preorder->quantity . ' (variant: ' . $variant->name . ', remaining: ' . $variant->stock . ')';
+                } else {
+                    $note .= '. Variant stock insufficient or zero; no decrement performed.';
+                }
             } else {
-                $note .= '. Product stock insufficient or zero; no decrement performed.';
+                // Fallback to product stock if no variant
+                $product = $preorder->product;
+                if ($product->stock >= $preorder->quantity && $product->stock > 0) {
+                    $product->stock = max(0, $product->stock - $preorder->quantity);
+                    $product->save();
+                    $note .= '. Stock decremented by ' . $preorder->quantity . ' (remaining: ' . $product->stock . ')';
+                } else {
+                    $note .= '. Product stock insufficient or zero; no decrement performed.';
+                }
             }
         }
 
@@ -197,7 +234,7 @@ class PreorderAdminController extends Controller
 
         page_breadcrumbs(breadcrumbs(
             ['label' => 'Preorders', 'url' => route('admin.preorders.index')],
-            ['label' => '#'.$preorder->order_number, 'url' => route('admin.preorders.show', $preorder)]
+            ['label' => '#' . $preorder->order_number, 'url' => route('admin.preorders.show', $preorder)]
         ));
 
         return view('admin.preorders.show', compact('preorder'));
@@ -227,12 +264,12 @@ class PreorderAdminController extends Controller
             });
         }
 
-        $orders = $query->paginate(30)->withQueryString();
+        $orders = $query->paginate(10)->withQueryString();
 
         $counts = [
             'all' => Preorder::count(),
-            'preorder' => Preorder::whereHas('product', fn ($q) => $q->where('available_for_preorder', true))->count(),
-            'order' => Preorder::whereHas('product', fn ($q) => $q->where('available_for_preorder', false)->where('is_active', true))->count(),
+            'preorder' => Preorder::whereHas('product', fn($q) => $q->where('available_for_preorder', true))->count(),
+            'order' => Preorder::whereHas('product', fn($q) => $q->where('available_for_preorder', false)->where('is_active', true))->count(),
         ];
 
         page_breadcrumbs(breadcrumbs(
@@ -245,7 +282,7 @@ class PreorderAdminController extends Controller
 
     public function exportCsv(Request $request): StreamedResponse
     {
-        $fileName = 'preorders_'.date('Ymd_His').'.csv';
+        $fileName = 'preorders_' . date('Ymd_His') . '.csv';
 
         $response = new StreamedResponse(function () {
             $handle = fopen('php://output', 'w');
@@ -278,7 +315,7 @@ class PreorderAdminController extends Controller
         });
 
         $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$fileName.'"');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $fileName . '"');
 
         return $response;
     }
@@ -302,7 +339,7 @@ class PreorderAdminController extends Controller
         }
 
         $refundAmount = $request->input('refund_amount', $preorder->total_amount);
-        
+
         $preorder->refund_status = 'pending';
         $preorder->refund_amount = $refundAmount;
         $preorder->refund_reason = $request->input('refund_reason');
@@ -336,7 +373,7 @@ class PreorderAdminController extends Controller
 
             // Create refund in Stripe
             $refundAmount = $this->convertToCents($preorder->refund_amount, $preorder->currency);
-            
+
             $refund = Refund::create([
                 'payment_intent' => $preorder->stripe_payment_intent_id,
                 'amount' => $refundAmount,
@@ -361,10 +398,34 @@ class PreorderAdminController extends Controller
             ]);
 
             // Restore stock if product exists
+            // Restore stock if product exists
             if ($preorder->product && !$preorder->product->available_for_preorder) {
-                $product = $preorder->product;
-                $product->stock = $product->stock + $preorder->quantity;
-                $product->save();
+                if (!empty($preorder->items) && is_array($preorder->items)) {
+                    foreach ($preorder->items as $item) {
+                        $vid = $item['variant_id'] ?? null;
+                        $qty = $item['quantity'] ?? 0;
+                        if ($vid && $qty > 0) {
+                            $variant = \App\Models\ProductVariant::lockForUpdate()->find($vid);
+                            if ($variant) {
+                                $variant->stock += $qty;
+                                $variant->save();
+                            }
+                        }
+                    }
+                }
+                // Check if order has a specific variant
+                elseif ($preorder->product_variant_id) {
+                    $variant = \App\Models\ProductVariant::find($preorder->product_variant_id);
+                    if ($variant) {
+                        $variant->stock = $variant->stock + $preorder->quantity;
+                        $variant->save();
+                    }
+                } else {
+                    // Fallback to product stock if no variant
+                    $product = $preorder->product;
+                    $product->stock = $product->stock + $preorder->quantity;
+                    $product->save();
+                }
             }
 
             if ($preorder->email) {

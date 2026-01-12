@@ -114,16 +114,39 @@
                             @csrf
                             <input type="hidden" name="product_id" value="{{ $product->id }}">
                             <div id="configPanel" style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem; margin-bottom:0.75rem; max-width:420px;">
-                                <div>
-                                    <label style="display:block; font-weight:600; color:#111827; margin-bottom:0.25rem;">Ukuran <span style="color:#ef4444;">*</span></label>
-                                    <select id="sizeSelect" name="size" required style="width:100%; padding:0.5rem; border:1px solid #e5e7eb; border-radius:0.5rem;">
-                                        <option value="">Pilih ukuran</option>
-                                        <option value="S">S</option>
-                                        <option value="M">M</option>
-                                        <option value="L">L</option>
-                                        <option value="XL">XL</option>
-                                        <option value="XXL">XXL</option>
-                                    </select>
+                                <div style="grid-column: span 2;">
+                                    <label style="display:block; font-weight:600; color:#111827; margin-bottom:0.5rem;">Ukuran <span style="color:#ef4444;">*</span></label>
+                                    @if($product->hasVariants())
+                                        <input type="hidden" name="product_variant_id" id="selectedVariantId" required />
+                                        <input type="hidden" name="size" id="selectedSize" value="" />
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 0.5rem;">
+                                            @foreach($product->variants as $variant)
+                                                <button 
+                                                    type="button" 
+                                                    class="size-btn-product" 
+                                                    data-variant-id="{{ $variant->id }}" 
+                                                    data-variant-name="{{ $variant->name }}"
+                                                    data-variant-stock="{{ $variant->stock }}"
+                                                    {{ $variant->hasStock() ? '' : 'disabled' }}
+                                                    style="padding: 0.75rem 0.5rem; border: 2px solid {{ $variant->hasStock() ? '#e2e8f0' : '#fca5a5' }}; background: {{ $variant->hasStock() ? 'white' : '#fee2e2' }}; border-radius: 0.5rem; font-weight: 600; font-size: 0.95rem; cursor: {{ $variant->hasStock() ? 'pointer' : 'not-allowed' }}; transition: all 0.2s; text-align: center; opacity: {{ $variant->hasStock() ? '1' : '0.6' }};"
+                                                >
+                                                    <div style="font-size: 1rem; margin-bottom: 0.15rem;">{{ $variant->name }}</div>
+                                                    <div style="font-size: 0.7rem; color: {{ $variant->hasStock() ? '#6b7280' : '#dc2626' }}; font-weight: normal;">
+                                                        {{ $variant->hasStock() ? $variant->stock . ' left' : 'Habis' }}
+                                                    </div>
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <select id="sizeSelect" name="size" required style="width:100%; padding:0.5rem; border:1px solid #e5e7eb; border-radius:0.5rem;">
+                                            <option value="">Pilih ukuran</option>
+                                            <option value="S">S</option>
+                                            <option value="M">M</option>
+                                            <option value="L">L</option>
+                                            <option value="XL">XL</option>
+                                            <option value="XXL">XXL</option>
+                                        </select>
+                                    @endif
                                 </div>
                                 <div>
                                     <label style="display:block; font-weight:600; color:#111827; margin-bottom:0.25rem;">Jumlah</label>
@@ -432,6 +455,34 @@
         
         // Initial display
         updateCurrencyDisplay();
+
+        // Size button selection functionality for product page
+        const sizeButtonsProduct = document.querySelectorAll('.size-btn-product');
+        const selectedVariantIdInput = document.getElementById('selectedVariantId');
+        const selectedSizeInput = document.getElementById('selectedSize');
+
+        sizeButtonsProduct.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.disabled) return;
+
+                // Remove selection from all buttons
+                sizeButtonsProduct.forEach(b => {
+                    b.style.borderColor = b.disabled ? '#fca5a5' : '#e2e8f0';
+                    b.style.background = b.disabled ? '#fee2e2' : 'white';
+                });
+
+                // Mark this button as selected
+                this.style.borderColor = '#111827';
+                this.style.background = '#f3f4f6';
+
+                // Update hidden inputs
+                const variantId = this.getAttribute('data-variant-id');
+                const variantName = this.getAttribute('data-variant-name');
+                if (selectedVariantIdInput) selectedVariantIdInput.value = variantId;
+                if (selectedSizeInput) selectedSizeInput.value = variantName;
+            });
+        });
+
         (function(){
             const imageInput = document.getElementById('feedbackImages');
             const imagePreview = document.getElementById('imagePreview');

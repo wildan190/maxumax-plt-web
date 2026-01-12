@@ -75,7 +75,8 @@
         }
 
         .order-number-bar .number {
-            font-size: 2rem;
+            font-size: 1.5rem;
+            /* Reduced size to fit long/multiple numbers if needed */
             font-weight: 800;
         }
 
@@ -97,10 +98,12 @@
             margin-bottom: 1rem;
         }
 
-        .order-item {
+        .order-item-card {
             background: var(--gray-50);
-            padding: 0.75rem 1rem;
+            padding: 1rem;
             border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--gray-200);
         }
 
         .order-item .label {
@@ -114,22 +117,20 @@
             color: var(--dark);
         }
 
-        .order-item.full-width {
-            grid-column: 1 / -1;
-        }
-
         .custom-fields-list {
-            background: var(--gray-50);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
+            background: #fff;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            border: 1px dashed var(--gray-200);
+            margin-top: 0.5rem;
         }
 
         .custom-field-item {
             display: flex;
             justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--gray-200);
+            padding: 0.25rem 0;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 0.85rem;
         }
 
         .custom-field-item:last-child {
@@ -252,7 +253,12 @@
         <div class="success-icon">✓</div>
         <h1 class="thankyou-title">Thank You!</h1>
         <p class="thankyou-subtitle">Your pre-order has been successfully received</p>
+
         @php
+            // Assume homogeneous status for the group info or take first
+            // Note: $preorders IS A COLLECTION
+            $firstOrder = $preorders->first();
+
             $statusLabels = [
                 'pending' => 'Pending Admin Confirmation',
                 'confirmed' => 'Order Confirmed',
@@ -263,7 +269,7 @@
                 'cancelled' => 'Cancelled',
                 'refunded' => 'Refunded',
             ];
-            
+
             $statusStyles = [
                 'pending' => 'background:#fff7ed; color:#9a3412; border-color:#fed7aa;',
                 'confirmed' => 'background:#ecfdf5; color:#065f46; border-color:#a7f3d0;',
@@ -275,71 +281,118 @@
                 'refunded' => 'background:#fef2f2; color:#991b1b; border-color:#fecaca;',
             ];
 
-            $currentStatus = $preorder->status ?? 'pending';
+            $currentStatus = $firstOrder->status ?? 'pending';
             $label = $statusLabels[$currentStatus] ?? ucfirst($currentStatus);
             $style = $statusStyles[$currentStatus] ?? $statusStyles['pending'];
+
+            $grandTotal = $preorders->sum('total_amount');
+            $currency = $firstOrder->currency ?? 'MYR';
         @endphp
-        
-        <div style="display:inline-block; {{ $style }} border:1px solid; border-radius: 9999px; padding:0.5rem 1rem; font-weight:600; margin-bottom:1.5rem;">
+
+        <div
+            style="display:inline-block; {{ $style }} border:1px solid; border-radius: 9999px; padding:0.5rem 1rem; font-weight:600; margin-bottom:1.5rem;">
             Status: {{ $label }}
         </div>
 
         <!-- Order Details Card -->
         <div class="order-card">
             <div class="order-number-bar">
-                <div class="label">Order Number</div>
-                <div class="number">{{ $preorder->order_number }}</div>
+                <div class="label">Order Reference</div>
+                <div class="number">
+                    @if($preorders->count() > 1)
+                        {{ $firstOrder->order_number }} + {{ $preorders->count() - 1 }} others
+                    @else
+                        {{ $firstOrder->order_number }}
+                    @endif
+                </div>
             </div>
 
             <div class="order-body">
-                <h3 class="order-section-title">Order Summary</h3>
+                <h3 class="order-section-title">Order Summary ({{ $preorders->sum('quantity') }} Items)</h3>
 
-                <div class="order-grid">
-                    @if($preorder->product)
-                        <div class="order-item full-width">
-                            <div class="label">Product</div>
-                            <div class="value">{{ $preorder->product->name ?? $preorder->jersey_type }}</div>
-                        </div>
-                    @endif
+                <div class="items-list">
+                    @foreach($preorders as $preorder)
+                        @if(!empty($preorder->items) && is_array($preorder->items) && count($preorder->items) > 0)
+                            @foreach($preorder->items as $index => $item)
+                                <div class="order-item-card">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                                        <div style="font-weight:700;">
+                                            {{ $preorder->product->name ?? $preorder->jersey_type }}
+                                            <span
+                                                style="font-weight:400; color:var(--gray-500)">({{ $item['variant_name'] ?? 'Var' }})</span>
+                                        </div>
+                                        <div style="font-weight:700;">{{ $currency }}
+                                            {{ number_format($item['total_price'] ?? ($item['line_total'] ?? 0), 2) }}
+                                        </div>
+                                    </div>
 
-                    <div class="order-item">
-                        <div class="label">Jersey Type</div>
-                        <div class="value">{{ $preorder->jersey_type ?? '-' }}</div>
-                    </div>
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem; font-size:0.9rem;">
+                                        <div><span style="color:var(--gray-500)">Order #:</span> <span
+                                                style="font-family:monospace">{{ $preorder->order_number }}</span></div>
+                                        <div><span style="color:var(--gray-500)">Type:</span> {{ $preorder->jersey_type ?? '-' }}</div>
+                                        <div><span style="color:var(--gray-500)">Size:</span>
+                                            <strong>{{ $item['variant_name'] ?? '-' }}</strong>
+                                        </div>
+                                        <div><span style="color:var(--gray-500)">Qty:</span> {{ $item['quantity'] ?? 1 }}</div>
+                                        <div><span style="color:var(--gray-500)">Sleeve:</span>
+                                            {{ $preorder->long_sleeve ? 'Long' : 'Short' }}</div>
+                                    </div>
 
-                    <div class="order-item">
-                        <div class="label">Size</div>
-                        <div class="value">{{ $preorder->size ?? '-' }}</div>
-                    </div>
+                                    @if($index === 0 && $preorder->custom_fields && count($preorder->custom_fields) > 0)
+                                        <div class="custom-fields-list">
+                                            <div style="font-size:0.8rem; color:var(--gray-500); margin-bottom:0.25rem;">Customization:
+                                            </div>
+                                            @foreach($preorder->custom_fields as $field)
+                                                <div class="custom-field-item">
+                                                    <span class="key">{{ $field['key'] ?? '-' }}</span>
+                                                    <span class="value">{{ $field['value'] ?? '-' }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @else
+                            {{-- Legacy/Single Item Display --}}
+                            <div class="order-item-card">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                                    <div style="font-weight:700;">{{ $preorder->product->name ?? $preorder->jersey_type }}</div>
+                                    <div style="font-weight:700;">{{ $currency }} {{ number_format($preorder->total_amount, 2) }}
+                                    </div>
+                                </div>
 
-                    <div class="order-item">
-                        <div class="label">Quantity</div>
-                        <div class="value">{{ $preorder->quantity }} pcs</div>
-                    </div>
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem; font-size:0.9rem;">
+                                    <div><span style="color:var(--gray-500)">Order #:</span> <span
+                                            style="font-family:monospace">{{ $preorder->order_number }}</span></div>
+                                    <div><span style="color:var(--gray-500)">Type:</span> {{ $preorder->jersey_type ?? '-' }}</div>
+                                    <div><span style="color:var(--gray-500)">Size:</span>
+                                        <strong>{{ $preorder->size ?? '-' }}</strong>
+                                    </div>
+                                    <div><span style="color:var(--gray-500)">Qty:</span> {{ $preorder->quantity }}</div>
+                                    <div><span style="color:var(--gray-500)">Sleeve:</span>
+                                        {{ $preorder->long_sleeve ? 'Long' : 'Short' }}</div>
+                                </div>
 
-                    <div class="order-item">
-                        <div class="label">Long Sleeve</div>
-                        <div class="value">{{ $preorder->long_sleeve ? 'Yes' : 'No' }}</div>
-                    </div>
+                                @if($preorder->custom_fields && count($preorder->custom_fields) > 0)
+                                    <div class="custom-fields-list">
+                                        @foreach($preorder->custom_fields as $field)
+                                            <div class="custom-field-item">
+                                                <span class="key">{{ $field['key'] ?? '-' }}</span>
+                                                <span class="value">{{ $field['value'] ?? '-' }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+                    @endforeach
                 </div>
 
-                @if($preorder->custom_fields && count($preorder->custom_fields) > 0)
-                    <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--dark); margin: 1rem 0 0.75rem;">Customizations
-                    </h4>
-                    <div class="custom-fields-list">
-                        @foreach($preorder->custom_fields as $field)
-                            <div class="custom-field-item">
-                                <span class="key">{{ $field['key'] ?? '-' }}</span>
-                                <span class="value">{{ $field['value'] ?? '-' }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-
-                @if($preorder->notes)
-                    <div class="order-item full-width" style="margin-top: 0.5rem;">
-                        <div class="label">Special Requests</div>
-                        <div class="value">{{ $preorder->notes }}</div>
+                @if($firstOrder->notes)
+                    <div class="order-item full-width"
+                        style="margin-top: 1rem; background: var(--gray-50); padding: 1rem; border-radius:0.5rem;">
+                        <div class="label" style="font-weight:600; margin-bottom:0.25rem;">Special Requests</div>
+                        <div class="value">{{ $firstOrder->notes }}</div>
                     </div>
                 @endif
             </div>
@@ -349,7 +402,7 @@
                     <div class="label">Total Price</div>
                     <div class="pay-note">Pay on delivery</div>
                 </div>
-                <div class="price">{{ $preorder->currency ?? 'MYR' }} {{ number_format($preorder->total_amount, 2) }}</div>
+                <div class="price">{{ $currency }} {{ number_format($grandTotal, 2) }}</div>
             </div>
         </div>
 
@@ -368,10 +421,10 @@
         <div class="contact-card">
             <div class="label">Contact for this order</div>
             <div class="value">
-                @if($preorder->email)
-                    {{ $preorder->phone }} / {{ $preorder->email }}
+                @if($firstOrder->email)
+                    {{ $firstOrder->phone }} / {{ $firstOrder->email }}
                 @else
-                    {{ $preorder->phone }}
+                    {{ $firstOrder->phone }}
                 @endif
             </div>
         </div>

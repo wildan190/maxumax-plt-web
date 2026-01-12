@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -11,7 +12,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::orderBy('created_at', 'desc')->paginate(20);
+        $products = Product::orderBy('created_at', 'desc')->paginate(10);
         page_breadcrumbs(breadcrumbs(
             ['label' => 'Products', 'url' => route('admin.products.index')]
         ));
@@ -42,6 +43,9 @@ class ProductController extends Controller
             'available_for_preorder' => 'sometimes|boolean',
             'image' => 'nullable|image|max:2048',
             'images.*' => 'nullable|image|max:4096',
+            'variants.*.name' => 'nullable|string|max:100',
+            'variants.*.stock' => 'nullable|integer|min:0',
+            'variants.*.sku' => 'nullable|string|max:100',
         ]);
 
         if ($request->hasFile('images')) {
@@ -66,12 +70,12 @@ class ProductController extends Controller
                     ];
                 }
             }
-            if (! isset($data['image_path']) && count($gallery) > 0) {
+            if (!isset($data['image_path']) && count($gallery) > 0) {
                 $data['image_path'] = $gallery[0]['path'];
             }
         }
 
-        $data['slug'] = Str::slug($data['name']).'-'.Str::random(6);
+        $data['slug'] = Str::slug($data['name']) . '-' . Str::random(6);
         $data['uuid'] = (string) Str::uuid();
         $data['is_active'] = $request->boolean('is_active');
         $data['available_for_preorder'] = $request->boolean('available_for_preorder');
@@ -79,13 +83,28 @@ class ProductController extends Controller
         $data['sku'] = $request->input('sku');
 
         $product = Product::create($data);
-        if (! empty($gallery)) {
+        if (!empty($gallery)) {
             foreach ($gallery as $g) {
                 ProductImage::create([
                     'product_id' => $product->id,
                     'path' => $g['path'],
                     'position' => $g['position'],
                 ]);
+            }
+        }
+
+        // Create variants if provided
+        if ($request->has('variants')) {
+            foreach ($request->input('variants', []) as $variantData) {
+                if (!empty($variantData['name'])) {
+                    ProductVariant::create([
+                        'product_id' => $product->id,
+                        'name' => $variantData['name'],
+                        'stock' => $variantData['stock'] ?? 0,
+                        'sku' => $variantData['sku'] ?? null,
+                        'is_available' => true,
+                    ]);
+                }
             }
         }
 
@@ -115,6 +134,10 @@ class ProductController extends Controller
             'available_for_preorder' => 'sometimes|boolean',
             'image' => 'nullable|image|max:2048',
             'images.*' => 'nullable|image|max:4096',
+            'variants.*.id' => 'nullable|exists:product_variants,id',
+            'variants.*.name' => 'nullable|string|max:100',
+            'variants.*.stock' => 'nullable|integer|min:0',
+            'variants.*.sku' => 'nullable|string|max:100',
         ]);
 
         if ($request->hasFile('image')) {
@@ -146,10 +169,43 @@ class ProductController extends Controller
 
         // update slug if name changed
         if ($product->name !== $data['name']) {
-            $data['slug'] = Str::slug($data['name']).'-'.Str::random(6);
+            $data['slug'] = Str::slug($data['name']) . '-' . Str::random(6);
         }
 
         $product->update($data);
+
+        // Sync variants if provided
+        if ($request->has('variants')) {
+            $variantIds = [];
+            foreach ($request->input('variants', []) as $variantData) {
+                if (!empty($variantData['name'])) {
+                    if (isset($variantData['id']) && $variantData['id']) {
+                        // Update existing variant
+                        $variant = ProductVariant::find($variantData['id']);
+                        if ($variant && $variant->product_id == $product->id) {
+                            $variant->update([
+                                'name' => $variantData['name'],
+                                'stock' => $variantData['stock'] ?? 0,
+                                'sku' => $variantData['sku'] ?? null,
+                            ]);
+                            $variantIds[] = $variant->id;
+                        }
+                    } else {
+                        // Create new variant
+                        $variant = ProductVariant::create([
+                            'product_id' => $product->id,
+                            'name' => $variantData['name'],
+                            'stock' => $variantData['stock'] ?? 0,
+                            'sku' => $variantData['sku'] ?? null,
+                            'is_available' => true,
+                        ]);
+                        $variantIds[] = $variant->id;
+                    }
+                }
+            }
+            // Delete variants that are not in the request
+            $product->variants()->whereNotIn('id', $variantIds)->delete();
+        }
 
         return redirect()->route('admin.products.index')->with('success', 'Product updated');
     }

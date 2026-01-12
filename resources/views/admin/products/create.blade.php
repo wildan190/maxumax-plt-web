@@ -108,6 +108,15 @@
                             <span style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
                         @enderror
                     </div>
+
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <label style="display: block; font-weight: 600; color: #111827; margin: 0;">Product Variants (Sizes)</label>
+                            <button type="button" id="addVariantBtn" style="padding: 0.4rem 0.8rem; background: #000; color: #fff; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; font-size: 0.875rem;">+ Add Variant</button>
+                        </div>
+                        <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem;">Add different sizes (S, M, L, XL, etc.) with individual stock levels.</p>
+                        <div id="variantsContainer"></div>
+                    </div>
                 </div>
             </div>
 
@@ -261,6 +270,45 @@
                 input.value = '';
                 grid.innerHTML = '';
                 status.style.display = 'none';
+            });
+
+            // Variant Management
+            let variantIndex = 0;
+            const variantsContainer = document.getElementById('variantsContainer');
+            const addVariantBtn = document.getElementById('addVariantBtn');
+
+            function createVariantRow(name = '', stock = 0, sku = '') {
+                const row = document.createElement('div');
+                row.style.display = 'grid';
+                row.style.gridTemplateColumns = '2fr 1fr 2fr auto';
+                row.style.gap = '0.5rem';
+                row.style.marginBottom = '0.75rem';
+                row.style.alignItems = 'center';
+                
+                row.innerHTML = `
+                    <input type="text" name="variants[${variantIndex}][name]" value="${name}" placeholder="e.g., S, M, L, XL" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem;" required />
+                    <input type="number" name="variants[${variantIndex}][stock]" value="${stock}" min="0" placeholder="Stock" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem;" required />
+                    <input type="text" name="variants[${variantIndex}][sku]" value="${sku}" placeholder="SKU (optional)" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; font-family: monospace;" />
+                    <button type="button" class="removeVariantBtn" style="padding: 0.5rem; background: #dc2626; color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 600;">×</button>
+                `;
+                
+                const removeBtn = row.querySelector('.removeVariantBtn');
+                removeBtn.addEventListener('click', function() {
+                    row.remove();
+                });
+                
+                variantsContainer.appendChild(row);
+                variantIndex++;
+            }
+
+            addVariantBtn.addEventListener('click', function() {
+                createVariantRow();
+            });
+
+            // Add default variants for new products
+            const defaultSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+            defaultSizes.forEach(size => {
+                createVariantRow(size, 0, '');
             });
         })();
     </script>

@@ -1,75 +1,111 @@
 @extends('layouts.app')
 
-@section('title', 'Gallery Management')
-
-@section('page-title', 'Gallery Management')
-@section('page-subtitle', 'Manage images for gallery and landing page')
+@section('page-title', 'Gallery')
 
 @section('content')
-    <div class="card">
-        <div class="card-header">
-            <div class="flex justify-between items-center">
-                <h3 class="card-title">Image List</h3>
-                <a href="{{ route('admin.galleries.create') }}" class="btn btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    Add New Image
-                </a>
-            </div>
+    {{-- Header --}}
+    <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <p style="color: #6b7280; margin: 0.5rem 0 0 0; font-size: 0.95rem;">
+                Manage and organize gallery images for landing page
+            </p>
         </div>
-        <div class="card-body p-0">
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="text-left border-b border-gray-200 bg-gray-50">
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @forelse($galleries as $gallery)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <img src="{{ Storage::url($gallery->image_path) }}" alt="{{ $gallery->title }}" class="h-16 w-16 object-cover rounded">
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm font-medium text-gray-900">{{ $gallery->title }}</div>
-                                    <div class="text-sm text-gray-500">{{ Str::limit($gallery->description, 50) }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($gallery->is_highlight)
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Highlight
-                                        </span>
+        <a href="{{ route('admin.galleries.create') }}"
+           style="display: inline-flex; align-items: center; gap: 0.5rem; background: #000; color: #fff; padding: 0.625rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s;">
+            + Add Image
+        </a>
+    </div>
+
+    {{-- Success Alert --}}
+    @if(session('success'))
+        <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 500;">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    {{-- Table Card --}}
+    <div style="background: white; border-radius: 0.75rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Image</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Title</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Description</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Status</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($galleries as $g)
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            {{-- Image --}}
+                            <td style="padding: 1rem;">
+                                <img src="{{ Storage::url($g->image_path) }}"
+                                     alt="{{ $g->title }}"
+                                     style="width: 64px; height: 64px; object-fit: cover; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+                            </td>
+
+                            {{-- Title --}}
+                            <td style="padding: 1rem; color: #111827; font-weight: 500;">
+                                {{ $g->title }}
+                            </td>
+
+                            {{-- Description --}}
+                            <td style="padding: 1rem; color: #6b7280; font-size: 0.9rem;">
+                                {{ Str::limit($g->description, 60) ?: '—' }}
+                            </td>
+
+                            {{-- Status --}}
+                            <td style="padding: 1rem;">
+                                <span style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                                    @if($g->is_highlight)
+                                        <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
+                                        <span style="color: #065f46; font-weight: 500; font-size: 0.85rem;">Highlight</span>
                                     @else
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                            Normal
-                                        </span>
+                                        <span style="width: 8px; height: 8px; background: #9ca3af; border-radius: 50%;"></span>
+                                        <span style="color: #374151; font-weight: 500; font-size: 0.85rem;">Normal</span>
                                     @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div class="flex justify-end gap-2">
-                                        <a href="{{ route('admin.galleries.edit', $gallery) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                                        <form action="{{ route('admin.galleries.destroy', $gallery) }}" method="POST" onsubmit="return confirm('Are you sure?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="px-6 py-4 text-center text-gray-500">No images found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                                </span>
+                            </td>
+
+                            {{-- Actions --}}
+                            <td style="padding: 1rem;">
+                                <div style="display: flex; gap: 0.75rem;">
+                                    <a href="{{ route('admin.galleries.edit', $g) }}"
+                                       style="color: #000; text-decoration: none; font-weight: 500; padding: 0.5rem 0.75rem; border-radius: 0.375rem; background: #f3f4f6; font-size: 0.875rem;">
+                                        Edit
+                                    </a>
+
+                                    <form action="{{ route('admin.galleries.destroy', $g) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                onclick="return confirm('Delete this image?')"
+                                                style="background: #fee2e2; color: #991b1b; border: none; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer; font-size: 0.875rem;">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" style="padding: 3rem; text-align: center; color: #6b7280;">
+                                No images found.
+                                <a href="{{ route('admin.galleries.create') }}" style="color: #000; font-weight: 600;">
+                                    Add one
+                                </a>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
+
+        {{-- Pagination --}}
         @if($galleries->hasPages())
-            <div class="card-footer">
+            <div style="padding: 1.5rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: center;">
                 {{ $galleries->links() }}
             </div>
         @endif
