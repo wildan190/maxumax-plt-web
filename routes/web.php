@@ -66,6 +66,15 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     // Gallery
     Route::resource('galleries', App\Http\Controllers\GalleryAdminController::class)->names('admin.galleries');
+
+    // Admin Complaint Routes
+    Route::prefix('complaints')->name('admin.complaints.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'index'])->name('index');
+        Route::get('/{complaint}', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'show'])->name('show');
+        Route::post('/{complaint}/approve', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'approve'])->name('approve');
+        Route::post('/{complaint}/reject', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'reject'])->name('reject');
+        Route::post('/{complaint}/confirm-return', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'confirmReturn'])->name('confirm-return');
+    });
 });
 
 // Public Gallery
@@ -111,3 +120,11 @@ Route::post('/preorder/checkout/stripe', [PaymentController::class, 'createPreor
 Route::get('/payment/preorder/success', [PaymentController::class, 'preorderSuccess'])->name('payment.preorder.success');
 Route::get('/payment/preorder/cancel', [PaymentController::class, 'preorderCancel'])->name('payment.preorder.cancel');
 Route::post('/currency/set', [PreorderController::class, 'setCurrency'])->name('currency.set');
+
+// Customer Complaint Routes
+Route::prefix('complaints')->name('complaints.')->group(function () {
+    Route::get('/create/{preorder}', [App\Http\Controllers\ComplaintController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\ComplaintController::class, 'store'])->name('store');
+    Route::get('/{complaint}', [App\Http\Controllers\ComplaintController::class, 'show'])->name('show');
+    Route::post('/{complaint}/cancel', [App\Http\Controllers\ComplaintController::class, 'cancel'])->name('cancel');
+});

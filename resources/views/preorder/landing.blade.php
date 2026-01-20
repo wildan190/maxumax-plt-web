@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Pre-order Jersey - MaxuMax')
+@section('title', 'Pre-order Jersey - Maxumax')
 
  
 
@@ -8,7 +8,7 @@
     <!-- Hero Section -->
     <section class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-center py-24 px-4">
         <div class="relative z-10 max-w-6xl mx-auto">
-            <h1 class="text-white font-black text-4xl md:text-6xl mb-4">Exclusive MaxuMax Jerseys</h1>
+            <h1 class="text-white font-black text-4xl md:text-6xl mb-4">Exclusive Maxumax Jerseys</h1>
             <p class="text-slate-300 text-lg max-w-2xl mx-auto mb-8">
                 Pre-order our limited edition jerseys now. Pay on delivery when we arrive in Brunei — late January 2026.
             </p>
@@ -33,10 +33,10 @@
         <div class="max-w-7xl mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
-                    <img class="w-full h-full object-cover" data-jpeg="{{ asset('assets/img/banner1.jpeg') }}" alt="MaxuMax Banner 1" />
+                    <img class="w-full h-full object-cover" data-jpeg="{{ asset('assets/img/banner1.jpeg') }}" alt="Maxumax Banner 1" />
                 </div>
                 <div class="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
-                    <img class="w-full h-full object-cover" data-jpeg="{{ asset('assets/img/banner2.jpeg') }}" alt="MaxuMax Banner 2" />
+                    <img class="w-full h-full object-cover" data-jpeg="{{ asset('assets/img/banner2.jpeg') }}" alt="Maxumax Banner 2" />
                 </div>
             </div>
         </div>

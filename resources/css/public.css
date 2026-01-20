@@ -12,6 +12,8 @@
 
 .public-body {
     background: #ffffff;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 .public-navbar {
@@ -39,9 +41,7 @@
 }
 
 .public-nav-links {
-    display: flex;
     gap: 2rem;
-    align-items: center;
 }
 
 .public-nav-link {
@@ -269,4 +269,80 @@
 
 .cta-button:hover {
     transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .public-container {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0 1rem;
+    }
+    
+    .public-navbar {
+        padding: 1rem;
+    }
+    
+    .public-container > .public-brand {
+        margin-bottom: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* When flex-direction is column, align items properly */
+    .public-navbar .public-container {
+        flex-direction: row; 
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .features-grid,
+    .stats-grid,
+    .how-grid,
+    .about-grid {
+        grid-template-columns: 1fr !important;
+        gap: 2rem;
+    }
+
+    .about-grid {
+        display: flex;
+        flex-direction: column-reverse; /* Image on top usually, or text on bottom? Let's check logic. Usually text then image. If column-reverse, image is first? No, default is column which is top-down.  */
+        /* The grid was 1fr 1fr. If we use flex column, it stacks. */
+    }
+    
+    .about-image {
+        font-size: 3rem; /* Smaller icon */
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-text {
+        font-size: 1.1rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .about-title {
+         font-size: 2rem;
+    }
+    
+    .public-footer {
+        text-align: center;
+    }
+
+    /* Adjust padding for sections */
+    /* Adjust padding for sections */
+    .home-hero,
+    .features-section,
+    .stats-section,
+    .how-section,
+    .cta-section,
+    .about-section {
+        padding: 3rem 1rem;
+    }
 }

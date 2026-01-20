@@ -2,7 +2,7 @@
 <aside class="admin-sidebar" id="adminSidebar">
     <div class="admin-sidebar-header">
         <a href="{{ route('dashboard') }}" class="admin-sidebar-logo">
-            {{ config('app.name', 'MaxuMax') }}
+            {{ config('app.name', 'Maxumax') }}
         </a>
     </div>
 
@@ -99,6 +99,15 @@
                 <polyline points="21 15 16 10 5 21"></polyline>
             </svg>
             <span>Gallery</span>
+        </a>
+
+        <a href="{{ route('admin.complaints.index') }}"
+            class="admin-nav-item {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Complaints</span>
         </a>
 
         <!-- Account Section -->

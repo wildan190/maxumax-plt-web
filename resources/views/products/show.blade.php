@@ -33,6 +33,10 @@
             cursor: pointer;
         }
         .prod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        @media (max-width: 768px) {
+            .prod-grid { grid-template-columns: 1fr; }
+            .prod-image { order: -1; }
+        }
         .prod-image { background:#fff; border:1px solid #e2e8f0; border-radius:0.75rem; padding:0.75rem; display:flex; align-items:center; justify-content:center; min-height: 320px; }
         .prod-title { font-size:2rem; font-weight:800; color:#0f172a; margin:0 0 0.5rem; }
         .prod-type { display:inline-block; background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; padding:0.25rem 0.5rem; border-radius:0.375rem; }
@@ -45,17 +49,7 @@
 
 @section('content')
     <section class="prod-container">
-        <!-- Currency Selector -->
-        <div class="currency-bar">
-            <div class="currency-select">
-                <label>Currency:</label>
-                <select id="currencySelector">
-                    <option value="MYR" {{ ($currency ?? 'MYR') === 'MYR' ? 'selected' : '' }}>RM (Malaysia)</option>
-                    <option value="BND" {{ ($currency ?? 'MYR') === 'BND' ? 'selected' : '' }}>$ (Brunei)</option>
-                    <option value="IDR" {{ ($currency ?? 'MYR') === 'IDR' ? 'selected' : '' }}>Rp (Indonesia)</option>
-                </select>
-            </div>
-        </div>
+
         <div class="prod-grid">
             <div class="prod-image" id="prodGallery">
                 @php

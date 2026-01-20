@@ -2,180 +2,219 @@
 
 @section('title', 'Track Order')
 
-@push('styles')
-    <style>
-        :root {
-            --dark: #0f172a;
-            --gray-500: #64748b;
-        }
-        .track-container { max-width: 800px; margin: 0 auto; padding: 3rem 1rem; }
-        .track-title { font-size: 2rem; font-weight: 800; color: var(--dark); margin-bottom: 0.5rem; }
-        .track-sub { color: var(--gray-500); margin-bottom: 1.5rem; }
-        .track-form { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-        .track-form input { flex: 1; border: 1px solid #cbd5e1; border-radius: 0.5rem; padding: 0.5rem 0.75rem; }
-        .track-form button { background: #000; color: #fff; border: none; border-radius: 0.5rem; padding: 0.5rem 1rem; font-weight: 600; }
-        .alert { display:inline-block; border-radius: 0.75rem; padding: 0.5rem 0.75rem; font-weight: 600; margin-top: 1rem; }
-        .alert-error { background:#fff7ed; color:#9a3412; border:1px solid #fed7aa; }
-        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; margin-top: 1rem; }
-        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-        .label { font-size: 0.8rem; color: var(--gray-500); }
-        .value { font-weight: 600; color: var(--dark); }
-        .status { font-size: 0.875rem; padding: 0.25rem 0.5rem; border-radius: 9999px; border: 1px solid; }
-    </style>
-@endpush
-
 @section('content')
-    <section class="track-container">
-        <h1 class="track-title">Track Order</h1>
-        <p class="track-sub">Enter your order number to check status without logging in.</p>
+    <section class="max-w-3xl mx-auto px-4 py-12 min-h-[60vh]">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">Track Your Order</h1>
+            <p class="text-gray-500 text-lg">Enter your order ID to check the current status.</p>
+        </div>
 
-        <form method="GET" action="{{ route('order.track') }}" class="track-form">
-            <input type="text" name="order" value="{{ $orderInput }}" placeholder="Example: MM-ABCDEFGH" required />
-            <button type="submit">Track</button>
-        </form>
-
-        @if($error)
-            <div class="alert alert-error">{{ $error }}</div>
-        @endif
+        <div class="max-w-xl mx-auto mb-12">
+            <form method="GET" action="{{ route('order.track') }}" class="flex gap-2 relative">
+                <div class="relative flex-grow">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                        <i data-feather="search" class="w-5 h-5"></i>
+                    </span>
+                    <input type="text" name="order" value="{{ $orderInput }}" 
+                        class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition-all shadow-sm text-gray-800 placeholder-gray-400 font-medium"
+                        placeholder="e.g. MM-ABC12345" required />
+                </div>
+                <button type="submit" class="bg-black text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors shadow-md whitespace-nowrap">
+                    Track
+                </button>
+            </form>
+            
+            @if($error)
+                <div class="mt-4 bg-red-50 text-red-700 px-4 py-3 rounded-xl border border-red-100 flex items-center gap-2 text-sm font-medium animate-fade-in-up">
+                    <i data-feather="alert-circle" class="w-4 h-4"></i>
+                    {{ $error }}
+                </div>
+            @endif
+        </div>
 
         @if($preorder)
-            <div class="card">
-                <div class="flex items-center justify-between" style="display:flex; align-items:center; justify-content:space-between;">
-                    <div class="value">{{ $preorder->order_number }}</div>
-                    <div class="status" style="
-                        @if($preorder->status === 'paid') background:#ecfdf5; color:#065f46; border-color:#a7f3d0;
-                        @elseif($preorder->status === 'confirmed') background:#eff6ff; color:#1e40af; border-color:#bfdbfe;
-                        @elseif($preorder->status === 'refunded') background:#fee2e2; color:#991b1b; border-color:#fecaca;
-                        @else background:#fefce8; color:#854d0e; border-color:#fde68a; @endif
-                    ">
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-fade-in-up">
+                <!-- Card Header -->
+                <div class="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Order Number</div>
+                        <div class="text-xl font-black text-gray-900 font-mono tracking-tight">{{ $preorder->order_number }}</div>
+                    </div>
+                    @php
+                        $statusClasses = [
+                            'paid' => 'bg-green-100 text-green-700 border-green-200',
+                            'confirmed' => 'bg-blue-100 text-blue-700 border-blue-200',
+                            'refunded' => 'bg-red-100 text-red-700 border-red-200',
+                            'pending' => 'bg-yellow-100 text-yellow-700 border-yellow-200',
+                        ];
+                        $statusClass = $statusClasses[$preorder->status] ?? $statusClasses['pending'];
+                    @endphp
+                    <div class="px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wide {{ $statusClass }}">
                         {{ ucfirst($preorder->status) }}
                     </div>
                 </div>
-                <div class="row" style="margin-top:0.75rem;">
-                    <div>
-                        <div class="label">Product</div>
-                        <div class="value">{{ optional($preorder->product)->name ?? ($preorder->jersey_type ?? '-') }}</div>
-                    </div>
-                    <div>
-                        <div class="label">Quantity</div>
-                        <div class="value">{{ $preorder->quantity }} pcs</div>
-                    </div>
-                    <div>
-                        <div class="label">Total</div>
-                        <div class="value">{{ $preorder->currency ?? 'MYR' }} {{ number_format($preorder->total_amount, 2) }}</div>
-                    </div>
-                    <div>
-                        <div class="label">Contact</div>
-                        <div class="value">{{ $preorder->phone }}{{ $preorder->email ? ' / ' . $preorder->email : '' }}</div>
-                    </div>
-                </div>
 
-                <!-- Shipping Status & Tracking -->
-                @if($preorder->shipping_status)
-                    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
-                        <h3 style="font-size: 1rem; font-weight: 600; color: var(--dark); margin: 0 0 0.75rem 0;">📦 Shipping Status</h3>
-                        <!-- Status Timeline -->
-                        <div style="position: relative; padding-left: 1.5rem;">
-                            <!-- Pending/Confirmed -->
-                            <div style="position: relative; margin-bottom: 1rem;">
-                                <div style="position: absolute; left: -1.5rem; top: 0.25rem; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; border: 2px solid white; box-shadow: 0 0 0 2px #22c55e;"></div>
-                                <div>
-                                    <div style="font-weight: 600; color: var(--dark);">Order Confirmed</div>
-                                    <div style="font-size: 0.875rem; color: var(--gray-500);">{{ $preorder->created_at->format('d M Y, H:i') }}</div>
+                <!-- Card Body -->
+                <div class="p-6 md:p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <!-- Product Info -->
+                        <div class="space-y-4">
+                             <div>
+                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Product</label>
+                                <div class="font-bold text-gray-900 text-lg leading-tight">
+                                    {{ optional($preorder->product)->name ?? ($preorder->jersey_type ?? '-') }}
                                 </div>
                             </div>
-                            
-                            @if($preorder->shipping_status == 'shipped' || $preorder->shipping_status == 'delivered')
-                            <!-- Shipped -->
-                            <div style="position: relative; margin-bottom: 1rem;">
-                                <div style="position: absolute; left: -1.5rem; top: 0.25rem; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; border: 2px solid white; box-shadow: 0 0 0 2px #22c55e;"></div>
-                                <div style="position: absolute; left: -1.2rem; top: -1rem; width: 2px; height: 1.25rem; background: #22c55e;"></div>
+                            <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <div style="font-weight: 600; color: var(--dark);">Shipped</div>
-                                    <div style="font-size: 0.875rem; color: var(--gray-500);">Your order is on the way</div>
+                                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Quantity</label>
+                                    <div class="font-semibold text-gray-800">{{ $preorder->quantity }} pcs</div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Total</label>
+                                    <div class="font-semibold text-gray-800">{{ $preorder->currency ?? 'MYR' }} {{ number_format($preorder->total_amount, 2) }}</div>
                                 </div>
                             </div>
-                            @endif
-
-                            @if($preorder->shipping_status == 'delivered')
-                            <!-- Delivered -->
-                            <div style="position: relative; margin-bottom: 1rem;">
-                                <div style="position: absolute; left: -1.5rem; top: 0.25rem; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; border: 2px solid white; box-shadow: 0 0 0 2px #22c55e;"></div>
-                                <div style="position: absolute; left: -1.2rem; top: -1rem; width: 2px; height: 1.25rem; background: #22c55e;"></div>
-                                <div>
-                                    <div style="font-weight: 600; color: var(--dark);">Delivered</div>
-                                    <div style="font-size: 0.875rem; color: var(--gray-500);">Package received</div>
-                                </div>
-                            </div>
-                            @endif
                         </div>
 
-                        <!-- Action Buttons -->
-                        <div style="margin-top: 1.5rem;">
-                            @if($preorder->shipping_status === 'shipped')
-                                <form action="{{ route('preorder.markDelivered', $preorder) }}" method="POST" style="display: inline-block;">
-                                    @csrf
-                                    <button type="submit" onclick="return confirm('Apakah Anda yakin barang sudah diterima?')" style="background-color: #22c55e; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;">
-                                        ✅ Konfirmasi Barang Diterima
-                                    </button>
-                                </form>
-                            @endif
+                        <!-- Customer Info -->
+                        <div class="bg-gray-50 rounded-xl p-5 border border-gray-100">
+                             <div class="flex items-start gap-3 mb-3">
+                                <i data-feather="user" class="w-4 h-4 text-gray-400 mt-1"></i>
+                                <div>
+                                    <div class="text-sm font-bold text-gray-900">{{ $preorder->name }}</div>
+                                    <div class="text-sm text-gray-500">{{ $preorder->email }}</div>
+                                    <div class="text-sm text-gray-500">{{ $preorder->phone }}</div>
+                                </div>
+                             </div>
+                             @if($preorder->address)
+                                <div class="flex items-start gap-3 border-t border-gray-200 pt-3 mt-2">
+                                    <i data-feather="map-pin" class="w-4 h-4 text-gray-400 mt-1"></i>
+                                    <div class="text-sm text-gray-600 leading-relaxed">{{ $preorder->address }}</div>
+                                </div>
+                             @endif
+                        </div>
+                    </div>
 
-                            @if($preorder->shipping_status === 'delivered')
-                                @if($preorder->refund_status)
-                                    <div style="padding: 1rem; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.375rem;">
-                                        <div style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem;">Status Refund: {{ ucfirst($preorder->refund_status) }}</div>
-                                        @if($preorder->refund_reason)
-                                            <div style="font-size: 0.875rem; color: var(--gray-600);">Alasan: {{ $preorder->refund_reason }}</div>
-                                        @endif
-                                    </div>
-                                @elseif($preorder->stripe_payment_intent_id)
-                                    <button onclick="document.getElementById('refundModal').style.display='block'" style="background-color: #ef4444; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;">
-                                        ↩️ Request Refund
-                                    </button>
+                    <!-- Timeline -->
+                    @if($preorder->shipping_status || ($preorder->histories && $preorder->histories->count() > 0))
+                        <div class="border-t border-gray-100 pt-8">
+                            <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                <i data-feather="truck" class="w-5 h-5 text-gray-400"></i>
+                                Order History
+                            </h3>
+                            
+                            <div class="relative pl-4 space-y-8 before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gray-100">
+                                
+                                {{-- Histories Loop --}}
+                                @if($preorder->histories && $preorder->histories->count() > 0)
+                                    @foreach($preorder->histories->sortByDesc('created_at') as $history)
+                                        <div class="relative pl-8">
+                                            <div class="absolute left-0 top-1 w-10 h-10 bg-white border-4 border-gray-100 rounded-full flex items-center justify-center z-10">
+                                                <div class="w-2.5 h-2.5 bg-gray-400 rounded-full"></div>
+                                            </div>
+                                            <div class="pt-1">
+                                                <div class="font-semibold text-gray-800">{{ $history->note ?? 'Status Updated' }}</div>
+                                                <div class="text-sm text-gray-400 mt-0.5">{{ $history->created_at->format('d M Y, H:i') }}</div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
 
-                                    <!-- Refund Modal -->
-                                    <div id="refundModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-                                        <div style="background: white; width: 90%; max-width: 500px; margin: 100px auto; padding: 1.5rem; border-radius: 0.5rem; position: relative;">
-                                            <h3 style="margin-top: 0; margin-bottom: 1rem;">Request Refund</h3>
-                                            <form action="{{ route('preorder.requestRefund', $preorder) }}" method="POST">
-                                                @csrf
-                                                <div style="margin-bottom: 1rem;">
-                                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Alasan Refund</label>
-                                                    <textarea name="reason" required style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; min-height: 100px;" placeholder="Jelaskan alasan pengajuan refund..."></textarea>
-                                                </div>
-                                                <div style="text-align: right;">
-                                                    <button type="button" onclick="document.getElementById('refundModal').style.display='none'" style="margin-right: 0.5rem; padding: 0.5rem 1rem; border: 1px solid #e2e8f0; background: white; border-radius: 0.375rem; cursor: pointer;">Batal</button>
-                                                    <button type="submit" style="background-color: #ef4444; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; border: none; cursor: pointer;">Kirim Request</button>
-                                                </div>
-                                            </form>
+                                {{-- Initial Order Confirmed (Fallback if no history but order exists) --}}
+                                @if(!$preorder->histories || $preorder->histories->count() == 0)
+                                    <div class="relative pl-8">
+                                        <div class="absolute left-0 top-1 w-10 h-10 bg-white border-4 border-green-100 rounded-full flex items-center justify-center z-10">
+                                            <div class="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
+                                        </div>
+                                        <div class="pt-1">
+                                            <div class="font-semibold text-gray-800">Order Confirmed</div>
+                                            <div class="text-sm text-gray-400 mt-0.5">{{ $preorder->created_at->format('d M Y, H:i') }}</div>
                                         </div>
                                     </div>
                                 @endif
-                            @endif
+                                
+                            </div>
                         </div>
-                    </div>
-                @endif
+                    @endif
 
-                <!-- Order History -->
-                @if($preorder->histories && $preorder->histories->count() > 0)
-                    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
-                        <h3 style="font-size: 1rem; font-weight: 600; color: var(--dark); margin: 0 0 0.75rem 0;">📋 Order History</h3>
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            @foreach($preorder->histories->sortByDesc('created_at') as $history)
-                                <div style="padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem; font-size: 0.875rem;">
-                                    <div style="font-weight: 600; color: var(--dark);">{{ $history->note ?? 'Status updated' }}</div>
-                                    <div style="color: var(--gray-500); font-size: 0.8rem; margin-top: 0.25rem;">{{ $history->created_at->format('d M Y, H:i') }}</div>
+
+
+                    <!-- Complaint Section -->
+                    @php
+                        // Use helper from model to get delivery timestamp
+                        $deliveryTime = $preorder->getDeliveryTimestamp();
+                        
+                        // Can file complaint if delivered within 7 days
+                        $canFileComplaint = $deliveryTime && now()->subDays(7)->isBefore(\Carbon\Carbon::parse($deliveryTime));
+                        
+                        // Check for existing complaint
+                        $existingComplaint = $preorder->complaints?->whereIn('status', ['pending', 'approved'])->first();
+                    @endphp
+
+                    @if($canFileComplaint || $existingComplaint)
+                        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-5">
+                            <div class="flex items-start gap-3">
+                                <i data-feather="alert-circle" class="w-5 h-5 text-blue-600 mt-0.5"></i>
+                                <div class="flex-1">
+                                    @if($existingComplaint)
+                                        <h4 class="font-semibold text-blue-900 mb-1">Active Complaint</h4>
+                                        <p class="text-sm text-blue-700 mb-3">You have an active complaint for this order.</p>
+                                        <a href="{{ route('complaints.show', ['complaint' => $existingComplaint->id]) }}" 
+                                           class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+                                            View Complaint Status →
+                                        </a>
+                                    @else
+                                        <h4 class="font-semibold text-blue-900 mb-1">Need Help?</h4>
+                                        <p class="text-sm text-blue-700 mb-3">
+                                            If there's an issue with your order, you can file a complaint for a refund or replacement.
+                                            @if($deliveryTime)
+                                                <span class="font-semibold">(Expires {{ \Carbon\Carbon::parse($deliveryTime)->addDays(7)->diffForHumans() }})</span>
+                                            @endif
+                                        </p>
+                                        <a href="{{ route('complaints.create', ['preorder' => $preorder->id]) }}" 
+                                           class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+                                            <i data-feather="file-text" class="w-4 h-4 mr-2"></i>
+                                            File a Complaint
+                                        </a>
+                                    @endif
                                 </div>
-                            @endforeach
+                            </div>
                         </div>
-                    </div>
-                @endif
+                    @endif
 
-                <div style="margin-top:1.5rem;">
-                    <a href="{{ route('preorder.thankyou', ['uuid' => $preorder->uuid]) }}" class="inline-block bg-black text-white px-4 py-2 rounded-md font-semibold text-sm">Lihat detail</a>
+
+                    <!-- Actions -->
+                    <div class="mt-8 pt-6 border-t border-gray-100 flex flex-wrap gap-3 justify-end">
+                         @if($preorder->shipping_status === 'shipped')
+                            <form action="{{ route('preorder.markDelivered', $preorder) }}" method="POST">
+                                @csrf
+                                <button type="submit" onclick="return confirm('Confirm order received?')" 
+                                    class="bg-green-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2">
+                                    <i data-feather="check-circle" class="w-4 h-4"></i>
+                                    Confirm Received
+                                </button>
+                            </form>
+                        @endif
+                        
+                        <a href="{{ route('preorder.thankyou', ['uuid' => $preorder->uuid]) }}" 
+                           class="bg-gray-900 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-black transition-colors shadow-sm flex items-center gap-2">
+                            View Invoice
+                            <i data-feather="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         @endif
     </section>
+
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+    </style>
 @endsection

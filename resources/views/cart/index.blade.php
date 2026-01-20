@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Shopping Cart - MaxuMax')
+@section('title', 'Shopping Cart - Maxumax')
 
 @push('styles')
     <style>

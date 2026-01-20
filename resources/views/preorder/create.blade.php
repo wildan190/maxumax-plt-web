@@ -2,21 +2,12 @@
 
 @section('title', 'Pre-order - Complete Details')
 
- 
+
 
 @section('content')
     <section class="preorder-container">
         <!-- Currency Selector -->
-        <div class="currency-bar">
-            <div class="currency-select">
-                <label>Currency:</label>
-                <select id="currencySelector">
-                    <option value="MYR" selected>RM (Malaysia)</option>
-                    <option value="BND">$ (Brunei)</option>
-                    <option value="IDR">Rp (Indonesia)</option>
-                </select>
-            </div>
-        </div>
+
 
         <!-- Stepper -->
         <div class="stepper">
@@ -47,15 +38,21 @@
                 <div class="product-image-wrapper" id="orderGallery">
                     @php
                         $gallery = [];
-                        if ($product->image_path) { $gallery[] = $product->image_path; }
-                        foreach ($product->images as $img) { $gallery[] = $img->path; }
+                        if ($product->image_path) {
+                            $gallery[] = $product->image_path;
+                        }
+                        foreach ($product->images as $img) {
+                            $gallery[] = $img->path;
+                        }
                     @endphp
                     @if(count($gallery))
                         <div style="position:relative; width:100%;">
-                            <img id="orderMainImg" src="{{ asset('storage/'.$gallery[0]) }}" alt="{{ $product->name }}" style="max-width:100%; max-height:280px; object-fit:contain; border-radius:0.5rem;" />
+                            <img id="orderMainImg" src="{{ asset('storage/' . $gallery[0]) }}" alt="{{ $product->name }}"
+                                style="max-width:100%; max-height:280px; object-fit:contain; border-radius:0.5rem;" />
                             <div style="display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap;">
                                 @foreach($gallery as $i => $path)
-                                    <img data-index="{{ $i }}" src="{{ asset('storage/'.$path) }}" alt="thumb {{ $i+1 }}" style="width:56px; height:56px; object-fit:cover; border-radius:0.375rem; border:1px solid #e2e8f0; cursor:pointer; opacity: 0.6;">
+                                    <img data-index="{{ $i }}" src="{{ asset('storage/' . $path) }}" alt="thumb {{ $i + 1 }}"
+                                        style="width:56px; height:56px; object-fit:cover; border-radius:0.375rem; border:1px solid #e2e8f0; cursor:pointer; opacity: 0.6;">
                                 @endforeach
                             </div>
                         </div>
@@ -91,17 +88,22 @@
 
                     <div class="product-price-display">
                         <div class="label">Base Price</div>
-                        <div class="price" id="basePriceDisplay">RM {{ number_format($product->price, 2) }}</div>
+                        <div class="price" id="basePriceDisplay">
+                            {{ $currencyConfig['rate'] == 5200 || $currency == 'IDR' ? 'Rp' : ($currency == 'BND' ? '$' : ($currency == 'SGD' ? 'S$' : 'RM')) }}
+                            {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Multi-Step Form -->
             <div class="form-card">
-                <form method="POST" action="{{ route($product->available_for_preorder ? 'preorder.store' : 'order.store') }}" id="preorderForm">
+                <form method="POST"
+                    action="{{ route($product->available_for_preorder ? 'preorder.store' : 'order.store') }}"
+                    id="preorderForm">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}" />
-                    <input type="hidden" name="currency" id="currencyInput" value="MYR" />
+                    <input type="hidden" name="currency" id="currencyInput" value="{{ $currency }}" />
 
                     <!-- Step 1: Product Confirmation -->
                     <div class="form-step active" id="step1">
@@ -114,7 +116,10 @@
 
                         <div class="review-block">
                             <div class="label">Price</div>
-                            <div class="value" id="step1Price">RM {{ number_format($product->price, 2) }}</div>
+                            <div class="value" id="step1Price">
+                                {{ $currencyConfig['rate'] == 5200 || $currency == 'IDR' ? 'Rp' : ($currency == 'BND' ? '$' : ($currency == 'SGD' ? 'S$' : 'RM')) }}
+                                {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
+                            </div>
                         </div>
 
                         <div class="form-nav">
@@ -159,62 +164,123 @@
                         </div>
                     </div>
 
-                        <!-- Step 3: Customization -->
-                        <div class="form-step" id="step3">
-                            <h3 class="step-title"><span class="icon">3</span> Customize Your Jersey</h3>
+                    <!-- Step 3: Customize -->
+                    <div class="form-step" id="step3">
+                        <h3 class="step-title"><span class="icon">3</span> Customize Your Jersey</h3>
 
-                            <div class="form-group">
-                                <label>Select Variants & Quantity <span class="required">*</span></label>
-                                
-                                <div class="variant-list" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
-                                    @foreach($product->variants as $variant)
-                                        <div class="variant-row" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem;">
-                                            <div class="variant-info">
-                                                <div style="font-weight: 600; font-size: 1rem;">{{ $variant->name }}</div>
-                                                @if(!$product->available_for_preorder)
-                                                    <div style="font-size: 0.75rem; color: {{ $variant->hasStock() ? '#6b7280' : '#dc2626' }};">
-                                                        {{ $variant->hasStock() ? 'Stock: ' . $variant->stock : 'Out of Stock' }}
+                        @if($errors->any())
+                            <div class="form-error-summary"
+                                style="background: #fef2f2; border: 1px solid #fecaca; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; color: #991b1b;">
+                                <div style="font-weight: 700; margin-bottom: 0.5rem;">Please fix the following errors:</div>
+                                <ul style="list-style: disc; padding-left: 1.5rem; margin: 0;">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <div class="form-group">
+                            <label>Select Creates & Quantity <span class="required">*</span></label>
+
+                            <div class="variant-list"
+                                style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                                @foreach($product->variants as $variant)
+                                    <div class="variant-card" data-variant-id="{{ $variant->id }}">
+                                        <div class="variant-header">
+                                            <div class="variant-title">{{ $variant->name }}</div>
+                                            @if(!$product->available_for_preorder)
+                                                <div
+                                                    class="variant-stock {{ $variant->hasStock() ? ($variant->stock < 5 ? 'stock-low' : 'stock-ok') : 'stock-out' }}">
+                                                    {{ $variant->hasStock() ? 'Stock: ' . $variant->stock : 'Out of Stock' }}
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <!-- Short Sleeve Section -->
+                                        <div class="variant-section">
+                                            <div
+                                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                                <span class="section-label">Short Sleeve</span>
+                                                @if($product->available_for_preorder || $variant->hasStock())
+                                                    <div class="qty-stepper">
+                                                        <button type="button" class="qty-btn"
+                                                            onclick="decQty({{ $variant->id }}, 'ss')">−</button>
+                                                        <input type="number" name="items[{{ $variant->id }}][quantity_ss]"
+                                                            class="qty-input-display ss-input" value="0" min="0" readonly>
+                                                        <button type="button" class="qty-btn"
+                                                            onclick="incQty({{ $variant->id }}, 'ss')">+</button>
                                                     </div>
+                                                @else
+                                                    <span class="stock-out" style="font-size:0.9rem;">Unavailable</span>
                                                 @endif
                                             </div>
-                                            <div class="variant-input" style="width: 100px;">
-                                                <input type="number" 
-                                                       name="items[{{ $variant->id }}]" 
-                                                       class="form-control quantity-input" 
-                                                       value="0" 
-                                                       min="0" 
-                                                       {{ (!$product->available_for_preorder && !$variant->hasStock()) ? 'disabled' : '' }}
-                                                       data-price="{{ $product->price }}"
-                                                       data-variant-id="{{ $variant->id }}"
-                                                       style="text-align: center;"
-                                                       onchange="recalc()"
-                                                       onkeyup="recalc()"
-                                                >
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <div id="totalQtyDisplay" style="margin-top: 0.5rem; font-size: 0.875rem; color: #64748b; text-align: right;">Total Items: 0</div>
-                            </div>
 
-                            <div class="form-group">
-                                <label class="checkbox-label" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                    <input type="checkbox" name="long_sleeve" value="1" id="longSleeveCheck" onchange="recalc()">
-                                    <span>Long Sleeve (+<span class="currency-symbol">RM</span> <span class="long-sleeve-price">0</span>)</span>
-                                </label>
+                                            <!-- Nameset SS -->
+                                            <label class="option-toggle" id="toggle-nameset-ss-{{ $variant->id }}"
+                                                style="display:none;">
+                                                <input type="checkbox" id="check-nameset-ss-{{ $variant->id }}"
+                                                    onchange="toggleNameset({{ $variant->id }}, 'ss')">
+                                                <div>
+                                                    <div class="option-label">Add Name & Number</div>
+                                                    <div class="option-price">+<span class="currency-symbol">RM</span> <span
+                                                            class="nameset-price">0</span></div>
+                                                </div>
+                                            </label>
+
+                                            <div class="nameset-container" id="nameset-container-ss-{{ $variant->id }}"
+                                                style="display: none;"></div>
+                                        </div>
+
+                                        <!-- Long Sleeve Section -->
+                                        <div class="ls-section-wrapper" id="section-ls-{{ $variant->id }}"
+                                            style="display:none;">
+                                            <div
+                                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                                <div>
+                                                    <span class="section-label">Long Sleeve (+<span
+                                                            class="currency-symbol">RM</span> <span
+                                                            class="long-sleeve-price">0</span>)</span>
+                                                </div>
+                                                <div class="qty-stepper">
+                                                    <button type="button" class="qty-btn"
+                                                        onclick="decQty({{ $variant->id }}, 'ls')">−</button>
+                                                    <input type="number" name="items[{{ $variant->id }}][quantity_ls]"
+                                                        class="qty-input-display ls-input" value="0" min="0" readonly>
+                                                    <button type="button" class="qty-btn"
+                                                        onclick="incQty({{ $variant->id }}, 'ls')">+</button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Nameset LS -->
+                                            <label class="option-toggle" id="toggle-nameset-ls-{{ $variant->id }}"
+                                                style="display:none;">
+                                                <input type="checkbox" id="check-nameset-ls-{{ $variant->id }}"
+                                                    onchange="toggleNameset({{ $variant->id }}, 'ls')">
+                                                <div>
+                                                    <div class="option-label">Add Name & Number</div>
+                                                    <div class="option-price">+<span class="currency-symbol">RM</span> <span
+                                                            class="nameset-price">0</span></div>
+                                                </div>
+                                            </label>
+
+                                            <div class="nameset-container" id="nameset-container-ls-{{ $variant->id }}"
+                                                style="display: none;"></div>
+                                        </div>
+
+                                        <!-- Add Long Sleeve Button (Visible when LS section is hidden) -->
+                                        <button type="button" class="btn-action-ghost" id="btn-add-ls-{{ $variant->id }}"
+                                            onclick="toggleLS({{ $variant->id }})">
+                                            + Add Long Sleeve Option
+                                        </button>
+
+                                        <!-- Hidden checkbox to maintain logic compatibility if needed, or just use JS to handle visibility -->
+                                        <input type="checkbox" id="check-ls-{{ $variant->id }}" style="display:none;">
+
+                                    </div>
+                                @endforeach
                             </div>
-                            
-                            <!-- Nameset/Customization Section -->
-                            <div style="margin-top: 1rem; background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border: 1px dashed #cbd5e1;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                    <label style="margin:0; font-weight:600; font-size: 0.9rem;">Add Name & Number?</label>
-                                    <span style="font-size: 0.8rem; color: #64748b;">+<span class="currency-symbol">RM</span> <span class="nameset-price">0</span> / pcs</span>
-                                </div>
-                                <div id="customFieldsContainer">
-                                    <!-- Dynamic fields will be added here -->
-                                </div>
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="addCustomField()" style="width: 100%; margin-top: 0.5rem;">+ Add Name & Number</button>
-                            </div>
+                        </div>
 
                         <div class="form-group" style="margin-top: 1.25rem;">
                             <label>Special Requests / Notes</label>
@@ -243,31 +309,16 @@
                         </div>
 
                         <div class="review-block">
-                            <div class="label">Items Selected</div>
-                            <div id="reviewItemsList" style="font-size: 0.95rem; font-weight: 500; color: #111827;">
+                            <div class="label">Order Summary</div>
+                            <div id="reviewItemsList" class="review-items-list">
                                 <!-- Populated by JS -->
                             </div>
                         </div>
 
-                        <div class="review-block" id="reviewNamesetBlock" style="display: none;">
-                            <div class="label">Customizations</div>
-                            <div class="value" id="reviewNamesetList">-</div>
-                        </div>
-
-                        <div class="review-total" style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e2e8f0;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span>Base Price</span>
-                                <span id="summaryBasePrice">-</span>
-                            </div>
-                            <div id="summaryLongSleeveRow" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; display: none;">
-                                <span>Long Sleeve Surcharge</span>
-                                <span id="summaryLongSleeve">-</span>
-                            </div>
-                            <div id="summaryNamesetRow" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; display: none;">
-                                <span>Custom Nameset</span>
-                                <span id="summaryNameset">-</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed #cbd5e1; font-weight: 700; font-size: 1.1rem; color: #111827;">
+                        <div class="review-total"
+                            style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e2e8f0;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 1.25rem; color: #111827;">
                                 <span>Total Amount</span>
                                 <span id="summaryTotal">-</span>
                             </div>
@@ -275,25 +326,32 @@
 
                         <div class="payment-method-selection" style="margin: 1.5rem 0;">
                             <h4 style="margin-bottom: 1rem; font-size: 1.1rem;">Select Payment Method</h4>
-                            
+
                             <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                                <label class="payment-option" id="payment-cod" style="flex: 1; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s;">
-                                    <input type="radio" name="payment_method" value="cod" checked style="margin-right: 0.5rem;" onchange="updatePaymentMethod(this.value)">
+                                <label class="payment-option" id="payment-cod"
+                                    style="flex: 1; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s;">
+                                    <input type="radio" name="payment_method" value="cod" checked
+                                        style="margin-right: 0.5rem;" onchange="updatePaymentMethod(this.value)">
                                     <span style="font-weight: 500;">💵 Cash on Delivery (COD)</span>
-                                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">Pay when you receive the order</p>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">Pay when you
+                                        receive the order</p>
                                 </label>
-                                
-                                <label class="payment-option" id="payment-stripe" style="flex: 1; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s;">
-                                    <input type="radio" name="payment_method" value="stripe" style="margin-right: 0.5rem;" onchange="updatePaymentMethod(this.value)">
+
+                                <label class="payment-option" id="payment-stripe"
+                                    style="flex: 1; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s;">
+                                    <input type="radio" name="payment_method" value="stripe" style="margin-right: 0.5rem;"
+                                        onchange="updatePaymentMethod(this.value)">
                                     <span style="font-weight: 500;">💳 Credit/Debit Card (Stripe)</span>
-                                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">Pay securely with Stripe</p>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">Pay securely with
+                                        Stripe</p>
                                 </label>
                             </div>
                         </div>
 
                         <div class="form-nav">
                             <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                            <button type="button" class="btn btn-success" onclick="submitForm()">✓ Continue to Payment</button>
+                            <button type="button" class="btn btn-success" onclick="submitForm()">✓ Continue to
+                                Payment</button>
                         </div>
                     </div>
                 </form>
@@ -301,7 +359,7 @@
         </div>
     </section>
     <script>
-        (function(){
+        (function () {
             const g = document.getElementById('orderGallery');
             if (g) {
                 const main = document.getElementById('orderMainImg');
@@ -311,7 +369,7 @@
                     thumbs[0].style.opacity = '1';
                     thumbs[0].style.borderColor = '#111827';
                 }
-                function setIdx(i){
+                function setIdx(i) {
                     idx = i;
                     const src = thumbs[idx].getAttribute('src');
                     main.setAttribute('src', src);
@@ -328,276 +386,383 @@
                 });
             }
         })();
+
         // Currency configuration
-    // Currency configuration
-    const currencies = {
-        MYR: { symbol: 'RM', rate: 1, longSleeve: 3, nameset: 13 },
-        BND: { symbol: '$', rate: 1.05, longSleeve: 3, nameset: 13 },
-        IDR: { symbol: 'Rp', rate: 5200, longSleeve: 15600, nameset: 67600 }
-    };
-
-    let currentCurrency = '{{ $currency }}';
-    let currentStep = 1;
-    const totalSteps = 4;
-    const basePrice = parseFloat('{{ number_format($product->price, 2, ".", "") }}');
-
-    // Currency selector
-    const currencySelector = document.getElementById('currencySelector');
-    if (currencySelector) {
-        currencySelector.addEventListener('change', function () {
-            currentCurrency = this.value;
-            const currencyInput = document.getElementById('currencyInput');
-            if (currencyInput) currencyInput.value = currentCurrency;
-            updateCurrencyDisplay();
-            recalc();
-        });
-    }
-
-    function updateCurrencyDisplay() {
-        if (!currencies[currentCurrency]) return;
-        const conf = currencies[currentCurrency];
-        
-        document.querySelectorAll('.currency-symbol').forEach(el => el.innerText = conf.symbol);
-        
-        // Update price display on product card
-        const convertedPrice = basePrice * conf.rate;
-        const priceElement = document.getElementById('displayPrice');
-        if(priceElement) {
-            if(currentCurrency === 'IDR') {
-                priceElement.innerText = Math.round(convertedPrice).toLocaleString('id-ID');
-            } else {
-                priceElement.innerText = convertedPrice.toFixed(2);
-            }
-        }
-        
-        // Update option prices
-        document.querySelectorAll('.long-sleeve-price').forEach(el => {
-             el.innerText = currentCurrency === 'IDR' ? conf.longSleeve.toLocaleString('id-ID') : conf.longSleeve.toFixed(2);
-        });
-        document.querySelectorAll('.nameset-price').forEach(el => {
-             el.innerText = currentCurrency === 'IDR' ? conf.nameset.toLocaleString('id-ID') : conf.nameset.toFixed(2);
-        });
-    }
-
-    function showStep(step) {
-        if (step > currentStep) {
-            if (currentStep === 1) {
-                // Step 1: Product Card - No inputs to validate
-            }
-            if (currentStep === 2) {
-                 // Step 2: Details
-                 const nameInput = document.querySelector('input[name="name"]');
-                 const phoneInput = document.querySelector('input[name="phone"]');
-                 const addressInput = document.querySelector('textarea[name="address"]');
-                 
-                 if (!nameInput.value.trim()) { alert('Full name is required'); return; }
-                 if (!phoneInput.value.trim()) { alert('Phone number is required'); return; }
-                 if (!addressInput.value.trim()) { alert('Delivery address is required'); return; }
-            }
-            if (currentStep === 3) {
-                // Step 3: Variants
-                let totalQ = 0;
-                document.querySelectorAll('.quantity-input').forEach(inp => {
-                    totalQ += parseInt(inp.value || 0);
-                });
-                
-                if (totalQ === 0) {
-                    alert('Please select at least one item quantity');
-                    return;
-                }
-            }
-        }
-        
-        // Navigation visual update
-        document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
-        
-        const targetStep = document.getElementById('step' + step);
-        if (targetStep) {
-            targetStep.classList.add('active');
-            window.scrollTo(0, 0);
-        }
-        
-        // Update header steps
-        for(let i=1; i<=step; i++) {
-            const stepEl = document.querySelector('.steps .step:nth-child('+i+')');
-            if(stepEl) stepEl.classList.add('active');
-        }
-        
-        currentStep = step;
-        if(step === 4) {
-            recalc();
-            updateReviewDetails();
-        }
-    }
-
-    function nextStep() {
-        showStep(currentStep + 1);
-    }
-
-    function prevStep() {
-        if (currentStep > 1) {
-            showStep(currentStep - 1);
-        }
-    }
-
-    function addCustomField() {
-        const container = document.getElementById('customFieldsContainer');
-        const count = container.querySelectorAll('.custom-field-row').length;
-        
-        const div = document.createElement('div');
-        div.className = 'custom-field-row';
-        div.style.display = 'flex';
-        div.style.gap = '0.5rem';
-        div.style.marginBottom = '0.5rem';
-        div.innerHTML = `
-            <input type="text" name="custom_fields[${count}][key]" class="form-control" placeholder="Name (e.g. RONALDO)" required style="flex: 2;">
-            <input type="text" name="custom_fields[${count}][value]" class="form-control" placeholder="Number (e.g. 7)" required style="flex: 1;">
-            <button type="button" class="btn btn-secondary" onclick="this.parentElement.remove(); recalc();" style="color: #ef4444; border-color: #ef4444; padding: 0.5rem;">×</button>
-        `;
-        container.appendChild(div);
-        recalc();
-    }
-
-    function updateReviewDetails() {
-        // Customer Details
-        const name = document.querySelector('input[name="name"]').value || '-';
-        const phone = document.querySelector('input[name="phone"]').value || '-';
-        const address = document.querySelector('textarea[name="address"]').value || '-';
-        const customerHtml = `
-            <div style="font-weight: 700;">${name}</div>
-            <div style="font-size: 0.9rem; color: #4b5563;">${phone}</div>
-            <div style="font-size: 0.9rem; color: #4b5563;">${address}</div>
-        `;
-        const customerDetailsEl = document.getElementById('reviewCustomerDetails');
-        if(customerDetailsEl) customerDetailsEl.innerHTML = customerHtml;
-
-        // Items List
-        const itemsContainer = document.getElementById('reviewItemsList');
-        if(itemsContainer) {
-            itemsContainer.innerHTML = '';
-            const variantInputs = document.querySelectorAll('.quantity-input');
-            let hasItems = false;
-            
-            variantInputs.forEach(inp => {
-                const qty = parseInt(inp.value || 0);
-                if (qty > 0) {
-                   hasItems = true;
-                   const row = document.createElement('div');
-                   const variantRow = inp.closest('.variant-row');
-                   const variantName = variantRow ? variantRow.querySelector('.variant-info div').textContent.trim() : 'Variant';
-                   
-                   row.style.marginBottom = '0.5rem';
-                   row.style.display = 'flex';
-                   row.style.justifyContent = 'space-between';
-                   row.innerHTML = `<span>${variantName}</span> <span>x${qty}</span>`;
-                   itemsContainer.appendChild(row);
-                }
-            });
-            
-            if (!hasItems) itemsContainer.innerHTML = '<div>No items selected</div>';
-        }
-        
-        // Custom Fields (Nameset)
-        const customRows = document.querySelectorAll('.custom-field-row');
-        const namesetList = document.getElementById('reviewNamesetList');
-        const namesetBlock = document.getElementById('reviewNamesetBlock');
-        
-        if (customRows.length > 0) {
-            if(namesetBlock) namesetBlock.style.display = 'block';
-            let html = '<div style="display:flex; flex-direction:column; gap:0.25rem;">';
-            customRows.forEach(row => {
-                const k = row.querySelector('input[name*="[key]"]').value;
-                const v = row.querySelector('input[name*="[value]"]').value;
-                if (k || v) {
-                    html += `<div style="display:flex; justify-content:space-between; font-size:0.9rem;">
-                        <span style="color:#64748b">${k || 'Custom'}</span>
-                        <span style="font-weight:600">${v || '-'}</span>
-                    </div>`;
-                }
-            });
-            html += '</div>';
-            if(namesetList) namesetList.innerHTML = html;
-        } else {
-            if(namesetBlock) namesetBlock.style.display = 'none';
-        }
-    }
-
-    function recalc() {
-        if (!currencies[currentCurrency]) return;
-        const conf = currencies[currentCurrency];
-        
-        let totalQty = 0;
-        document.querySelectorAll('.quantity-input').forEach(inp => {
-            totalQty += parseInt(inp.value || 0);
-        });
-        
-        const totalQtyDisplay = document.getElementById('totalQtyDisplay');
-        if (totalQtyDisplay) totalQtyDisplay.innerText = 'Total Items: ' + totalQty;
-        
-        let totalBase = (basePrice * conf.rate) * totalQty;
-        
-        const longSleeveCheck = document.getElementById('longSleeveCheck');
-        const isLongSleeve = longSleeveCheck ? longSleeveCheck.checked : false;
-        let totalLongSleeve = isLongSleeve ? (conf.longSleeve * totalQty) : 0;
-        
-        const customRows = document.querySelectorAll('.custom-field-row').length;
-        let totalNameset = customRows * conf.nameset;
-        
-        let grandTotal = totalBase + totalLongSleeve + totalNameset;
-        
-        // Update Summary
-        const updateText = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) {
-                if (currentCurrency === 'IDR') el.innerText = Math.round(val).toLocaleString('id-ID');
-                else el.innerText = val.toFixed(2);
-            }
+        const currencies = {
+            MYR: { symbol: 'RM', rate: 1, longSleeve: 10, nameset: 35 },
+            BND: { symbol: '$', rate: 1.05, longSleeve: 3, nameset: 13 },
+            SGD: { symbol: 'S$', rate: 1.05, longSleeve: 3, nameset: 13 },
+            IDR: { symbol: 'Rp', rate: 5200, longSleeve: 15600, nameset: 67600 }
         };
-        
-        updateText('summaryBasePrice', totalBase);
-        updateText('summaryLongSleeve', totalLongSleeve);
-        updateText('summaryNameset', totalNameset);
-        updateText('summaryTotal', grandTotal);
-        
-        // Visibility
-        const lsRow = document.getElementById('summaryLongSleeveRow');
-        if(lsRow) lsRow.style.display = isLongSleeve ? 'flex' : 'none';
-        
-        const nsRow = document.getElementById('summaryNamesetRow');
-        if(nsRow) nsRow.style.display = totalNameset > 0 ? 'flex' : 'none';
-        
-        // Also update hidden quantity for simplicity if backend expects "quantity" somewhere?
-        // No, backend expects "items" array.
-    }
 
-    function submitForm() {
-        const form = document.getElementById('preorderForm');
-        let paymentMethodInput = document.querySelector('input[name="payment_method"]:checked');
-        let paymentMethod = paymentMethodInput ? paymentMethodInput.value : 'cod';
-        
-        if (paymentMethod === 'stripe') {
-            form.action = '{{ route("preorder.checkout.stripe") }}';
-        } else {
-            form.action = '{{ route($product->available_for_preorder ? "preorder.store" : "order.store") }}';
-        }
-        form.submit();
-    }
-    
-    function updatePaymentMethod(val) {
-        document.querySelectorAll('.payment-option').forEach(opt => {
-            opt.style.borderColor = '#e2e8f0';
-            opt.style.backgroundColor = '';
-        });
-        const selected = document.querySelector(`input[value="${val}"]`).closest('.payment-option');
-        if (selected) {
-            selected.style.borderColor = '#111827';
-            selected.style.backgroundColor = '#f9fafb';
-        }
-    }
+        let currentCurrency = '{{ $currency }}';
+        let currentStep = 1;
+        const totalSteps = 4;
+        const basePrice = parseFloat('{{ number_format($product->price, 2, ".", "") }}');
 
-    // Initialize
-    updateCurrencyDisplay();
-    recalc();
+        function updateCurrencyDisplay() {
+            if (!currencies[currentCurrency]) return;
+            const conf = currencies[currentCurrency];
+
+            document.querySelectorAll('.currency-symbol').forEach(el => el.innerText = conf.symbol);
+
+            // Update price display on product card (Use correct ID: basePriceDisplay)
+            const convertedPrice = basePrice * conf.rate;
+            const priceElement = document.getElementById('basePriceDisplay');
+            if (priceElement) {
+                if (currentCurrency === 'IDR') {
+                    priceElement.innerText = conf.symbol + ' ' + Math.round(convertedPrice).toLocaleString('id-ID');
+                } else {
+                    priceElement.innerText = conf.symbol + ' ' + convertedPrice.toFixed(2);
+                }
+            }
+
+            const step1Price = document.getElementById('step1Price');
+            if (step1Price) {
+                if (currentCurrency === 'IDR') {
+                    step1Price.innerText = conf.symbol + ' ' + Math.round(convertedPrice).toLocaleString('id-ID');
+                } else {
+                    step1Price.innerText = conf.symbol + ' ' + convertedPrice.toFixed(2);
+                }
+            }
+
+            // Update option prices
+            document.querySelectorAll('.long-sleeve-price').forEach(el => {
+                el.innerText = currentCurrency === 'IDR' ? conf.longSleeve.toLocaleString('id-ID') : conf.longSleeve.toFixed(2);
+            });
+            document.querySelectorAll('.nameset-price').forEach(el => {
+                el.innerText = currentCurrency === 'IDR' ? conf.nameset.toLocaleString('id-ID') : conf.nameset.toFixed(2);
+            });
+        }
+
+        function showStep(step) {
+            if (step > currentStep) {
+                if (currentStep === 1) {
+                    // Step 1
+                }
+                if (currentStep === 2) {
+                    // Step 2
+                    const nameInput = document.querySelector('input[name="name"]');
+                    const phoneInput = document.querySelector('input[name="phone"]');
+                    const addressInput = document.querySelector('textarea[name="address"]');
+
+                    if (!nameInput.value.trim()) { alert('Full name is required'); return; }
+                    if (!phoneInput.value.trim()) { alert('Phone number is required'); return; }
+                    if (!addressInput.value.trim()) { alert('Delivery address is required'); return; }
+                }
+                if (currentStep === 3) {
+                    // Step 3
+                    let totalQ = 0;
+                    document.querySelectorAll('.qty-input-display').forEach(inp => {
+                        totalQ += parseInt(inp.value || 0);
+                    });
+
+                    if (totalQ === 0) {
+                        alert('Please select at least one item quantity');
+                        return;
+                    }
+                }
+            }
+
+            // Visual update
+            document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+
+            const targetStep = document.getElementById('step' + step);
+            if (targetStep) {
+                targetStep.classList.add('active');
+                window.scrollTo(0, 0);
+            }
+
+            for (let i = 1; i <= step; i++) {
+                const stepEl = document.querySelector('.steps .step:nth-child(' + i + ')');
+                if (stepEl) stepEl.classList.add('active');
+            }
+
+            currentStep = step;
+            if (step === 4) {
+                recalc();
+                updateReviewDetails();
+            }
+        }
+
+        function nextStep() {
+            showStep(currentStep + 1);
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                showStep(currentStep - 1);
+            }
+        }
+
+        function incQty(variantId, type) {
+            const input = document.querySelector(`input[name="items[${variantId}][quantity_${type}]"]`);
+            if (input) {
+                let val = parseInt(input.value || 0);
+                input.value = val + 1;
+                handleQtyChange(variantId, type);
+            }
+        }
+
+        function decQty(variantId, type) {
+            const input = document.querySelector(`input[name="items[${variantId}][quantity_${type}]"]`);
+            if (input) {
+                let val = parseInt(input.value || 0);
+                if (val > 0) {
+                    input.value = val - 1;
+                    handleQtyChange(variantId, type);
+                }
+            }
+        }
+
+        function toggleLS(variantId) {
+            // Toggle Logic for LS
+            const section = document.getElementById(`section-ls-${variantId}`);
+            const btn = document.getElementById(`btn-add-ls-${variantId}`);
+            const check = document.getElementById(`check-ls-${variantId}`); // Hidden checkbox for compatibility if needed
+
+            if (section.style.display === 'none') {
+                // Show
+                section.style.display = 'block';
+                btn.style.display = 'none';
+                if (check) check.checked = true;
+                // Set default qty to 1 if 0? Or let user start at 0
+                // Let's set to 0. If they click add, maybe start at 1?
+                // incQty(variantId, 'ls'); // Optional: start at 1
+            } else {
+                // Hide
+                // Before hiding confirm? No, just reset.
+                section.style.display = 'none';
+                btn.style.display = 'block';
+                if (check) check.checked = false;
+
+                // Reset LS qty
+                const lsInput = section.querySelector('.ls-input');
+                if (lsInput) lsInput.value = 0;
+
+                // Hide nameset
+                toggleNameset(variantId, 'ls');
+
+                handleQtyChange(variantId, 'ls');
+            }
+        }
+
+        function handleQtyChange(variantId, type) {
+            // type = 'ss' or 'ls'
+            const qtyInput = document.querySelector(`input[name="items[${variantId}][quantity_${type}]"]`);
+            const qty = parseInt(qtyInput.value || 0);
+
+            // Show/Hide Nameset Toggle for this type
+            const toggle = document.getElementById(`toggle-nameset-${type}-${variantId}`);
+            if (toggle) {
+                if (qty > 0) {
+                    toggle.style.display = 'inline-flex';
+                } else {
+                    toggle.style.display = 'none';
+                    // Also uncheck
+                    const chmbk = document.getElementById(`check-nameset-${type}-${variantId}`);
+                    if (chmbk && chmbk.checked) {
+                        chmbk.checked = false;
+                        toggleNameset(variantId, type);
+                    }
+                }
+            }
+
+            // Check if nameset is enabled to update inputs
+            const nsCheck = document.getElementById(`check-nameset-${type}-${variantId}`);
+            if (nsCheck && nsCheck.checked) {
+                updateNamesetInputs(variantId, type, qty);
+            }
+
+            recalc();
+        }
+
+        function toggleNameset(variantId, type) {
+            const checkbox = document.getElementById(`check-nameset-${type}-${variantId}`);
+            const container = document.getElementById(`nameset-container-${type}-${variantId}`);
+            const qtyInput = document.querySelector(`input[name="items[${variantId}][quantity_${type}]"]`);
+            const qty = parseInt(qtyInput.value || 0);
+
+            if (checkbox && checkbox.checked) {
+                container.style.display = 'block';
+                updateNamesetInputs(variantId, type, qty);
+            } else {
+                if (container) container.style.display = 'none';
+                if (container) container.innerHTML = '';
+            }
+            recalc();
+        }
+
+        function updateNamesetInputs(variantId, type, qty) {
+            const container = document.getElementById(`nameset-container-${type}-${variantId}`);
+            if (!container) return;
+
+            const currentRows = container.querySelectorAll('.nameset-row');
+            const currentCount = currentRows.length;
+
+            if (qty > currentCount) {
+                // Add rows
+                for (let i = currentCount; i < qty; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'nameset-row';
+                    // row.style.display = 'flex'; // handled by css
+                    // row.style.gap = '0.5rem';
+                    // row.style.marginBottom = '0.5rem';
+                    row.innerHTML = `
+                            <input type="text" name="items[${variantId}][namesets_${type}][${i}][key]" class="form-control" placeholder="Name #${i + 1}" required style="flex: 2; font-size: 0.9rem;">
+                            <input type="text" name="items[${variantId}][namesets_${type}][${i}][value]" class="form-control" placeholder="Number" required style="flex: 1; font-size: 0.9rem;">
+                        `;
+                    container.appendChild(row);
+                }
+            } else if (qty < currentCount) {
+                // Remove extra rows
+                for (let i = currentCount - 1; i >= qty; i--) {
+                    currentRows[i].remove();
+                }
+            }
+        }
+
+        function updateReviewDetails() {
+            // Customer Details
+            const name = document.querySelector('input[name="name"]').value || '-';
+            const phone = document.querySelector('input[name="phone"]').value || '-';
+            const address = document.querySelector('textarea[name="address"]').value || '-';
+            const customerDetailsEl = document.getElementById('reviewCustomerDetails');
+            if (customerDetailsEl) {
+                customerDetailsEl.innerHTML = `<div style="font-weight:700;">${name}</div><div style="font-size:0.9rem;color:#4b5563;">${phone}</div><div style="font-size:0.9rem;color:#4b5563;">${address}</div>`;
+            }
+
+            const itemsContainer = document.getElementById('reviewItemsList');
+            itemsContainer.innerHTML = '';
+
+            let hasItems = false;
+            document.querySelectorAll('.variant-card').forEach(row => {
+                const variantId = row.getAttribute('data-variant-id');
+                const variantName = row.querySelector('.variant-title').textContent;
+
+                // Check SS
+                const qtySS = parseInt(row.querySelector(`input[name="items[${variantId}][quantity_ss]"]`).value || 0);
+                if (qtySS > 0) {
+                    hasItems = true;
+                    const nsSS = row.querySelector(`#check-nameset-ss-${variantId}`).checked;
+                    let details = ['Short Sleeve'];
+                    if (nsSS) details.push('Nameset Included');
+
+                    addItemToReview(itemsContainer, variantName, qtySS, details);
+                }
+
+                // Check LS
+                const qtyLS = parseInt(row.querySelector(`input[name="items[${variantId}][quantity_ls]"]`).value || 0);
+                if (qtyLS > 0) {
+                    hasItems = true;
+                    const nsLS = row.querySelector(`#check-nameset-ls-${variantId}`).checked;
+                    let details = ['Long Sleeve'];
+                    if (nsLS) details.push('Nameset Included');
+
+                    addItemToReview(itemsContainer, variantName, qtyLS, details);
+                }
+            });
+
+            if (!hasItems) itemsContainer.innerHTML = '<div style="color:#64748b; font-style:italic;">No items selected</div>';
+        }
+
+        function addItemToReview(container, name, qty, details) {
+            const itemDiv = document.createElement('div');
+            itemDiv.style.marginBottom = '1rem';
+            itemDiv.style.paddingBottom = '1rem';
+            itemDiv.style.borderBottom = '1px solid #f1f5f9';
+            itemDiv.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; font-weight:600;">
+                        <span>${name}</span>
+                        <span>x${qty}</span>
+                    </div>
+                    ${details.length ? '<div style="font-size:0.85rem; color:#64748b; margin-top:0.25rem;">' + details.map(d => '• ' + d).join('<br>') + '</div>' : ''}
+                `;
+            container.appendChild(itemDiv);
+        }
+
+        function recalc() {
+            if (!currencies[currentCurrency]) return;
+            const conf = currencies[currentCurrency];
+
+            let grandTotal = 0;
+
+            document.querySelectorAll('.variant-card').forEach(row => {
+                const variantId = row.getAttribute('data-variant-id');
+                const qtySS = parseInt(row.querySelector(`input[name="items[${variantId}][quantity_ss]"]`).value || 0);
+                const qtyLS = parseInt(row.querySelector(`input[name="items[${variantId}][quantity_ls]"]`).value || 0);
+
+                const base = basePrice * conf.rate;
+
+                // Calculate SS
+                if (qtySS > 0) {
+                    let cost = base * qtySS;
+                    const nsSS = row.querySelector(`#check-nameset-ss-${variantId}`).checked;
+                    if (nsSS) cost += (conf.nameset * qtySS);
+                    grandTotal += cost;
+                }
+
+                // Calculate LS
+                if (qtyLS > 0) {
+                    let cost = (base + conf.longSleeve) * qtyLS;
+                    const nsLS = row.querySelector(`#check-nameset-ls-${variantId}`).checked;
+                    if (nsLS) cost += (conf.nameset * qtyLS);
+                    grandTotal += cost;
+                }
+            });
+
+            // Update Summary
+            const el = document.getElementById('summaryTotal');
+            if (el) {
+                if (currentCurrency === 'IDR') el.innerText = conf.symbol + ' ' + Math.round(grandTotal).toLocaleString('id-ID');
+                else el.innerText = conf.symbol + ' ' + grandTotal.toFixed(2);
+            }
+        }
+
+        function submitForm() {
+            const form = document.getElementById('preorderForm');
+
+            // precise validation check
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            let paymentMethodInput = document.querySelector('input[name="payment_method"]:checked');
+            let paymentMethod = paymentMethodInput ? paymentMethodInput.value : 'cod';
+
+            if (paymentMethod === 'stripe') {
+                form.action = '{{ route("preorder.checkout.stripe") }}';
+            } else {
+                form.action = '{{ route($product->available_for_preorder ? "preorder.store" : "order.store") }}';
+            }
+            form.submit();
+        }
+
+        function updatePaymentMethod(val) {
+            document.querySelectorAll('.payment-option').forEach(opt => {
+                opt.style.borderColor = '#e2e8f0';
+                opt.style.backgroundColor = '';
+            });
+            const selected = document.querySelector(`input[value="${val}"]`).closest('.payment-option');
+            if (selected) {
+                selected.style.borderColor = '#111827';
+                selected.style.backgroundColor = '#f9fafb';
+            }
+        }
+
+        // Initialize
+        updateCurrencyDisplay();
+        recalc();
+
+        // Check for errors and restore step
+        document.addEventListener("DOMContentLoaded", function () {
+            @if($errors->hasAny(['name', 'email', 'phone', 'address']))
+                showStep(2);
+            @elseif($errors->has('items') || collect($errors->keys())->contains(fn($k) => str_contains($k, 'items.')))
+                showStep(3);
+            @endif
+            });
     </script>
 @endsection
