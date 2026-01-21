@@ -378,12 +378,15 @@ class PreorderController extends Controller
         $count = (int) Feedback::where('product_id', $product->id)->count();
         $latest = Feedback::where('product_id', $product->id)->orderByDesc('created_at')->limit(6)->get();
 
+        $currencyConfig = $this->getCurrencyConfig($currency);
+
         return view('products.show', [
             'product' => $product,
             'feedbackAvg' => $avg,
             'feedbackCount' => $count,
             'latestFeedback' => $latest,
             'currency' => $currency,
+            'currencyConfig' => $currencyConfig,
         ]);
     }
 
@@ -507,7 +510,7 @@ class PreorderController extends Controller
             $total += $line;
         }
         $total = round($total, 2);
-        return view('cart.index', ['items' => $items, 'total' => $total, 'currency' => $currency]);
+        return view('cart.index', ['items' => $items, 'total' => $total, 'currency' => $currency, 'currencyConfig' => $config]);
     }
 
     public function cartUpdate(Request $request)

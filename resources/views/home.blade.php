@@ -1,151 +1,325 @@
 @extends('layouts.public')
 
-@section('title', 'Maxumax - Exclusive Jersey & Pre-order')
+@section('title', 'Maxumax - Elevated Sports Performance')
 
 @section('content')
-    <section class="home-hero">
-        <div class="section-container">
-            <h2 class="hero-title">Exclusive Maxumax Jerseys</h2>
-            <p class="hero-text">Get our premium jerseys through exclusive pre-order. Best quality at affordable prices, pay
-                on delivery.</p>
-            <a href="{{ route('preorder.landing') }}"
-                class="inline-block bg-black text-white px-5 py-3 rounded-md font-semibold text-base transition hover:bg-slate-900 hover:-translate-y-0.5">Start
-                Pre-order Now</a>
-        </div>
-    </section>
-
-
-
-    <section class="features-section">
-        <div class="section-container">
-            <h2 class="section-title">Why Choose Maxumax?</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i data-feather="star"></i></div>
-                    <h3 class="feature-title">Premium Quality</h3>
-                    <p class="feature-text">High-quality materials with neat stitching and durability for long-term use.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i data-feather="dollar-sign"></i></div>
-                    <h3 class="feature-title">Affordable Prices</h3>
-                    <p class="feature-text">Pre-order with competitive pricing and flexible payment, pay when goods arrive.
-                    </p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i data-feather="sliders"></i></div>
-                    <h3 class="feature-title">Full Customization</h3>
-                    <p class="feature-text">Choose size, color, add nameset, long sleeve, and personalize to your liking.
-                    </p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i data-feather="box"></i></div>
-                    <h3 class="feature-title">Guaranteed Delivery</h3>
-                    <p class="feature-text">Your items will be delivered directly to you with flexible payment options.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i data-feather="award"></i></div>
-                    <h3 class="feature-title">Exclusive Designs</h3>
-                    <p class="feature-text">Unique and exclusive designs you won't find anywhere else.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i data-feather="message-circle"></i></div>
-                    <h3 class="feature-title">Customer Support</h3>
-                    <p class="feature-text">Our support team is ready to help you 24/7 via WhatsApp and customer service.
-                    </p>
-                </div>
+    <!-- Hero Section -->
+    <section
+        class="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-slate-900 border-b border-white/10">
+        <!-- Animated Background Gradient -->
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black opacity-95"></div>
+            <div
+                class="absolute -top-[30%] -right-[10%] w-[70%] h-[70%] rounded-full bg-blue-600/10 blur-[120px] animate-pulse">
             </div>
+            <div class="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-indigo-500/10 blur-[100px] animate-pulse"
+                style="animation-delay: 2s;"></div>
         </div>
-    </section>
 
-    <section id="about" class="about-section">
-        <div class="section-container">
-            <div class="about-grid">
-                <div>
-                    <h2 class="about-title">About Maxumax</h2>
-                    <p class="about-text">Maxumax is an exclusive jersey brand dedicated to delivering the best quality at
-                        affordable prices. We understand your need for high-quality jerseys with attractive designs.</p>
-                    <p class="about-text">Through our pre-order system, we guarantee quality for every product and offer the
-                        best prices without compromising quality. Join thousands of satisfied customers with our products.
-                    </p>
+        <div class="relative z-10 max-w-7xl mx-auto px-6 text-center" x-data="{ loaded: false }"
+            x-init="setTimeout(() => loaded = true, 100)">
+            <div x-show="loaded" x-cloak x-transition:enter="transition ease-out duration-1000"
+                x-transition:enter-start="opacity-0 translate-y-12" x-transition:enter-end="opacity-100 translate-y-0">
+                <span
+                    class="inline-block px-5 py-2 mb-8 text-xs font-black tracking-[0.3em] text-blue-400 uppercase bg-blue-400/5 border border-blue-400/20 rounded-full">
+                    Defined by Excellence
+                </span>
+                <h1
+                    class="text-white font-black text-5xl md:text-8xl lg:text-9xl mb-8 tracking-tighter leading-[0.95] italic uppercase">
+                    Unleash Your <br />
+                    <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Greatness.</span>
+                </h1>
+                <p class="text-slate-400 text-lg md:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed font-medium">
+                    Premium sports apparel engineered for the modern athlete. <br class="hidden md:block" /> Join the elite.
+                    Pre-order your exclusive season series now.
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
                     <a href="{{ route('preorder.landing') }}"
-                        class="inline-block bg-black text-white px-4 py-2 rounded-md font-semibold text-sm transition hover:bg-slate-900 hover:-translate-y-0.5">View
-                        Our Collection →</a>
+                        class="w-full sm:w-auto px-10 py-5 bg-white text-black font-black text-lg rounded-2xl hover:bg-slate-100 transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-white/5 uppercase tracking-widest">
+                        Start Pre-order
+                    </a>
+                    <a href="#about"
+                        class="w-full sm:w-auto px-10 py-5 bg-white/5 backdrop-blur-md border border-white/10 text-white font-bold text-lg rounded-2xl hover:bg-white/10 transition-all uppercase tracking-widest">
+                        Our Story
+                    </a>
                 </div>
-                <div class="about-image-card">
-                    <div class="about-image"><i data-feather="shopping-bag"></i></div>
+
+                <div class="flex flex-wrap justify-center gap-x-12 gap-y-6 pt-12 border-t border-white/10 opacity-60">
+                    <div class="flex items-center gap-3 text-white font-bold text-sm uppercase tracking-widest">
+                        <i data-feather="check-circle" class="text-blue-400" style="width:18px;height:18px;"></i>
+                        Premium Tech
+                    </div>
+                    <div class="flex items-center gap-3 text-white font-bold text-sm uppercase tracking-widest">
+                        <i data-feather="check-circle" class="text-blue-400" style="width:18px;height:18px;"></i>
+                        Custom Fit
+                    </div>
+                    <div class="flex items-center gap-3 text-white font-bold text-sm uppercase tracking-widest">
+                        <i data-feather="check-circle" class="text-blue-400" style="width:18px;height:18px;"></i>
+                        Global Shipping
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="stats-section">
-        <div class="section-container">
-            <div class="stats-grid">
-                <div class="stat-block">
-                    <h3>1000+</h3>
-                    <p>Satisfied Customers</p>
+    <!-- Stats Bar -->
+    <section class="bg-white py-12 border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <div class="text-3xl md:text-4xl font-black text-slate-900">5,000+</div>
+                    <div class="text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">Athletes Served</div>
                 </div>
-                <div class="stat-block">
-                    <h3>4+</h3>
-                    <p>Jersey Designs</p>
+                <div class="text-center">
+                    <div class="text-3xl md:text-4xl font-black text-slate-900">100%</div>
+                    <div class="text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">Tech Approved</div>
                 </div>
-                <div class="stat-block">
-                    <h3>100%</h3>
-                    <p>Satisfaction Guaranteed</p>
+                <div class="text-center">
+                    <div class="text-3xl md:text-4xl font-black text-slate-900">24/7</div>
+                    <div class="text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">Support Ready</div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="how-section">
-        <div class="section-container">
-            <h2 class="section-title">How Does Pre-ordering Work?</h2>
-            <div class="how-grid">
-                <div class="how-card">
-                    <div class="how-step-number">1</div>
-                    <h3>Choose Jersey</h3>
-                    <p class="feature-text">Select the jersey and design you want from our collection.</p>
-                </div>
-                <div class="how-card">
-                    <div class="how-step-number">2</div>
-                    <h3>Fill Details</h3>
-                    <p class="feature-text">Complete your personal details and jersey specifications (size, color, nameset,
-                        etc).</p>
-                </div>
-                <div class="how-card">
-                    <div class="how-step-number">3</div>
-                    <h3>Confirmation</h3>
-                    <p class="feature-text">We will contact you to confirm details and payment information.</p>
-                </div>
-                <div class="how-card">
-                    <div class="how-step-number">4</div>
-                    <h3>Payment</h3>
-                    <p class="feature-text">Pay when we arrive at your location with flexible payment methods.</p>
-                </div>
-                <div class="how-card">
-                    <div class="how-step-number">5</div>
-                    <h3>Delivery</h3>
-                    <p class="feature-text">Your jerseys will be delivered directly according to the schedule agreed.</p>
-                </div>
-                <div class="how-card">
-                    <div class="how-step-number">6</div>
-                    <h3>Enjoy</h3>
-                    <p class="feature-text">Receive quality jerseys and enjoy a satisfying shopping experience.</p>
+                <div class="text-center">
+                    <div class="text-3xl md:text-4xl font-black text-slate-900">4.9/5</div>
+                    <div class="text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">User Rating</div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- About Section -->
+    <section id="about" class="py-24 bg-slate-50 overflow-hidden px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+                <div class="w-full lg:w-1/2 relative space-y-6">
+                    <div class="relative z-10 aspect-square rounded-[3rem] overflow-hidden shadow-2xl">
+                        <img src="{{ asset('assets/img/about_us_jersey_production.png') }}" alt="Craftsmanship"
+                            class="w-full h-full object-cover">
+                    </div>
+                    <div class="absolute -top-12 -left-12 w-48 h-48 bg-blue-600/10 rounded-full blur-[80px]"></div>
+                </div>
 
+                <div class="w-full lg:w-1/2">
+                    <span class="text-blue-600 font-black uppercase tracking-[0.3em] text-sm mb-6 inline-block">The Maxumax
+                        Legacy</span>
+                    <h2 class="text-4xl md:text-6xl font-black text-slate-900 mb-8 tracking-tight leading-tight">Where Tech
+                        Meets <span class="text-blue-600 italic">Pure Athletics.</span></h2>
+                    <p class="text-slate-600 text-lg md:text-xl font-medium leading-relaxed mb-8">
+                        Founded on the principle that gear should never limit ambition. Maxumax combines high-tension
+                        durability with featherweight comfort to create the ultimate sports layer.
+                    </p>
+                    <div class="space-y-6 mb-12">
+                        <div class="flex gap-4">
+                            <div
+                                class="flex-shrink-0 w-12 h-12 bg-white rounded-2xl shadow-lg flex items-center justify-center text-blue-600">
+                                <i data-feather="cpu"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-black text-slate-900 text-lg">Smart Fabric Integration</h4>
+                                <p class="text-slate-500 font-medium">Adaptive cooling technology that reacts to your body
+                                    heat.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div
+                                class="flex-shrink-0 w-12 h-12 bg-white rounded-2xl shadow-lg flex items-center justify-center text-blue-600">
+                                <i data-feather="layers"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-black text-slate-900 text-lg">Multi-Stage Testing</h4>
+                                <p class="text-slate-500 font-medium">Every drop undergoes 50+ hours of rigorous athletic
+                                    testing.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <section class="cta-section">
-        <div class="section-container cta-container">
-            <h2>Ready to Pre-order Your Exclusive Jersey?</h2>
-            <p class="cta-text">Don't miss the golden opportunity to get premium jerseys at affordable prices. Pre-order now
-                and get exclusive limited designs.</p>
+    <!-- Why Us Section -->
+    <section class="py-24 bg-white px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="text-4xl md:text-6xl font-black text-slate-900 tracking-tight mb-4 uppercase italic">Technical
+                    Edge.</h2>
+                <div class="w-24 h-2 bg-blue-600 mx-auto rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div
+                    class="p-10 rounded-[2.5rem] bg-slate-50 border border-slate-100 hover:shadow-2xl hover:shadow-blue-600/5 transition-all group">
+                    <div
+                        class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mb-8 group-hover:scale-110 transition-transform">
+                        <i data-feather="wind" style="width:32px;height:32px;"></i>
+                    </div>
+                    <h3 class="font-black text-2xl text-slate-900 mb-4">Aero-Cool Tech</h3>
+                    <p class="text-slate-500 text-lg font-medium leading-relaxed">Engineered mesh panels placed
+                        strategically for maximum airflow in critical heat zones.</p>
+                </div>
+
+                <div
+                    class="p-10 rounded-[2.5rem] bg-slate-50 border border-slate-100 hover:shadow-2xl hover:shadow-blue-600/5 transition-all group">
+                    <div
+                        class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white mb-8 group-hover:scale-110 transition-transform">
+                        <i data-feather="crosshair" style="width:32px;height:32px;"></i>
+                    </div>
+                    <h3 class="font-black text-2xl text-slate-900 mb-4">Precision Fit</h3>
+                    <p class="text-slate-500 text-lg font-medium leading-relaxed">Zero-distraction seams and a tailored
+                        athletic cut that moves as you move.</p>
+                </div>
+
+                <div
+                    class="p-10 rounded-[2.5rem] bg-slate-50 border border-slate-100 hover:shadow-2xl hover:shadow-blue-600/5 transition-all group">
+                    <div
+                        class="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center text-white mb-8 group-hover:scale-110 transition-transform">
+                        <i data-feather="zap" style="width:32px;height:32px;"></i>
+                    </div>
+                    <h3 class="font-black text-2xl text-slate-900 mb-4">Ultra-Light</h3>
+                    <p class="text-slate-500 text-lg font-medium leading-relaxed">Constructed using our lightest performance
+                        fabrics, weighing 30% less than standard gear.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Grid -->
+    @if(isset($products) && $products->count() > 0)
+        <section class="bg-slate-900 py-32 px-6 relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10"
+                style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 40px 40px;"></div>
+            <div class="max-w-7xl mx-auto relative z-10">
+                <div class="flex flex-col md:flex-row items-end justify-between mb-20 gap-8">
+                    <div>
+                        <span class="text-blue-400 font-black uppercase tracking-[0.3em] text-sm mb-4 inline-block">Current
+                            Drops</span>
+                        <h2 class="text-4xl md:text-7xl font-black text-white tracking-tighter uppercase italic">Season
+                            Selection.</h2>
+                    </div>
+                    <a href="{{ route('preorder.landing') }}"
+                        class="px-8 py-4 bg-white text-black font-black rounded-xl hover:bg-blue-400 hover:scale-105 transition-all uppercase tracking-widest text-sm">
+                        Browse All
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    @foreach($products as $product)
+                        <div
+                            class="group bg-white/5 backdrop-blur-md rounded-[2.5rem] border border-white/10 overflow-hidden hover:border-blue-400/50 transition-all duration-500">
+                            <div class="aspect-square bg-slate-800 flex items-center justify-center p-10 relative">
+                                <span
+                                    class="absolute top-6 left-6 bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Available</span>
+                                @if($product->image_path)
+                                    <img src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}"
+                                        class="w-full h-full object-contain drop-shadow-2xl group-hover:scale-110 transition-transform duration-700">
+                                @else
+                                    <i data-feather="image" class="text-slate-700" style="width:48px;height:48px;"></i>
+                                @endif
+                            </div>
+                            <div class="p-8">
+                                <h3 class="text-white font-black text-xl mb-6 tracking-tight">{{ $product->name }}</h3>
+                                <div class="flex items-center justify-between">
+                                    <div class="text-2xl font-black text-white flex items-baseline gap-1">
+                                        <span class="text-xs font-bold text-slate-500">{{ $currency }}</span>
+                                        {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
+                                    </div>
+                                    <a href="{{ route('preorder.create', $product) }}"
+                                        class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-900 group-hover:bg-blue-400 transition-all">
+                                        <i data-feather="arrow-up-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
+    <!-- Gallery Section -->
+    @if(isset($highlightedGallery) && $highlightedGallery->count() > 0)
+        <section class="py-32 bg-white px-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-20">
+                    <span class="text-blue-600 font-black uppercase tracking-[0.3em] text-sm mb-4 inline-block">Visuals</span>
+                    <h2 class="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase italic">The Lookbook.
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    @foreach($highlightedGallery as $gallery)
+                        <div class="relative aspect-square rounded-[2rem] overflow-hidden group shadow-2xl">
+                            <img src="{{ Storage::url($gallery->image_path) }}" alt="{{ $gallery->title }}"
+                                class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-8">
+                                <h3 class="text-white font-black text-2xl mb-2">{{ $gallery->title }}</h3>
+                                <p class="text-white/70 font-medium text-sm">{{ $gallery->description }}</p>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="text-center mt-16">
+                    <a href="{{ route('gallery.index') }}"
+                        class="inline-flex items-center gap-3 text-slate-900 font-black uppercase tracking-widest hover:text-blue-600 transition-colors">
+                        View Collective Archive <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+    @endif
+
+    <!-- FAQ -->
+    <section class="py-24 bg-slate-50 px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-black text-slate-900 tracking-tight">Need Support?</h2>
+                <p class="text-slate-500 font-medium mt-4">The essentials answered.</p>
+            </div>
+
+            <div x-data="{ active: null }" class="space-y-4">
+                @php
+                    $faqs = [
+                        ['q' => 'Shipping Timeline', 'a' => 'Our preorder window closes soon. Production takes 14 days, with delivery expected late January 2026.'],
+                        ['q' => 'Customization Limits', 'a' => 'No limits. Names and numbers are fully customizable during the checkout phase at no extra cost.'],
+                        ['q' => 'Payment Options', 'a' => 'We support Pay on Delivery (COD) for certain regions, Bank Transfers, and secure Online Payments.'],
+                    ];
+                @endphp
+
+                @foreach($faqs as $index => $faq)
+                    <div class="bg-white rounded-3xl border border-slate-100 overflow-hidden transition-all"
+                        :class="active === {{ $index }} ? 'shadow-2xl ring-2 ring-blue-600' : ''">
+                        <button @click="active = (active === {{ $index }} ? null : {{ $index }})"
+                            class="w-full flex items-center justify-between p-8 text-left">
+                            <span class="font-black text-xl text-slate-900">{{ $faq['q'] }}</span>
+                            <i data-feather="plus" class="text-slate-400 transition-transform"
+                                :class="active === {{ $index }} ? 'rotate-45 text-blue-600' : ''"></i>
+                        </button>
+                        <div x-show="active === {{ $index }}" x-collapse x-cloak>
+                            <div class="p-8 pt-0 text-slate-500 text-lg font-medium leading-relaxed">
+                                {{ $faq['a'] }}
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="py-32 bg-blue-600 px-6 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full opacity-10"
+            style="background-image: linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent); background-size: 50px 50px;">
+        </div>
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <h2 class="text-4xl md:text-8xl font-black text-white mb-8 tracking-tighter uppercase italic leading-none">Gear
+                Up for <br /> Peak Form.</h2>
             <a href="{{ route('preorder.landing') }}"
-                class="inline-block bg-white text-black px-5 py-3 rounded-md font-semibold text-base transition hover:bg-slate-100 hover:-translate-y-0.5">Start
-                Pre-order Now →</a>
+                class="inline-block px-12 py-6 bg-white text-blue-600 font-black text-xl rounded-2xl hover:scale-110 active:scale-95 transition-all shadow-2xl uppercase tracking-widest">
+                Start Order
+            </a>
         </div>
     </section>
 @endsection

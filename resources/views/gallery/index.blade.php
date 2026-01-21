@@ -3,29 +3,38 @@
 @section('title', 'Gallery - Maxumax')
 
 @section('content')
-    <div class="container mx-auto px-4 py-12">
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Our Gallery</h1>
-            <p class="text-lg text-gray-600 max-w-2xl mx-auto">Explore our collection of jerseys and moments.</p>
+    <div class="max-w-7xl mx-auto px-6 py-24">
+        <div class="text-center mb-20">
+            <span class="text-blue-600 font-black uppercase tracking-[0.3em] text-sm mb-4 inline-block">Visual
+                Archive</span>
+            <h1 class="text-4xl md:text-7xl font-black text-slate-900 mb-6 tracking-tighter uppercase italic">Our
+                Collection.</h1>
+            <p class="text-lg text-slate-500 max-w-2xl mx-auto font-medium">A showcase of precision craftsmanship and
+                athletic excellence.</p>
         </div>
 
         @if($galleries->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
                 @foreach($galleries as $gallery)
                     <div
-                        class="bg-white rounded-lg overflow-hidden shadow-lg transition-transform hover:-translate-y-1 hover:shadow-xl">
-                        <div class="relative h-64 overflow-hidden group">
+                        class="group bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl hover:shadow-blue-600/5 transition-all duration-500">
+                        <div class="relative aspect-[4/5] overflow-hidden bg-slate-50 flex items-center justify-center p-6">
                             <img src="{{ Storage::url($gallery->image_path) }}" alt="{{ $gallery->title }}"
-                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                class="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-105">
+
                             <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                                class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end p-10">
                                 <div>
-                                    <h3 class="text-white font-bold text-xl mb-1">{{ $gallery->title }}</h3>
+                                    <h3 class="text-white font-black text-2xl mb-2">{{ $gallery->title }}</h3>
                                     @if($gallery->description)
-                                        <p class="text-gray-200 text-sm">{{ $gallery->description }}</p>
+                                        <p class="text-white/70 text-sm font-medium leading-relaxed">{{ $gallery->description }}</p>
                                     @endif
                                 </div>
                             </div>
+                        </div>
+                        <div class="p-8 border-t border-slate-50">
+                            <h3 class="font-black text-slate-900 text-xl">{{ $gallery->title }}</h3>
+                            <p class="text-slate-500 text-sm font-medium mt-1">{{ Str::limit($gallery->description, 60) }}</p>
                         </div>
                     </div>
                 @endforeach

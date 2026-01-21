@@ -9,7 +9,16 @@ use App\Http\Controllers\ProfileController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn() => view('home'));
+Route::get('/', function () {
+    $products = App\Models\Product::where('is_active', true)->where('available_for_preorder', true)->get();
+    $highlightedGallery = App\Models\Gallery::where('is_highlight', true)->latest()->take(6)->get();
+
+    // Get currency from session or default
+    $currency = session('currency', 'MYR');
+    $currencyConfig = config("currencies.{$currency}", config('currencies.MYR'));
+
+    return view('home', compact('products', 'highlightedGallery', 'currency', 'currencyConfig'));
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
@@ -66,6 +75,9 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     // Gallery
     Route::resource('galleries', App\Http\Controllers\GalleryAdminController::class)->names('admin.galleries');
+
+    // User management
+    Route::resource('users', App\Http\Controllers\Admin\UserAdminController::class)->names('admin.users');
 
     // Admin Complaint Routes
     Route::prefix('complaints')->name('admin.complaints.')->group(function () {
