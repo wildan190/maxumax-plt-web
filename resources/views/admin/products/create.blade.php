@@ -3,15 +3,28 @@
 @section('page-title', 'Create Product')
 
 @section('content')
-    <div style="max-width: 900px;">
-        <div style="margin-bottom: 2rem;">
-            <a href="{{ route('admin.products.index') }}" style="color: #6b7280; text-decoration: none; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.5rem;" title="Back">← Back to Products</a>
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <div style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="{{ route('admin.products.index') }}" 
+                   style="display: flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; color: #111827; text-decoration: none; transition: all 0.2s;"
+                   title="Back">
+                    <i data-feather="arrow-left" style="width: 18px; height: 18px;"></i>
+                </a>
+                <div>
+                    <h1 style="font-size: 1.5rem; font-weight: 800; color: #111827; margin: 0; letter-spacing: -0.025em;">CREATE NEW PRODUCT</h1>
+                    <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">Add a new gear to the Maxumax inventory</p>
+                </div>
+            </div>
         </div>
 
         @if($errors->any())
-            <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
-                <p style="margin: 0 0 0.5rem 0; font-weight: 600;">Please fix the errors below:</p>
-                <ul style="margin: 0; padding-left: 1.25rem;">
+            <div style="background: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b; padding: 1.25rem; border-radius: 0.75rem; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                    <i data-feather="alert-circle" style="width: 20px; height: 20px;"></i>
+                    <p style="margin: 0; font-weight: 700; text-transform: uppercase; font-size: 0.875rem; tracking: 0.05em;">Validation Errors Detected</p>
+                </div>
+                <ul style="margin: 0; padding-left: 1.5rem; font-size: 0.875rem; font-weight: 500;">
                     @foreach($errors->all() as $err)
                         <li>{{ $err }}</li>
                     @endforeach
@@ -19,110 +32,175 @@
             </div>
         @endif
 
-        <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" style="background: white; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-
-            <div style="display: grid; grid-template-columns: 1fr 280px; gap: 2rem;">
-                <div>
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827;">Product Name *</label>
-                        <input type="text" name="name" value="{{ old('name') }}" required style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; transition: border-color 0.2s;" placeholder="e.g., Player Jersey Home 2024" />
-                        @error('name')
-                            <span style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827;">Jersey Type *</label>
-                        <select name="jersey_type" required style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem;">
-                            <option value="">-- Select --</option>
-                            <option value="Player Home" {{ old('jersey_type') == 'Player Home' ? 'selected' : '' }}>Player Home</option>
-                            <option value="Player Away" {{ old('jersey_type') == 'Player Away' ? 'selected' : '' }}>Player Away</option>
-                            <option value="GK Home" {{ old('jersey_type') == 'GK Home' ? 'selected' : '' }}>GK Home</option>
-                            <option value="GK Away" {{ old('jersey_type') == 'GK Away' ? 'selected' : '' }}>GK Away</option>
-                        </select>
-                        @error('jersey_type')
-                            <span style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827;">Description</label>
-                        <textarea name="description" style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; font-family: inherit; min-height: 140px; transition: border-color 0.2s;" placeholder="Add product details...">{{ old('description') }}</textarea>
-                        @error('description')
-                            <span style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div>
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; color: #111827;">
-                                <input type="checkbox" name="available_for_preorder" value="1" {{ old('available_for_preorder') ? 'checked' : '' }} />
-                                Available for Preorder
-                            </label>
+            
+            <div style="display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: start;">
+                <!-- Main Content Column -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- Basic Info Card -->
+                    <div style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                        <div style="padding: 1.5rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 2.5rem; height: 2.5rem; background: #e0e7ff; color: #4f46e5; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center;">
+                                <i data-feather="box" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <h2 style="font-size: 1rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">Basic Information</h2>
                         </div>
-                        <div>
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; color: #111827;">
-                                <input type="checkbox" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }} />
-                                Active
-                            </label>
+                        <div style="padding: 1.5rem;">
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Product Name *</label>
+                                <input type="text" name="name" value="{{ old('name') }}" required 
+                                       style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; transition: all 0.2s;" 
+                                       placeholder="e.g., Player Jersey Home 2024" />
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Jersey Type *</label>
+                                <select name="jersey_type" required 
+                                        style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
+                                    <option value="">-- Select Type --</option>
+                                    <option value="Player Home" {{ old('jersey_type') == 'Player Home' ? 'selected' : '' }}>Player Home</option>
+                                    <option value="Player Away" {{ old('jersey_type') == 'Player Away' ? 'selected' : '' }}>Player Away</option>
+                                    <option value="GK Home" {{ old('jersey_type') == 'GK Home' ? 'selected' : '' }}>GK Home</option>
+                                    <option value="GK Away" {{ old('jersey_type') == 'GK Away' ? 'selected' : '' }}>GK Away</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom: 0;">
+                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Description</label>
+                                <textarea name="description" 
+                                          style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; font-family: inherit; min-height: 120px; transition: all 0.2s;" 
+                                          placeholder="Add compelling product details...">{{ old('description') }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Variants Card -->
+                    <div style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                        <div style="padding: 1.5rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="width: 2.5rem; height: 2.5rem; background: #ecfdf5; color: #059669; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center;">
+                                    <i data-feather="layers" style="width: 20px; height: 20px;"></i>
+                                </div>
+                                <h2 style="font-size: 1rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">Variants (Sizes)</h2>
+                            </div>
+                            <button type="button" id="addVariantBtn" 
+                                    style="padding: 0.5rem 1rem; background: #111827; color: white; border: none; border-radius: 0.75rem; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem;">
+                                <i data-feather="plus" style="width: 14px; height: 14px;"></i> Add Size
+                            </button>
+                        </div>
+                        <div style="padding: 1.5rem;">
+                            <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 1.5rem 0; font-weight: 500;">
+                                Define available sizes and their respective inventory levels.
+                            </p>
+                            
+                            <!-- Pre-order Hint -->
+                            <div id="preorderHint" style="display: none; margin-bottom: 1.5rem; padding: 1rem; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 0.75rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+                                <i data-feather="info" style="width: 18px; height: 18px; color: #3b82f6; flex-shrink: 0; margin-top: 0.125rem;"></i>
+                                <p style="margin: 0; font-size: 0.8125rem; color: #1e40af; font-weight: 500; line-height: 1.4;">
+                                    <strong>Pre-order Mode Active:</strong> You can still define available <strong>Sizes</strong> for this product. However, individual stock management is disabled as pre-order items are manufactured on demand.
+                                </p>
+                            </div>
+
+                            <div id="variantsContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <!-- Variant rows will be injected here -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827;">Product Images</label>
-                        <div id="dropzoneImages" style="border:2px dashed #d1d5db; border-radius:0.5rem; padding:1rem; text-align:center; cursor:pointer;">
-                            <div style="font-weight:600; color:#111827;">Drag & drop up to 4 images</div>
-                            <div style="color:#6b7280; font-size:0.9rem; margin-top:0.25rem;">or click to select</div>
+                <!-- Sidebar Column -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem; position: sticky; top: 1.5rem;">
+                    <!-- Media Card -->
+                    <div style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                        <div style="padding: 1.25rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-feather="image" style="width: 18px; height: 18px; color: #6b7280;"></i>
+                            <h2 style="font-size: 0.875rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">Product Gallery</h2>
                         </div>
-                        <input type="file" name="images[]" accept="image/*" id="imageInput" multiple style="display:none;" />
-                        <div id="imagePreviewGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap:0.5rem; margin-top:0.75rem;"></div>
-                        <div id="imageStatusText" style="margin-top:0.5rem; color:#dc2626; font-size:0.875rem; display:none;">Maksimal 4 gambar</div>
-                        <div style="margin-top:0.5rem;">
-                            <button type="button" id="clearImagesBtn" style="background:#e5e7eb; color:#111827; padding:0.4rem 0.8rem; border:none; border-radius:0.375rem; font-weight:600; cursor:pointer;">Clear</button>
+                        <div style="padding: 1.25rem;">
+                            <div id="dropzoneImages" 
+                                 style="border: 2px dashed #e5e7eb; border-radius: 1rem; padding: 2rem 1rem; text-align: center; cursor: pointer; transition: all 0.2s; background: #f9fafb;"
+                                 onmouseover="this.style.borderColor='#3b82f6'; this.style.background='#eff6ff';"
+                                 onmouseout="this.style.borderColor='#e5e7eb'; this.style.background='#f9fafb';">
+                                <div style="width: 3rem; height: 3rem; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                                    <i data-feather="upload-cloud" style="width: 20px; height: 20px; color: #3b82f6;"></i>
+                                </div>
+                                <p style="font-size: 0.875rem; font-weight: 700; color: #111827; margin: 0;">Upload Images</p>
+                                <p style="font-size: 0.75rem; color: #6b7280; margin: 0.25rem 0 0 0;">PNG, JPG up to 4 files</p>
+                            </div>
+                            <input type="file" name="images[]" accept="image/*" id="imageInput" multiple style="display:none;" />
+                            
+                            <div id="imagePreviewGrid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:0.75rem; margin-top:1.25rem;"></div>
+                            
+                            <div id="imageStatusText" style="margin-top:0.75rem; padding: 0.75rem; background: #fef2f2; border: 1px solid #fee2e2; color: #ef4444; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; display: none;">
+                                Maximum 4 images reached.
+                            </div>
+                            
+                            <div style="margin-top: 1rem; display: flex; justify-content: center;">
+                                <button type="button" id="clearImagesBtn" 
+                                        style="font-size: 0.75rem; font-weight: 700; color: #ef4444; background: none; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;">
+                                    Clear All
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827;">Price (MYR) *</label>
-                        <input type="number" step="0.01" name="price" value="{{ old('price', '40.00') }}" required style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem;" />
-                        @error('price')
-                            <span style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827;">SKU</label>
-                        <input type="text" name="sku" value="{{ old('sku') }}" style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; font-family: monospace;" placeholder="e.g., JER-001" />
-                        @error('sku')
-                            <span style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827;">Stock Quantity</label>
-                        <input type="number" name="stock" value="{{ old('stock', 0) }}" min="0" style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem;" />
-                        @error('stock')
-                            <span style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <label style="display: block; font-weight: 600; color: #111827; margin: 0;">Product Variants (Sizes)</label>
-                            <button type="button" id="addVariantBtn" style="padding: 0.4rem 0.8rem; background: #000; color: #fff; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; font-size: 0.875rem;">+ Add Variant</button>
+                    <!-- Pricing Card -->
+                    <div style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                        <div style="padding: 1.25rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-feather="tag" style="width: 18px; height: 18px; color: #6b7280;"></i>
+                            <h2 style="font-size: 0.875rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">Pricing & Stock</h2>
                         </div>
-                        <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem;">Add different sizes (S, M, L, XL, etc.) with individual stock levels.</p>
-                        <div id="variantsContainer"></div>
+                        <div style="padding: 1.25rem;">
+                            <div style="margin-bottom: 1.25rem;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.375rem; letter-spacing: 0.05em;">Base Price (MYR)</label>
+                                <div style="position: relative;">
+                                    <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: #9ca3af; font-size: 0.875rem;">RM</span>
+                                    <input type="number" step="0.01" name="price" value="{{ old('price', '40.00') }}" required 
+                                           style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 3rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; font-weight: 700; color: #111827;" />
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 1.25rem;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.375rem; letter-spacing: 0.05em;">Master SKU</label>
+                                <input type="text" name="sku" value="{{ old('sku') }}" 
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; font-family: monospace; font-weight: 600; text-transform: uppercase;" 
+                                       placeholder="MM-OR-XXXX" />
+                            </div>
+
+                            <div style="margin-bottom: 1.25rem;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.375rem; letter-spacing: 0.05em;">Initial Total Stock</label>
+                                <input type="number" name="stock" value="{{ old('stock', 0) }}" min="0" 
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; font-weight: 600; color: #111827;" />
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem; padding-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                                    <input type="checkbox" name="available_for_preorder" value="1" {{ old('available_for_preorder') ? 'checked' : '' }} 
+                                           style="width: 1.125rem; height: 1.125rem; border-radius: 0.375rem; cursor: pointer;" />
+                                    <span style="font-size: 0.875rem; font-weight: 600; color: #374151;">Enable Pre-order</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }} 
+                                           style="width: 1.125rem; height: 1.125rem; border-radius: 0.375rem; cursor: pointer;" />
+                                    <span style="font-size: 0.875rem; font-weight: 600; color: #374151;">Market Visibility (Active)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <button type="submit" 
+                                style="width: 100%; padding: 1rem; background: #111827; color: white; border: none; border-radius: 1rem; font-weight: 800; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                            Initialize Product
+                        </button>
+                        <a href="{{ route('admin.products.index') }}" 
+                           style="width: 100%; padding: 1rem; background: white; border: 1px solid #e5e7eb; color: #6b7280; border-radius: 1rem; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; text-align: center; transition: all 0.2s;">
+                            Discard Changes
+                        </a>
                     </div>
                 </div>
-            </div>
-
-            <div style="display: flex; gap: 0.75rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
-                <button type="submit" style="padding: 0.75rem 1.5rem; background: #000; color: #fff; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 1rem;">Create Product</button>
-                <a href="{{ route('admin.products.index') }}" style="display: inline-block; padding: 0.75rem 1.5rem; background: #e5e7eb; color: #111827; border: none; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s;">Cancel</a>
             </div>
         </form>
     </div>
@@ -135,7 +213,6 @@
             const status = document.getElementById('imageStatusText');
             const clearBtn = document.getElementById('clearImagesBtn');
             
-            // Store current files in memory
             let currentFiles = [];
             
             function updateInputFiles(files) {
@@ -147,51 +224,29 @@
             
             function render(files){
                 grid.innerHTML = '';
-                for (let i = 0; i < files.length; i++) {
-                    const f = files[i];
+                files.forEach((f, i) => {
                     const reader = new FileReader();
                     reader.onload = function(evt){
                         const container = document.createElement('div');
-                        container.style.position = 'relative';
-                        container.style.width = '100%';
+                        container.style.cssText = 'position: relative; aspect-ratio: 1; border-radius: 0.75rem; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);';
                         
                         const img = document.createElement('img');
                         img.src = evt.target.result;
-                        img.style.width = '100%';
-                        img.style.height = '80px';
-                        img.style.objectFit = 'cover';
-                        img.style.borderRadius = '0.375rem';
-                        img.style.border = '1px solid #e5e7eb';
+                        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
                         
                         const removeBtn = document.createElement('button');
-                        removeBtn.textContent = '×';
+                        removeBtn.innerHTML = '<i data-feather="x" style="width: 14px; height: 14px;"></i>';
                         removeBtn.type = 'button';
-                        removeBtn.style.position = 'absolute';
-                        removeBtn.style.top = '2px';
-                        removeBtn.style.right = '2px';
-                        removeBtn.style.background = '#dc2626';
-                        removeBtn.style.color = 'white';
-                        removeBtn.style.border = 'none';
-                        removeBtn.style.borderRadius = '50%';
-                        removeBtn.style.width = '20px';
-                        removeBtn.style.height = '20px';
-                        removeBtn.style.cursor = 'pointer';
-                        removeBtn.style.fontSize = '14px';
-                        removeBtn.style.fontWeight = 'bold';
-                        removeBtn.style.display = 'flex';
-                        removeBtn.style.alignItems = 'center';
-                        removeBtn.style.justifyContent = 'center';
-                        removeBtn.style.lineHeight = '1';
-                        removeBtn.onclick = function() {
-                            removeFile(i);
-                        };
+                        removeBtn.style.cssText = 'position: absolute; top: 0.5rem; right: 0.5rem; width: 1.5rem; height: 1.5rem; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);';
+                        removeBtn.onclick = () => removeFile(i);
                         
                         container.appendChild(img);
                         container.appendChild(removeBtn);
                         grid.appendChild(container);
+                        if (typeof feather !== 'undefined') feather.replace();
                     };
                     reader.readAsDataURL(f);
-                }
+                });
                 status.style.display = files.length >= 4 ? 'block' : 'none';
             }
             
@@ -202,27 +257,10 @@
             }
             
             function addFiles(newFiles){
-                // Filter only image files
                 const imageFiles = Array.from(newFiles).filter(f => f.type.startsWith('image/'));
                 if (imageFiles.length === 0) return;
                 
-                // Calculate remaining slots
-                const remainingSlots = 4 - currentFiles.length;
-                if (remainingSlots <= 0) {
-                    status.textContent = 'Maksimal 4 gambar sudah tercapai';
-                    status.style.display = 'block';
-                    setTimeout(() => {
-                        if (currentFiles.length < 4) status.style.display = 'none';
-                    }, 2000);
-                    return;
-                }
-                
-                // Add new files, avoiding duplicates
-                const seen = new Set();
-                currentFiles.forEach(f => {
-                    seen.add(`${f.name}-${f.size}`);
-                });
-                
+                const seen = new Set(currentFiles.map(f => `${f.name}-${f.size}`));
                 for (const file of imageFiles) {
                     if (currentFiles.length >= 4) break;
                     const key = `${file.name}-${file.size}`;
@@ -231,85 +269,203 @@
                         currentFiles.push(file);
                     }
                 }
-                
                 updateInputFiles(currentFiles);
                 render(currentFiles);
             }
             
-            dz.addEventListener('click', function(){
-                input.click();
-            });
-            
-            dz.addEventListener('dragover', function(e){
-                e.preventDefault();
-                dz.style.background = '#f9fafb';
-            });
-            
-            dz.addEventListener('dragleave', function(){
-                dz.style.background = 'transparent';
-            });
-            
-            dz.addEventListener('drop', function(e){
-                e.preventDefault();
-                dz.style.background = 'transparent';
-                const files = e.dataTransfer.files;
-                if (files.length) {
-                    addFiles(files);
-                }
-            });
-            
-            input.addEventListener('change', function(e){
-                // When user selects files via file picker, add them to existing files
-                if (e.target.files.length) {
-                    addFiles(e.target.files);
-                }
-            });
-            
-            clearBtn.addEventListener('click', function(){
-                currentFiles = [];
-                input.value = '';
-                grid.innerHTML = '';
-                status.style.display = 'none';
-            });
+            dz.onclick = () => input.click();
+            dz.ondragover = (e) => { e.preventDefault(); dz.style.borderColor = '#3b82f6'; };
+            dz.ondragleave = () => { dz.style.borderColor = '#e5e7eb'; };
+            dz.ondrop = (e) => { e.preventDefault(); addFiles(e.dataTransfer.files); };
+            input.onchange = (e) => addFiles(e.target.files);
+            clearBtn.onclick = () => { currentFiles = []; updateInputFiles([]); render([]); };
 
             // Variant Management
             let variantIndex = 0;
-            const variantsContainer = document.getElementById('variantsContainer');
-            const addVariantBtn = document.getElementById('addVariantBtn');
+            const container = document.getElementById('variantsContainer');
+            const addBtn = document.getElementById('addVariantBtn');
 
-            function createVariantRow(name = '', stock = 0, sku = '') {
+            function createRow(name = '', stock = 0, sku = '') {
                 const row = document.createElement('div');
-                row.style.display = 'grid';
-                row.style.gridTemplateColumns = '2fr 1fr 2fr auto';
-                row.style.gap = '0.5rem';
-                row.style.marginBottom = '0.75rem';
-                row.style.alignItems = 'center';
+                row.style.cssText = 'display: grid; grid-template-columns: 2fr 1.5fr 2fr auto; gap: 0.75rem; align-items: center; padding: 0.75rem; background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 1rem;';
                 
                 row.innerHTML = `
-                    <input type="text" name="variants[${variantIndex}][name]" value="${name}" placeholder="e.g., S, M, L, XL" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem;" required />
-                    <input type="number" name="variants[${variantIndex}][stock]" value="${stock}" min="0" placeholder="Stock" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem;" required />
-                    <input type="text" name="variants[${variantIndex}][sku]" value="${sku}" placeholder="SKU (optional)" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; font-family: monospace;" />
-                    <button type="button" class="removeVariantBtn" style="padding: 0.5rem; background: #dc2626; color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 600;">×</button>
+                    <div>
+                        <input type="text" name="variants[${variantIndex}][name]" value="${name}" placeholder="Size (e.g. XL)" 
+                               style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;" required />
+                    </div>
+                    <div>
+                        <input type="number" name="variants[${variantIndex}][stock]" value="${stock}" min="0" placeholder="Qty" 
+                               style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;" required />
+                    </div>
+                    <div>
+                        <input type="text" name="variants[${variantIndex}][sku]" value="${sku}" placeholder="SKU Override" 
+                               style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-family: monospace; font-weight: 600;" />
+                    </div>
+                    <button type="button" class="remove-v" style="width: 2.25rem; height: 2.25rem; background: #fee2e2; color: #ef4444; border: none; border-radius: 0.625rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
                 `;
                 
-                const removeBtn = row.querySelector('.removeVariantBtn');
-                removeBtn.addEventListener('click', function() {
-                    row.remove();
-                });
-                
-                variantsContainer.appendChild(row);
+                row.querySelector('.remove-v').onclick = () => row.remove();
+                container.appendChild(row);
                 variantIndex++;
+                if (typeof feather !== 'undefined') feather.replace();
             }
 
-            addVariantBtn.addEventListener('click', function() {
-                createVariantRow();
+            addBtn.onclick = () => createRow();
+
+            // Default variants
+            ['S', 'M', 'L', 'XL', 'XXL'].forEach(s => createRow(s, 0));
+            
+            // MutationObserver to ensure new rows respect preorder state
+            const stateObserver = new MutationObserver(() => {
+                const isPreorder = document.querySelector('input[name="available_for_preorder"]').checked;
+                if (isPreorder) {
+                    const stocks = variantsSection.querySelectorAll('input[name*="[stock]"]');
+                    stocks.forEach(s => {
+                        s.disabled = true;
+                        s.style.opacity = '0.5';
+                        s.style.background = '#f3f4f6';
+                        s.style.cursor = 'not-allowed';
+                        s.value = 0;
+                    });
+                }
+            });
+            stateObserver.observe(container, { childList: true });
+
+            // Dynamic Stock Summation
+            function updateTotalStock() {
+                const stockInputs = container.querySelectorAll('input[name*="[stock]"]');
+                let total = 0;
+                stockInputs.forEach(input => {
+                    total += parseInt(input.value) || 0;
+                });
+                document.querySelector('input[name="stock"]').value = total;
+            }
+
+            container.addEventListener('input', function(e) {
+                if (e.target.name && e.target.name.includes('[stock]')) {
+                    updateTotalStock();
+                }
             });
 
-            // Add default variants for new products
-            const defaultSizes = ['S', 'M', 'L', 'XL', 'XXL'];
-            defaultSizes.forEach(size => {
-                createVariantRow(size, 0, '');
+            // Handle removal as well via MutationObserver or by wrapping removal
+            const observer = new MutationObserver(updateTotalStock);
+            observer.observe(container, { childList: true });
+
+            updateTotalStock();
+
+            // SKU Auto-Generation
+            const nameInput = document.querySelector('input[name="name"]');
+            const skuInput = document.querySelector('input[name="sku"]');
+
+            function generateSKU() {
+                if (!nameInput.value) return;
+                
+                const nameSlug = nameInput.value
+                    .trim()
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9 ]/g, '')
+                    .split(' ')
+                    .map(word => word.substring(0, 3))
+                    .join('')
+                    .substring(0, 8);
+                
+                const random = Math.floor(1000 + Math.random() * 9000);
+                const masterSku = `MXM-${nameSlug}-${random}`;
+                skuInput.value = masterSku;
+
+                // Sync variant SKUs
+                updateVariantSKUs();
+            }
+
+            function updateVariantSKUs() {
+                const masterSku = skuInput.value;
+                const rows = container.querySelectorAll('div[style*="grid-template-columns"]');
+                rows.forEach(row => {
+                    const nameField = row.querySelector('input[name*="[name]"]');
+                    const skuField = row.querySelector('input[name*="[sku]"]');
+                    if (nameField && skuField && (!skuField.value || skuField.value.startsWith('MXM-'))) {
+                        skuField.value = `${masterSku}-${nameField.value.toUpperCase().replace(/[^A-Z0-9]/g, '')}`;
+                    }
+                });
+            }
+
+            nameInput.addEventListener('change', function() {
+                if (!skuInput.value || skuInput.value === '') {
+                    generateSKU();
+                }
             });
+
+            // Re-sync variants if master SKU changes manually
+            skuInput.addEventListener('change', updateVariantSKUs);
+
+            // Re-sync variant SKU if its size name changes
+            container.addEventListener('input', function(e) {
+                if (e.target.name && e.target.name.includes('[name]')) {
+                    updateVariantSKUs();
+                }
+            });
+
+            // Pre-order Toggle Logic
+            const preOrderToggle = document.querySelector('input[name="available_for_preorder"]');
+            const variantsSection = document.getElementById('variantsContainer');
+            const addVariantBtn = document.getElementById('addVariantBtn');
+            const masterStockInput = document.querySelector('input[name="stock"]');
+            const hint = document.getElementById('preorderHint');
+
+            function togglePreorderMode() {
+                const isPreorder = preOrderToggle.checked;
+                
+                // Toggle Hint
+                hint.style.display = isPreorder ? 'flex' : 'none';
+                
+                // Toggle Stock inputs in variants
+                const stockInputs = variantsSection.querySelectorAll('input[name*="[stock]"]');
+                stockInputs.forEach(el => {
+                    el.disabled = isPreorder;
+                    el.style.opacity = isPreorder ? '0.5' : '1';
+                    el.style.background = isPreorder ? '#f3f4f6' : 'white';
+                    el.style.cursor = isPreorder ? 'not-allowed' : 'auto';
+                    if (isPreorder) el.value = 0;
+                });
+
+                // Keep Name and SKU inputs enabled
+                const otherInputs = variantsSection.querySelectorAll('input[name*="[name]"], input[name*="[sku]"]');
+                otherInputs.forEach(el => {
+                    el.disabled = false;
+                    el.style.opacity = '1';
+                    el.style.background = 'white';
+                    el.style.cursor = 'auto';
+                });
+
+                // Keep Add / Remove Buttons enabled
+                const buttons = variantsSection.querySelectorAll('button');
+                buttons.forEach(el => {
+                    el.disabled = false;
+                    el.style.opacity = '1';
+                    el.style.cursor = 'pointer';
+                });
+
+                addVariantBtn.disabled = false;
+                addVariantBtn.style.opacity = '1';
+                addVariantBtn.style.cursor = 'pointer';
+
+                // Disable Master Stock if Preorder
+                masterStockInput.disabled = isPreorder;
+                masterStockInput.style.background = isPreorder ? '#f3f4f6' : 'white';
+                if (isPreorder) {
+                    masterStockInput.value = 0;
+                } else {
+                    updateTotalStock();
+                }
+            }
+
+            preOrderToggle.addEventListener('change', togglePreorderMode);
+            
+            // Initial check
+            togglePreorderMode();
         })();
     </script>
 @endsection
