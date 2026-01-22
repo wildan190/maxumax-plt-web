@@ -9,7 +9,16 @@ use App\Http\Controllers\ProfileController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn() => view('home'));
+Route::get('/', function () {
+    $products = App\Models\Product::where('is_active', true)->where('available_for_preorder', true)->get();
+    $highlightedGallery = App\Models\Gallery::where('is_highlight', true)->latest()->take(6)->get();
+
+    // Get currency from session or default
+    $currency = session('currency', 'MYR');
+    $currencyConfig = config("currencies.{$currency}", config('currencies.MYR'));
+
+    return view('home', compact('products', 'highlightedGallery', 'currency', 'currencyConfig'));
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
@@ -40,8 +49,10 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     // Admin order management (product orders, not preorders)
     Route::get('/orders', [App\Http\Controllers\OrderAdminController::class, 'index'])->name('admin.orders.index');
+    Route::get('/orders/print', [App\Http\Controllers\OrderAdminController::class, 'printIndex'])->name('admin.orders.print');
     Route::get('/orders/export/csv', [App\Http\Controllers\OrderAdminController::class, 'exportCsv'])->name('admin.orders.export');
     Route::get('/orders/{order}', [App\Http\Controllers\OrderAdminController::class, 'show'])->name('admin.orders.show');
+    Route::get('/orders/{order}/print', [App\Http\Controllers\OrderAdminController::class, 'printShow'])->name('admin.orders.printShow');
     Route::post('/orders/{order}/confirm', [App\Http\Controllers\OrderAdminController::class, 'confirm'])->name('admin.orders.confirm');
     Route::post('/orders/{order}/mark-paid', [App\Http\Controllers\OrderAdminController::class, 'markPaid'])->name('admin.orders.markPaid');
     Route::post('/orders/{order}/mark-packing', [App\Http\Controllers\OrderAdminController::class, 'markPacking'])->name('admin.orders.markPacking');
@@ -66,6 +77,18 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     // Gallery
     Route::resource('galleries', App\Http\Controllers\GalleryAdminController::class)->names('admin.galleries');
+
+    // User management
+    Route::resource('users', App\Http\Controllers\Admin\UserAdminController::class)->names('admin.users');
+
+    // Admin Complaint Routes
+    Route::prefix('complaints')->name('admin.complaints.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'index'])->name('index');
+        Route::get('/{complaint}', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'show'])->name('show');
+        Route::post('/{complaint}/approve', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'approve'])->name('approve');
+        Route::post('/{complaint}/reject', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'reject'])->name('reject');
+        Route::post('/{complaint}/confirm-return', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'confirmReturn'])->name('confirm-return');
+    });
 });
 
 // Public Gallery
@@ -111,3 +134,11 @@ Route::post('/preorder/checkout/stripe', [PaymentController::class, 'createPreor
 Route::get('/payment/preorder/success', [PaymentController::class, 'preorderSuccess'])->name('payment.preorder.success');
 Route::get('/payment/preorder/cancel', [PaymentController::class, 'preorderCancel'])->name('payment.preorder.cancel');
 Route::post('/currency/set', [PreorderController::class, 'setCurrency'])->name('currency.set');
+
+// Customer Complaint Routes
+Route::prefix('complaints')->name('complaints.')->group(function () {
+    Route::get('/create/{preorder}', [App\Http\Controllers\ComplaintController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\ComplaintController::class, 'store'])->name('store');
+    Route::get('/{complaint}', [App\Http\Controllers\ComplaintController::class, 'show'])->name('show');
+    Route::post('/{complaint}/cancel', [App\Http\Controllers\ComplaintController::class, 'cancel'])->name('cancel');
+});

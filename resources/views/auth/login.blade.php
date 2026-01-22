@@ -1,52 +1,71 @@
 @extends('layouts.auth')
 
-@section('title', 'Masuk - ' . config('app.name', 'Laravel'))
+@section('title', 'Sign In - ' . config('app.name', 'Laravel'))
 
-@section('auth-title', 'Selamat Datang Kembali')
-@section('auth-subtitle', 'Masuk ke akun Anda untuk melanjutkan')
+@section('auth-title', 'Welcome Back')
+@section('auth-subtitle', 'Sign in to your account to continue')
 
 @section('content')
-<div class="auth-form-header">
-    <h1>Masuk</h1>
-    <p>Silakan masukkan kredensial Anda</p>
-</div>
+    <form method="POST" action="{{ route('login') }}" class="space-y-5">
+        @csrf
 
-<form method="POST" action="{{ route('login') }}">
-    @csrf
+        <!-- Email -->
+        <div>
+            <label for="email" class="block mb-1 text-sm font-medium text-gray-700">
+                Email Address
+            </label>
 
-    <!-- Email -->
-    <div class="auth-form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus>
-        @error('email')
-            <div class="auth-form-error">{{ $message }}</div>
-        @enderror
-    </div>
+            <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus
+                placeholder="you@example.com" class="w-full rounded-lg border border-gray-300 bg-white
+                           px-4 py-2 text-gray-800
+                           focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
 
-    <!-- Password -->
-    <div class="auth-form-group">
-        <label for="password">Kata Sandi</label>
-        <input type="password" id="password" name="password" required>
-        @error('password')
-            <div class="auth-form-error">{{ $message }}</div>
-        @enderror
-    </div>
+            @error('email')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
 
-    <!-- Remember Me -->
-    <div class="auth-form-group">
-        <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; cursor: pointer;">
-            <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-            <span>Ingat saya</span>
-        </label>
-    </div>
+        <!-- Password -->
+        <div>
+            <label for="password" class="block mb-1 text-sm font-medium text-gray-700">
+                Password
+            </label>
 
-    <!-- Submit Button -->
-    <button type="submit" class="auth-form-submit">Masuk</button>
+            <input type="password" id="password" name="password" required placeholder="••••••••" class="w-full rounded-lg border border-gray-300 bg-white
+                           px-4 py-2 text-gray-800
+                           focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
 
-    <!-- Links -->
-    <div class="auth-form-link">
-        <a href="{{ route('password.request') }}">Lupa kata sandi?</a>
-        <a href="{{ route('register') }}">Daftar akun baru</a>
-    </div>
-</form>
+            @error('password')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <!-- Remember Me -->
+        <div class="flex items-center">
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}
+                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                <span class="text-sm text-gray-700">
+                    Remember me
+                </span>
+            </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="w-full rounded-lg bg-indigo-600 py-2 font-semibold text-white
+                       hover:bg-indigo-700 transition">
+            Sign In
+        </button>
+
+        <!-- Links -->
+        <div class="flex justify-between text-sm">
+            <a href="{{ route('password.request') }}" class="text-indigo-600 hover:underline">
+                Forgot your password?
+            </a>
+
+            <!-- <a href="{{ route('register') }}" class="text-indigo-600 hover:underline">
+                    Create an account
+                </a> -->
+        </div>
+    </form>
 @endsection

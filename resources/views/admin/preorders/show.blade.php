@@ -270,10 +270,10 @@
                                 </div>
                                 <div style="display: flex; gap: 0.5rem;">
                                     <button type="submit" style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; font-size: 0.875rem;">🚚 Mark as Shipped</button>
-                                    <button type="button" onclick="document.getElementById('shippedForm').style.display='none';" style="padding: 0.5rem 1rem; background: #6b7280; color: white; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; font-size: 0.875rem;">Cancel</button>
+                                    <button type="button" onclick="document.getElementById('shippedForm').style.display='none'; document.getElementById('shippedToggleBtn').style.display='inline-block';" style="padding: 0.5rem 1rem; background: #6b7280; color: white; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; font-size: 0.875rem;">Cancel</button>
                                 </div>
                             </form>
-                            <button type="button" onclick="document.getElementById('shippedForm').style.display='block';" style="padding: 0.75rem 1.25rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">🚚 Mark as Shipped</button>
+                            <button type="button" id="shippedToggleBtn" onclick="this.style.display='none'; document.getElementById('shippedForm').style.display='block';" style="padding: 0.75rem 1.25rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">🚚 Mark as Shipped</button>
                         @elseif($preorder->shipping_status === 'shipped')
                             <form action="{{ route('admin.preorders.markDelivered', $preorder) }}" method="POST" style="display: inline;" class="js-confirm" data-title="Mark as delivered?" data-text="Order akan ditandai sebagai delivered.">
                                 @csrf

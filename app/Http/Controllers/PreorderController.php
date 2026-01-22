@@ -21,12 +21,48 @@ class PreorderController extends Controller
     private function getCurrencyConfig(string $currency): array
     {
         $currencies = [
-            'MYR' => ['rate' => 1, 'longSleeve' => 3, 'nameset' => 13],
+            'MYR' => ['rate' => 1, 'longSleeve' => 10, 'nameset' => 35],
             'BND' => ['rate' => 1.05, 'longSleeve' => 3, 'nameset' => 13],
+            'SGD' => ['rate' => 1.05, 'longSleeve' => 3, 'nameset' => 13],
             'IDR' => ['rate' => 5200, 'longSleeve' => 15600, 'nameset' => 67600],
         ];
 
         return $currencies[$currency] ?? $currencies['MYR'];
+    }
+
+    private function resolveCurrency(Request $request): string
+    {
+        if (session('currency_manual', false)) {
+            return session('currency', 'MYR');
+        }
+
+        if (session()->has('currency')) {
+            return session('currency');
+        }
+
+        try {
+            $ip = $request->ip();
+            $ctx = stream_context_create(['http' => ['timeout' => 2]]);
+            $json = @file_get_contents("http://ip-api.com/json/{$ip}?fields=countryCode", false, $ctx);
+
+            if ($json) {
+                $data = json_decode($json, true);
+                $country = $data['countryCode'] ?? null;
+                $currency = match ($country) {
+                    'ID' => 'IDR',
+                    'BN' => 'BND',
+                    'SG' => 'SGD',
+                    default => 'MYR',
+                };
+                session(['currency' => $currency]);
+                return $currency;
+            }
+        } catch (\Throwable $e) {
+            // Fallback
+        }
+
+        session(['currency' => 'MYR']);
+        return 'MYR';
     }
 
     private function getReservedQty(Product $product): int
@@ -47,7 +83,7 @@ class PreorderController extends Controller
 
         $highlightedGallery = \App\Models\Gallery::where('is_highlight', true)->latest()->take(6)->get();
 
-        $currency = session()->get('currency', 'MYR');
+        $currency = $this->resolveCurrency($request);
         $currencyConfig = $this->getCurrencyConfig($currency);
 
         return view('preorder.landing', compact('products', 'highlightedGallery', 'currency', 'currencyConfig'));
@@ -63,9 +99,10 @@ class PreorderController extends Controller
         }
 
         $product->load('variants');
-        $currency = session()->get('currency', 'MYR');
+        $currency = $this->resolveCurrency($request);
+        $currencyConfig = $this->getCurrencyConfig($currency);
 
-        return view('preorder.create', ['product' => $product, 'currency' => $currency]);
+        return view('preorder.create', ['product' => $product, 'currency' => $currency, 'currencyConfig' => $currencyConfig]);
     }
 
     /**
@@ -76,52 +113,76 @@ class PreorderController extends Controller
         $data = $request->validate([
             'product_id' => 'required|integer|exists:products,id',
             'items' => 'required|array',
-            'items.*' => 'integer|min:0', // variant_id => quantity
+            'items.*.quantity_ss' => 'nullable|integer|min:0',
+            'items.*.quantity_ls' => 'nullable|integer|min:0',
+            'items.*.namesets_ss' => 'nullable|array',
+            'items.*.namesets_ss.*.key' => 'required_with:items.*.namesets_ss|string',
+            'items.*.namesets_ss.*.value' => 'required_with:items.*.namesets_ss|string',
+            'items.*.namesets_ls' => 'nullable|array',
+            'items.*.namesets_ls.*.key' => 'required_with:items.*.namesets_ls|string',
+            'items.*.namesets_ls.*.value' => 'required_with:items.*.namesets_ls|string',
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string',
-            'long_sleeve' => 'sometimes|boolean',
-            'custom_fields' => 'nullable|array',
-            'custom_fields.*.key' => 'required_with:custom_fields|string',
-            'custom_fields.*.value' => 'required_with:custom_fields|string',
-            'currency' => 'nullable|string|in:MYR,SGD,IDR,USD',
+            'phone' => 'required|string|max:50',
+            'region' => 'required|string|max:255',
+            'province' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:20',
+            'address_detail' => 'required|string',
+            'currency' => 'nullable|string|in:MYR,SGD,IDR,BND',
             'notes' => 'nullable|string',
         ]);
+        $fullAddress = trim(implode(', ', array_filter([
+            $data['address_detail'] ?? null,
+            $data['city'] ?? null,
+            $data['province'] ?? null,
+            'Postal ' . ($data['postal_code'] ?? ''),
+            $data['region'] ?? null,
+        ])));
 
         $product = Product::findOrFail($data['product_id']);
         if (!$product->is_active && !$product->available_for_preorder) {
             abort(404);
         }
 
-        // Filter items with quantity > 0
-        $items = array_filter($data['items'] ?? [], fn($q) => $q > 0);
-        if (empty($items)) {
+        // Filter items with at least one qty > 0
+        $itemsData = array_filter($data['items'] ?? [], fn($item) => ($item['quantity_ss'] ?? 0) > 0 || ($item['quantity_ls'] ?? 0) > 0);
+
+        if (empty($itemsData)) {
             return back()->withErrors(['items' => 'Please select at least one item quantity.'])->withInput();
         }
 
-        $currency = $data['currency'] ?? 'MYR';
+        $currency = $data['currency'] ?? $this->resolveCurrency($request);
         $config = $this->getCurrencyConfig($currency);
         $uuid = (string) \Illuminate\Support\Str::uuid();
 
         // Transaction for Stock Check & Order Creation
-        $orders = DB::transaction(function () use ($data, $items, $product, $config, $currency, $uuid, $request) {
+        $orders = DB::transaction(function () use ($data, $itemsData, $product, $config, $currency, $uuid, $fullAddress) {
             $totalQty = 0;
             $totalAmount = 0;
             $orderItems = [];
             $firstVariantId = null;
             $firstVariantName = null;
+            $hasLongSleeveGlobal = false;
+            $allCustomFields = [];
 
-            foreach ($items as $variantId => $qty) {
+            foreach ($itemsData as $variantId => $itemData) {
+                // Handle SS and LS separately
+                $types = [
+                    'ss' => ['qty' => (int) ($itemData['quantity_ss'] ?? 0), 'ls' => false, 'namesets' => $itemData['namesets_ss'] ?? []],
+                    'ls' => ['qty' => (int) ($itemData['quantity_ls'] ?? 0), 'ls' => true, 'namesets' => $itemData['namesets_ls'] ?? []]
+                ];
+
+                $variantTotalQty = $types['ss']['qty'] + $types['ls']['qty'];
+
                 // Stock Check
                 if (!$product->available_for_preorder) {
                     $variant = \App\Models\ProductVariant::lockForUpdate()->find($variantId);
                     if ($variant && $variant->product_id == $product->id) {
-                        if ($variant->stock < $qty) {
+                        if ($variant->stock < $variantTotalQty) {
                             throw new \RuntimeException("Not enough stock for variant {$variant->name}");
                         }
-                        // Deduct Stock immediately
-                        $variant->stock -= $qty;
+                        $variant->stock -= $variantTotalQty;
                         $variant->save();
                     }
                 } else {
@@ -133,29 +194,63 @@ class PreorderController extends Controller
                     $firstVariantName = $variant ? $variant->name : null;
                 }
 
-                $unit = (float) $product->price * $config['rate'];
-                if ($request->boolean('long_sleeve')) {
-                    $unit += $config['longSleeve'];
+                foreach ($types as $typeKey => $typeData) {
+                    $qty = $typeData['qty'];
+                    if ($qty <= 0)
+                        continue;
+
+                    $isLongSleeve = $typeData['ls'];
+                    if ($isLongSleeve)
+                        $hasLongSleeveGlobal = true;
+
+                    // Base Price
+                    $unitBase = (float) $product->price * $config['rate'];
+
+                    // Surcharge
+                    $unitSurcharge = 0;
+                    if ($isLongSleeve) {
+                        $unitSurcharge += $config['longSleeve'];
+                    }
+
+                    // Namesets
+                    // Filter empty namesets
+                    $validNamesets = [];
+                    if (!empty($typeData['namesets'])) {
+                        foreach ($typeData['namesets'] as $ns) {
+                            if (!empty($ns['key']) || !empty($ns['value'])) {
+                                $validNamesets[] = $ns;
+                                $allCustomFields[] = $ns; // Legacy flat tracking
+                            }
+                        }
+                    }
+                    $namesetCount = count($validNamesets);
+
+                    // Logic: We charge per nameset entry found.
+                    // If user enters 1 nameset for 2 jerseys, we charge 1 nameset.
+                    // This is "per entered nameset" pricing.
+
+                    $variantTotal = ($unitBase + $unitSurcharge) * $qty;
+                    $variantTotal += ($namesetCount * $config['nameset']);
+
+                    $totalQty += $qty;
+                    $totalAmount += $variantTotal;
+
+                    // Add suffix to separate SS/LS in UI later if needed?
+                    // We store them as separate line items in JSON
+                    $orderItems[] = [
+                        'variant_id' => $variantId,
+                        'variant_name' => ($variant ? $variant->name : 'Unknown') . ($isLongSleeve ? ' (Long Sleeve)' : ' (Short Sleeve)'),
+                        'quantity' => $qty,
+                        'long_sleeve' => $isLongSleeve,
+                        'custom_fields' => $validNamesets,
+                        'unit_price' => $unitBase,
+                        'surcharges' => [
+                            'long_sleeve' => $isLongSleeve ? ($config['longSleeve'] * $qty) : 0,
+                            'nameset' => $namesetCount * $config['nameset']
+                        ],
+                        'total_price' => round($variantTotal, 2)
+                    ];
                 }
-
-                $lineTotal = round($unit * $qty, 2);
-                $totalQty += $qty;
-                $totalAmount += $lineTotal;
-
-                $orderItems[] = [
-                    'variant_id' => $variantId,
-                    'variant_name' => $variant ? $variant->name : 'Unknown', // Store name in case variant is deleted
-                    'quantity' => $qty,
-                    'unit_price' => $unit,
-                    'total_price' => $lineTotal
-                ];
-            }
-
-            // Nameset Calculation
-            if (!empty($data['custom_fields'])) {
-                // Add nameset cost to Grand Total.
-                $namesetCost = count($data['custom_fields']) * $config['nameset'];
-                $totalAmount += $namesetCost;
             }
 
             $orderNumber = $this->generateOrderNumberForProduct($product);
@@ -164,35 +259,35 @@ class PreorderController extends Controller
                 'uuid' => $uuid,
                 'order_number' => $orderNumber,
                 'product_id' => $product->id,
-                'product_variant_id' => $firstVariantId, // Primary variant for reference
+                'product_variant_id' => $firstVariantId,
                 'name' => $data['name'],
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
-                'address' => $data['address'] ?? null,
+                'address' => $fullAddress,
                 'jersey_type' => $product->jersey_type ?? null,
-                'size' => $firstVariantName, // Primary size for reference
-                'long_sleeve' => $request->boolean('long_sleeve'),
-                'custom_fields' => $data['custom_fields'] ?? null,
+                'size' => $firstVariantName,
+                'long_sleeve' => $hasLongSleeveGlobal,
+                'custom_fields' => !empty($allCustomFields) ? $allCustomFields : null,
                 'quantity' => $totalQty,
-                'unit_price' => $totalQty > 0 ? ($totalAmount / $totalQty) : 0, // Approx avg unit price
+                'unit_price' => $totalQty > 0 ? ($totalAmount / $totalQty) : 0,
                 'total_amount' => $totalAmount,
                 'currency' => $currency,
-                'status' => 'pending', // Pending payment/confirmation
+                'status' => 'pending',
                 'notes' => $data['notes'] ?? null,
-                'items' => $orderItems, // JSON Data
+                'items' => $orderItems,
             ]);
 
             PreorderHistory::create([
                 'preorder_id' => $pre->id,
                 'old_status' => null,
                 'new_status' => 'pending',
-                'note' => 'Order created via ' . ($product->available_for_preorder ? 'Preorder' : 'Ready Stock') . ' (COD)',
+                'note' => 'Order created via ' . ($product->available_for_preorder ? 'Preorder' : 'Ready Stock'),
             ]);
 
             return [$pre];
         });
 
-        // Send Email for the newly created order
+        // Send Email
         if (!empty($orders) && $orders[0]->email) {
             SendEmailJob::dispatch($orders[0]->email, new OrderCreated($orders[0]), 2);
         }
@@ -248,7 +343,7 @@ class PreorderController extends Controller
         $pre = null;
         $error = null;
         if ($order) {
-            $pre = Preorder::with(['product', 'histories'])->where('order_number', $order)->first();
+            $pre = Preorder::with(['product', 'histories', 'complaints'])->where('order_number', $order)->first();
             if (!$pre) {
                 $error = 'Order tidak ditemukan';
             }
@@ -271,7 +366,10 @@ class PreorderController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('products.index', compact('products'));
+        $currency = $this->resolveCurrency($request);
+        $currencyConfig = $this->getCurrencyConfig($currency);
+
+        return view('products.index', compact('products', 'currency', 'currencyConfig'));
     }
 
     /**
@@ -286,10 +384,12 @@ class PreorderController extends Controller
 
         $product->load('variants');
 
-        $currency = session()->get('currency', 'MYR');
+        $currency = $this->resolveCurrency($request);
         $avg = round((float) Feedback::where('product_id', $product->id)->avg('rating'), 2);
         $count = (int) Feedback::where('product_id', $product->id)->count();
         $latest = Feedback::where('product_id', $product->id)->orderByDesc('created_at')->limit(6)->get();
+
+        $currencyConfig = $this->getCurrencyConfig($currency);
 
         return view('products.show', [
             'product' => $product,
@@ -297,16 +397,17 @@ class PreorderController extends Controller
             'feedbackCount' => $count,
             'latestFeedback' => $latest,
             'currency' => $currency,
+            'currencyConfig' => $currencyConfig,
         ]);
     }
 
     public function setCurrency(Request $request)
     {
         $request->validate([
-            'currency' => 'required|string|in:MYR,BND,IDR',
+            'currency' => 'required|string|in:MYR,BND,IDR,SGD',
         ]);
 
-        session()->put('currency', $request->currency);
+        session(['currency' => $request->currency, 'currency_manual' => true]);
 
         return response()->json(['success' => true, 'currency' => $request->currency]);
     }
@@ -402,11 +503,18 @@ class PreorderController extends Controller
     public function cartShow(Request $request)
     {
         $cart = session()->get('cart', []);
-        $currency = session()->get('currency', 'MYR');
+        $currency = $this->resolveCurrency($request);
         $config = $this->getCurrencyConfig($currency);
         $items = [];
         $total = 0.0;
         foreach ($cart as $it) {
+            $variantSku = null;
+            if (!empty($it['product_variant_id'])) {
+                $variant = \App\Models\ProductVariant::find($it['product_variant_id']);
+                if ($variant) {
+                    $variantSku = $variant->sku;
+                }
+            }
             $unit = (float) $it['price'] * $config['rate'];
             if (!empty($it['long_sleeve'])) {
                 $unit += $config['longSleeve'];
@@ -416,11 +524,12 @@ class PreorderController extends Controller
                 'unit' => $unit,
                 'line_total' => $line,
                 'currency' => $currency,
+                'variant_sku' => $variantSku,
             ]);
             $total += $line;
         }
         $total = round($total, 2);
-        return view('cart.index', ['items' => $items, 'total' => $total, 'currency' => $currency]);
+        return view('cart.index', ['items' => $items, 'total' => $total, 'currency' => $currency, 'currencyConfig' => $config]);
     }
 
     public function cartUpdate(Request $request)
@@ -467,19 +576,30 @@ class PreorderController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'required|string|max:50',
-            'address' => 'required|string',
-            'currency' => 'nullable|string|in:MYR,BND,IDR',
+            'region' => 'required|string|max:255',
+            'province' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:20',
+            'address_detail' => 'required|string',
+            'currency' => 'nullable|string|in:MYR,BND,IDR,SGD',
             'notes' => 'nullable|string',
         ]);
+        $fullAddress = trim(implode(', ', array_filter([
+            $data['address_detail'] ?? null,
+            $data['city'] ?? null,
+            $data['province'] ?? null,
+            'Postal ' . ($data['postal_code'] ?? ''),
+            $data['region'] ?? null,
+        ])));
         $cart = session()->get('cart', []);
         if (empty($cart)) {
             return back()->withErrors(['cart' => 'Cart kosong']);
         }
-        $currency = $data['currency'] ?? session()->get('currency', 'MYR');
+        $currency = $data['currency'] ?? $this->resolveCurrency($request);
         $config = $this->getCurrencyConfig($currency);
         $orders = [];
         foreach ($cart as $it) {
-            $pre = DB::transaction(function () use ($it, $data, $config, $currency) {
+            $pre = DB::transaction(function () use ($it, $data, $config, $currency, $fullAddress) {
                 $product = Product::where('id', $it['product_id'])->lockForUpdate()->first();
                 if (!$product || (!$product->is_active && !$product->available_for_preorder)) {
                     return null;
@@ -517,7 +637,7 @@ class PreorderController extends Controller
                     'name' => $data['name'],
                     'email' => $data['email'] ?? null,
                     'phone' => $data['phone'] ?? null,
-                    'address' => $data['address'] ?? null,
+                    'address' => $fullAddress,
                     'jersey_type' => $product->jersey_type ?? null,
                     'size' => $it['size'] ?? ($variant ? $variant->name : null),
                     'long_sleeve' => !empty($it['long_sleeve']),

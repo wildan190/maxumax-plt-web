@@ -64,6 +64,36 @@ class Preorder extends Model
         return $this->hasMany(PreorderHistory::class);
     }
 
+    public function complaints()
+    {
+        return $this->hasMany(Complaint::class);
+    }
+
+    /**
+     * Get the timestamp when the order was delivered/received.
+     */
+    public function getDeliveryTimestamp()
+    {
+        // Try to find in history notes first (most accurate for timestamp)
+        $deliveryHistory = $this->histories->filter(function ($h) {
+            return stripos($h->note, 'diterima') !== false ||
+                stripos($h->note, 'delivered') !== false ||
+                stripos($h->note, 'received') !== false ||
+                $h->new_status === 'delivered';
+        })->first();
+
+        if ($deliveryHistory) {
+            return $deliveryHistory->created_at;
+        }
+
+        // Fallback to updated_at if shipping_status is delivered
+        if ($this->shipping_status === 'delivered') {
+            return $this->updated_at;
+        }
+
+        return null;
+    }
+
     protected static function booted()
     {
         static::creating(function (Preorder $pre) {
