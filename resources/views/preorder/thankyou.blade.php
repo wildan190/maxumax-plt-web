@@ -286,7 +286,7 @@
             $style = $statusStyles[$currentStatus] ?? $statusStyles['pending'];
 
             $grandTotal = $preorders->sum('total_amount');
-            $currency = $firstOrder->currency ?? 'MYR';
+            $currency = $firstOrder->currency ?? session('currency', 'MYR');
         @endphp
 
         <div

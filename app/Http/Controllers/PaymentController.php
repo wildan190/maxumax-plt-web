@@ -33,10 +33,21 @@ class PaymentController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'required|string|max:50',
-            'address' => 'required|string',
+            'region' => 'required|string|max:255',
+            'province' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:20',
+            'address_detail' => 'required|string',
             'currency' => 'nullable|string|in:MYR,BND,IDR',
             'notes' => 'nullable|string',
         ]);
+        $fullAddress = trim(implode(', ', array_filter([
+            $data['address_detail'] ?? null,
+            $data['city'] ?? null,
+            $data['province'] ?? null,
+            'Postal ' . ($data['postal_code'] ?? ''),
+            $data['region'] ?? null,
+        ])));
 
         $cart = session()->get('cart', []);
         if (empty($cart)) {
@@ -105,16 +116,20 @@ class PaymentController extends Controller
                 'metadata' => [
                     'name' => $data['name'],
                     'phone' => $data['phone'],
-                    'address' => $data['address'],
+                    'address' => $fullAddress,
                     'currency' => $currency,
                     'notes' => $data['notes'] ?? '',
+                    'region' => $data['region'],
+                    'province' => $data['province'],
+                    'city' => $data['city'],
+                    'postal_code' => $data['postal_code'],
                 ],
             ]);
 
             // Store checkout session data in session for later use
             session()->put('stripe_checkout', [
                 'session_id' => $checkoutSession->id,
-                'order_data' => $data,
+                'order_data' => array_merge($data, ['address' => $fullAddress]),
                 'order_items' => $orderItems,
                 'currency' => $currency,
                 'total_amount' => $totalAmount,
@@ -288,95 +303,133 @@ class PaymentController extends Controller
         $data = $request->validate([
             'product_id' => 'required|integer|exists:products,id',
             'items' => 'required|array',
-            'items.*' => 'integer|min:0',
+            'items.*.quantity_ss' => 'nullable|integer|min:0',
+            'items.*.quantity_ls' => 'nullable|integer|min:0',
+            'items.*.namesets_ss' => 'nullable|array',
+            'items.*.namesets_ss.*.key' => 'required_with:items.*.namesets_ss|string',
+            'items.*.namesets_ss.*.value' => 'required_with:items.*.namesets_ss|string',
+            'items.*.namesets_ls' => 'nullable|array',
+            'items.*.namesets_ls.*.key' => 'required_with:items.*.namesets_ls|string',
+            'items.*.namesets_ls.*.value' => 'required_with:items.*.namesets_ls|string',
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string',
-            'long_sleeve' => 'sometimes|boolean',
-            'custom_fields' => 'nullable|array',
-            'custom_fields.*.key' => 'required_with:custom_fields|string',
-            'custom_fields.*.value' => 'required_with:custom_fields|string',
-            'currency' => 'nullable|string|in:MYR,BND,IDR',
+            'phone' => 'required|string|max:50',
+            'region' => 'required|string|max:255',
+            'province' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:20',
+            'address_detail' => 'required|string',
+            'currency' => 'nullable|string|in:MYR,BND,IDR,SGD',
             'notes' => 'nullable|string',
         ]);
+        $fullAddress = trim(implode(', ', array_filter([
+            $data['address_detail'] ?? null,
+            $data['city'] ?? null,
+            $data['province'] ?? null,
+            'Postal ' . ($data['postal_code'] ?? ''),
+            $data['region'] ?? null,
+        ])));
+        $data['address'] = $fullAddress;
 
-        // Filter items
-        $items = array_filter($data['items'] ?? [], fn($q) => $q > 0);
-        if (empty($items)) {
+        $product = Product::findOrFail($data['product_id']);
+        if (!$product->is_active && !$product->available_for_preorder) {
+            abort(404);
+        }
+
+        // Filter valid items
+        $itemsData = array_filter($data['items'] ?? [], fn($item) => ($item['quantity_ss'] ?? 0) > 0 || ($item['quantity_ls'] ?? 0) > 0);
+
+        if (empty($itemsData)) {
             return back()->withErrors(['items' => 'Please select at least one item quantity.'])->withInput();
         }
 
         $currency = $data['currency'] ?? 'MYR';
         $config = $this->getCurrencyConfig($currency);
 
-        // Pre-validate product and stock
-        // We will do a robust check
-        $product = Product::where('id', $data['product_id'])->firstOrFail();
-        if (!$product->is_active && !$product->available_for_preorder) {
-            abort(404);
-        }
-
-        $orderItems = [];
         $lineItems = [];
+        $orderItems = [];
         $totalAmount = 0;
+        $allCustomFields = [];
+        $namesetCountTotal = 0;
 
-        foreach ($items as $variantId => $qty) {
+        foreach ($itemsData as $variantId => $itemData) {
             $variant = \App\Models\ProductVariant::find($variantId);
-            if (!$variant || $variant->product_id != $product->id) {
-                return back()->withErrors(['items' => 'Invalid variant selected.'])->withInput();
-            }
+            if (!$variant || $variant->product_id != $product->id)
+                continue;
 
-            if (!$product->available_for_preorder) {
-                if ($variant->stock < $qty) {
+            $types = [
+                'ss' => ['qty' => (int) ($itemData['quantity_ss'] ?? 0), 'ls' => false, 'namesets' => $itemData['namesets_ss'] ?? []],
+                'ls' => ['qty' => (int) ($itemData['quantity_ls'] ?? 0), 'ls' => true, 'namesets' => $itemData['namesets_ls'] ?? []]
+            ];
+
+            // Pre-check stock availability for all types in this variant
+            $variantCurrentUsage = $types['ss']['qty'] + $types['ls']['qty'];
+            if (!$product->available_for_preorder && $variantCurrentUsage > 0) {
+                if ($variant->stock < $variantCurrentUsage) {
                     return back()->withErrors(['items' => "Not enough stock for {$variant->name}."])->withInput();
                 }
             }
 
-            $unit = (float) $product->price * $config['rate'];
-            if ($request->boolean('long_sleeve')) {
-                $unit += $config['longSleeve'];
-            }
+            foreach ($types as $typeKey => $typeData) {
+                $qty = $typeData['qty'];
+                if ($qty <= 0)
+                    continue;
 
-            $lineTotal = round($unit * $qty, 2);
-            $totalAmount += $lineTotal;
+                $isLongSleeve = $typeData['ls'];
 
-            $amountInCents = $this->convertToCents($unit, $currency); // Unit amount per item
+                // Base + Surcharge
+                $unit = (float) $product->price * $config['rate'];
+                if ($isLongSleeve) {
+                    $unit += $config['longSleeve'];
+                }
 
-            // Description
-            $desc = $product->name;
-            if ($product->jersey_type)
-                $desc .= ' - ' . $product->jersey_type;
-            $desc .= ', Size: ' . $variant->name;
-            if ($request->boolean('long_sleeve'))
-                $desc .= ', Long Sleeve';
+                $lineTotal = round($unit * $qty, 2);
+                $totalAmount += $lineTotal;
 
-            $lineItems[] = [
-                'price_data' => [
-                    'currency' => strtolower($currency),
-                    'product_data' => [
-                        'name' => $product->name . ' (' . $variant->name . ')',
-                        'description' => $desc,
+                // Process Namesets
+                if (!empty($typeData['namesets'])) {
+                    foreach ($typeData['namesets'] as $ns) {
+                        if (!empty($ns['key']) || !empty($ns['value'])) {
+                            $allCustomFields[] = $ns;
+                            $namesetCountTotal++;
+                        }
+                    }
+                }
+
+                // Stripe Line Item for Product
+                $amountInCents = $this->convertToCents($unit, $currency);
+
+                $desc = $product->name . ' (' . $variant->name . ')';
+                $desc .= $isLongSleeve ? ' - Long Sleeve' : ' - Short Sleeve';
+
+                $lineItems[] = [
+                    'price_data' => [
+                        'currency' => strtolower($currency),
+                        'product_data' => [
+                            'name' => $product->name . ' (' . $variant->name . ')',
+                            'description' => $isLongSleeve ? 'Type: Long Sleeve' : 'Type: Short Sleeve',
+                        ],
+                        'unit_amount' => $amountInCents,
                     ],
-                    'unit_amount' => $amountInCents,
-                ],
-                'quantity' => $qty,
-            ];
+                    'quantity' => $qty,
+                ];
 
-            $orderItems[] = [
-                'variant_id' => $variantId,
-                'variant_name' => $variant->name,
-                'quantity' => $qty,
-                'unit_price' => $unit,
-                'line_total' => $lineTotal
-            ];
+                // Item for Session Storage
+                $orderItems[] = [
+                    'variant_id' => $variantId,
+                    'variant_name' => $variant->name,
+                    'quantity' => $qty,
+                    'long_sleeve' => $isLongSleeve,
+                    'unit_price' => $unit,
+                    'line_total' => $lineTotal
+                ];
+            }
         }
 
-        // Add Customization (Nameset) Charge as separate line item
-        if (!empty($data['custom_fields'])) {
-            $namesetCount = count($data['custom_fields']);
+        // Add Nameset Line Item
+        if ($namesetCountTotal > 0) {
             $namesetPrice = $config['nameset'];
-            $namesetTotal = round($namesetPrice * $namesetCount, 2);
+            $namesetTotal = round($namesetPrice * $namesetCountTotal, 2);
             $totalAmount += $namesetTotal;
 
             $lineItems[] = [
@@ -384,13 +437,16 @@ class PaymentController extends Controller
                     'currency' => strtolower($currency),
                     'product_data' => [
                         'name' => 'Jersey Customization (Nameset)',
-                        'description' => 'Custom Name & Number',
+                        'description' => 'Custom Name & Number x ' . $namesetCountTotal,
                     ],
                     'unit_amount' => $this->convertToCents($namesetPrice, $currency),
                 ],
-                'quantity' => $namesetCount,
+                'quantity' => $namesetCountTotal,
             ];
         }
+
+        // Update data with flattened custom_fields for session storage compatibility
+        $data['custom_fields'] = $allCustomFields;
 
         try {
             // Create Stripe checkout session
@@ -406,15 +462,15 @@ class PaymentController extends Controller
                     'phone' => $data['phone'] ?? '',
                     'currency' => $currency,
                     'product_id' => $product->id,
-                    'item_count' => count($items),
+                    'item_count' => count($orderItems),
                 ],
             ]);
 
             // Store checkout session data
             session()->put('stripe_preorder_checkout', [
                 'session_id' => $checkoutSession->id,
-                'order_data' => $data, // Contains items array
-                'order_items' => $orderItems, // Processed items with variant details
+                'order_data' => $data, // Contains full data including custom_fields
+                'order_items' => $orderItems, // Processed items
                 'product_id' => $product->id,
                 'currency' => $currency,
                 'total_amount' => $totalAmount,

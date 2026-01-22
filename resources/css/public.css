@@ -1,8 +1,10 @@
 :root {
-    --primary: #000000;
-    --primary-dark: #1f2937;
-    --accent: #000000;
+    --primary: #2563eb;
+    --primary-dark: #0f172a;
+    --accent: #3b82f6;
     --dark: #0f172a;
+    --slate-900: #0f172a;
+    --slate-800: #1e293b;
     --gray-50: #f8fafc;
     --gray-100: #f1f5f9;
     --gray-200: #e2e8f0;
@@ -10,8 +12,12 @@
     --success: #10b981;
 }
 
+[x-cloak] { display: none !important; }
+
 .public-body {
     background: #ffffff;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 .public-navbar {
@@ -32,16 +38,19 @@
 }
 
 .public-brand {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #000;
+    display: flex;
+    align-items: center;
     text-decoration: none;
 }
 
+.public-logo {
+    height: 32px;
+    width: auto;
+    display: block;
+}
+
 .public-nav-links {
-    display: flex;
     gap: 2rem;
-    align-items: center;
 }
 
 .public-nav-link {
@@ -269,4 +278,182 @@
 
 .cta-button:hover {
     transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .public-container {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0 1rem;
+    }
+    
+    .public-navbar {
+        padding: 1rem;
+    }
+
+    .public-logo {
+        height: 28px;
+    }
+    
+    .public-container > .public-brand {
+        margin-bottom: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* When flex-direction is column, align items properly */
+    .public-navbar .public-container {
+        flex-direction: row; 
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .features-grid,
+    .stats-grid,
+    .how-grid,
+    .about-grid {
+        grid-template-columns: 1fr !important;
+        gap: 2rem;
+    }
+
+    .about-grid {
+        display: flex;
+        flex-direction: column-reverse; /* Image on top usually, or text on bottom? Let's check logic. Usually text then image. If column-reverse, image is first? No, default is column which is top-down.  */
+        /* The grid was 1fr 1fr. If we use flex column, it stacks. */
+    }
+    
+    .about-image {
+        font-size: 3rem; /* Smaller icon */
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-text {
+        font-size: 1.1rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .about-title {
+         font-size: 2rem;
+    }
+    
+    .public-footer {
+        text-align: center;
+    }
+
+    /* Adjust padding for sections */
+    /* Adjust padding for sections */
+    .home-hero,
+    .features-section,
+    .stats-section,
+    .how-section,
+    .cta-section,
+    .about-section {
+        padding: 3rem 1rem;
+    }
+}
+
+/* Slider Styles */
+.slider-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.slider-wrapper {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+.slider-slide {
+    flex: 0 0 100%;
+    width: 100%;
+}
+
+.slider-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.slider-dot.active {
+    background: #0f172a;
+    width: 24px;
+    border-radius: 4px;
+}
+
+/* Category Menu Styles */
+.category-menu {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.category-menu::-webkit-scrollbar {
+    display: none;
+}
+
+.category-btn {
+    white-space: nowrap;
+    padding: 0.5rem 1.25rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+}
+
+.category-btn.active {
+    background: #0f172a;
+    color: #ffffff;
+    border-color: #0f172a;
+}
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+
+/* Custom Utilities */
+.glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-glass {
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.text-gradient {
+    background: linear-gradient(to right, #818cf8, #60a5fa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }

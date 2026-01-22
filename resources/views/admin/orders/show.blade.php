@@ -8,6 +8,8 @@
             <a href="{{ route('admin.orders.index') }}"
                 style="color: #6b7280; text-decoration: none; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.5rem;"
                 title="Back">← Back to Orders</a>
+            <a href="{{ route('admin.orders.printShow', $order) }}"
+               style="margin-left: 0.5rem; background: #111827; color: white; padding: 0.375rem 0.875rem; border: none; border-radius: 0.5rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center;">Print View</a>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 340px; gap: 2rem;">
@@ -227,10 +229,10 @@
                                 </div>
                                 <div style="display: flex; gap: 0.5rem;">
                                     <button type="submit" style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; font-size: 0.875rem;">🚚 Mark as Shipped</button>
-                                    <button type="button" onclick="document.getElementById('shippedForm').style.display='none';" style="padding: 0.5rem 1rem; background: #6b7280; color: white; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; font-size: 0.875rem;">Cancel</button>
+                                    <button type="button" onclick="document.getElementById('shippedForm').style.display='none'; document.getElementById('shippedToggleBtn').style.display='inline-block';" style="padding: 0.5rem 1rem; background: #6b7280; color: white; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; font-size: 0.875rem;">Cancel</button>
                                 </div>
                             </form>
-                            <button type="button" onclick="document.getElementById('shippedForm').style.display='block';" style="padding: 0.75rem 1.25rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">🚚 Mark as Shipped</button>
+                            <button type="button" id="shippedToggleBtn" onclick="this.style.display='none'; document.getElementById('shippedForm').style.display='block';" style="padding: 0.75rem 1.25rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">🚚 Mark as Shipped</button>
                         @elseif($order->shipping_status === 'shipped')
                             <form action="{{ route('admin.orders.markDelivered', $order) }}" method="POST" style="display: inline;" class="js-confirm" data-title="Mark as delivered?" data-text="Order akan ditandai sebagai delivered.">
                                 @csrf

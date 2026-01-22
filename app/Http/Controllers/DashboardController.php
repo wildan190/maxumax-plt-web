@@ -51,15 +51,15 @@ class DashboardController extends Controller
 
         // 1. Total Stats
         $totalOrders = Preorder::count();
-        
+
         $revenueOrders = Preorder::whereIn('status', ['paid', 'confirmed', 'shipped', 'delivered', 'completed'])
             ->get(['total_amount', 'currency']);
-            
+
         $totalRevenue = 0;
         foreach ($revenueOrders as $order) {
             $totalRevenue += $this->convert(
-                $order->total_amount, 
-                $order->currency ?? 'MYR', 
+                (float) $order->total_amount,
+                $order->currency ?? 'MYR',
                 $currentCurrency
             );
         }
@@ -69,15 +69,15 @@ class DashboardController extends Controller
         $totalRefunded = 0;
         foreach ($refundOrders as $order) {
             $totalRefunded += $this->convert(
-                $order->total_amount, 
-                $order->currency ?? 'MYR', 
+                (float) $order->total_amount,
+                $order->currency ?? 'MYR',
                 $currentCurrency
             );
         }
         $refundedOrdersCount = $refundOrders->count();
 
         $activeProducts = Product::where('is_active', true)->count();
-        
+
         // Growth (Orders this month vs last month)
         $thisMonthOrders = Preorder::whereMonth('created_at', Carbon::now()->month)->count();
         $lastMonthOrders = Preorder::whereMonth('created_at', Carbon::now()->subMonth()->month)->count();
@@ -94,16 +94,16 @@ class DashboardController extends Controller
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $chartLabels[] = $date->format('d M');
-            
+
             $dayOrders = Preorder::whereDate('created_at', $date->format('Y-m-d'))
                 ->whereIn('status', ['paid', 'confirmed', 'shipped', 'delivered', 'completed'])
                 ->get(['total_amount', 'currency']);
-                
+
             $dayTotal = 0;
             foreach ($dayOrders as $order) {
                 $dayTotal += $this->convert(
-                    $order->total_amount, 
-                    $order->currency ?? 'MYR', 
+                    (float) $order->total_amount,
+                    $order->currency ?? 'MYR',
                     $currentCurrency
                 );
             }
@@ -115,8 +115,9 @@ class DashboardController extends Controller
 
         // 4. Task List / Attention Needed
         $pendingRefunds = Preorder::where('refund_status', 'pending')->count();
+        $pendingComplaints = \App\Models\Complaint::where('status', 'pending')->count();
         $ordersToPack = Preorder::whereIn('status', ['paid', 'confirmed'])
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereNull('shipping_status')->orWhere('shipping_status', 'pending');
             })->count();
         $lowStockProducts = Product::where('stock', '<', 10)->take(5)->get();
@@ -126,7 +127,7 @@ class DashboardController extends Controller
             ['label' => 'Dashboard', 'url' => route('dashboard')],
         ];
 
-        $currencySymbol = match($currentCurrency) {
+        $currencySymbol = match ($currentCurrency) {
             'MYR' => 'RM',
             'BND' => '$',
             'IDR' => 'Rp',
@@ -148,6 +149,7 @@ class DashboardController extends Controller
             'chartData' => $chartData,
             'recentOrders' => $recentOrders,
             'pendingRefunds' => $pendingRefunds,
+            'pendingComplaints' => $pendingComplaints,
             'ordersToPack' => $ordersToPack,
             'lowStockProducts' => $lowStockProducts,
         ]);

@@ -4,22 +4,37 @@
 
 @section('content')
     <div style="max-width: 1200px; margin: 0 auto;">
-        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
-            <a href="{{ route('admin.products.index') }}"
-                style="display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; background: #f3f4f6; border-radius: 0.5rem; text-decoration: none; color: #111827; font-weight: 600; transition: background 0.2s;">←</a>
-            <div>
-                <p style="color: #6b7280; margin: 0.25rem 0 0 0;">Update product information and settings</p>
+        <div style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="{{ route('admin.products.index') }}"
+                    style="display: flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; color: #111827; text-decoration: none; transition: all 0.2s;"
+                    title="Back">
+                    <i data-feather="arrow-left" style="width: 18px; height: 18px;"></i>
+                </a>
+                <div>
+                    <h1 style="font-size: 1.5rem; font-weight: 800; color: #111827; margin: 0; letter-spacing: -0.025em;">
+                        EDIT PRODUCT</h1>
+                    <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">Update gear details and management</p>
+                </div>
+            </div>
+            <div
+                style="display: flex; align-items: center; gap: 0.75rem; background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 700; color: #374151;">
+                <span style="opacity: 0.5;">ID:</span>
+                <span style="font-family: monospace;">{{ substr($product->uuid, 0, 12) }}...</span>
             </div>
         </div>
 
         @if($errors->any())
             <div
-                style="background: #fee2e2; border-left: 4px solid #dc2626; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 2rem;">
-                <p style="margin: 0 0 0.75rem 0; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">⚠️ Please
-                    fix the errors below:</p>
-                <ul style="margin: 0; padding-left: 1.5rem;">
+                style="background: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b; padding: 1.25rem; border-radius: 0.75rem; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                    <i data-feather="alert-circle" style="width: 20px; height: 20px;"></i>
+                    <p style="margin: 0; font-weight: 700; text-transform: uppercase; font-size: 0.875rem; tracking: 0.05em;">
+                        Update Errors</p>
+                </div>
+                <ul style="margin: 0; padding-left: 1.5rem; font-size: 0.875rem; font-weight: 500;">
                     @foreach($errors->all() as $err)
-                        <li style="margin-bottom: 0.35rem;">{{ $err }}</li>
+                        <li>{{ $err }}</li>
                     @endforeach
                 </ul>
             </div>
@@ -29,264 +44,258 @@
             @csrf
             @method('PUT')
 
-            <!-- Main Content Grid -->
-            <div style="display: grid; grid-template-columns: 1fr 320px; gap: 2rem;">
-
-                <!-- Left Column: Form Fields -->
-                <div>
-                    <!-- Basic Info Section -->
+            <div style="display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: start;">
+                <!-- Main Content Column -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- Basic Info Card -->
                     <div
-                        style="background: white; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
-                        <h2
-                            style="font-size: 1.125rem; font-weight: 700; color: #111827; margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                            📦 Basic Information</h2>
-
-                        <div style="margin-bottom: 1.25rem;">
-                            <label
-                                style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827; font-size: 0.95rem;">Product
-                                Name *</label>
-                            <input type="text" name="name" value="{{ old('name', $product->name) }}" required
-                                style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; transition: border-color 0.2s; background: white;" />
-                            @error('name')
-                                <span
-                                    style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div style="margin-bottom: 1.25rem;">
-                            <label
-                                style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827; font-size: 0.95rem;">Jersey
-                                Type *</label>
-                            <select name="jersey_type" required
-                                style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; background: white; cursor: pointer;">
-                                <option value="">-- Select Jersey Type --</option>
-                                <option value="Player Home" {{ old('jersey_type', $product->jersey_type) == 'Player Home' ? 'selected' : '' }}>Player Home</option>
-                                <option value="Player Away" {{ old('jersey_type', $product->jersey_type) == 'Player Away' ? 'selected' : '' }}>Player Away</option>
-                                <option value="GK Home" {{ old('jersey_type', $product->jersey_type) == 'GK Home' ? 'selected' : '' }}>GK Home</option>
-                                <option value="GK Away" {{ old('jersey_type', $product->jersey_type) == 'GK Away' ? 'selected' : '' }}>GK Away</option>
-                            </select>
-                            @error('jersey_type')
-                                <span
-                                    style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div style="margin-bottom: 1.25rem;">
-                            <label
-                                style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827; font-size: 0.95rem;">Description</label>
-                            <textarea name="description"
-                                style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; font-family: inherit; min-height: 120px; transition: border-color 0.2s; background: white;"
-                                placeholder="Enter product description...">{{ old('description', $product->description) }}</textarea>
-                            @error('description')
-                                <span
-                                    style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <!-- Pricing & Inventory Section -->
-                    <div
-                        style="background: white; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
-                        <h2
-                            style="font-size: 1.125rem; font-weight: 700; color: #111827; margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                            💰 Pricing & Inventory</h2>
-
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
-                            <div>
-                                <label
-                                    style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827; font-size: 0.95rem;">Price
-                                    (MYR) *</label>
-                                <input type="number" step="0.01" min="0" name="price"
-                                    value="{{ old('price', $product->price) }}" required
-                                    style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; background: white;" />
-                                @error('price')
-                                    <span
-                                        style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label
-                                    style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827; font-size: 0.95rem;">Stock
-                                    Quantity</label>
-                                <input type="number" name="stock" value="{{ old('stock', $product->stock) }}" min="0"
-                                    style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; background: white;" />
-                                @error('stock')
-                                    <span
-                                        style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 0;">
-                            <label
-                                style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827; font-size: 0.95rem;">SKU</label>
-                            <input type="text" name="sku" value="{{ old('sku', $product->sku) }}"
-                                style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; font-family: monospace; background: white;"
-                                placeholder="e.g., JER-2026-001" />
-                            @error('sku')
-                                <span
-                                    style="color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <!-- Variants Section -->
-                    <div
-                        style="background: white; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
+                        style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
                         <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            style="padding: 1.5rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.75rem;">
+                            <div
+                                style="width: 2.5rem; height: 2.5rem; background: #e0e7ff; color: #4f46e5; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center;">
+                                <i data-feather="edit-3" style="width: 20px; height: 20px;"></i>
+                            </div>
                             <h2
-                                style="font-size: 1.125rem; font-weight: 700; color: #111827; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                                📏 Product Variants</h2>
-                            <button type="button" id="addVariantBtnEdit"
-                                style="padding: 0.5rem 1rem; background: #000; color: #fff; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 0.875rem;">+
-                                Add Variant</button>
+                                style="font-size: 1rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
+                                Product Details</h2>
                         </div>
-                        <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem;">Manage different sizes with
-                            individual stock levels.</p>
-                        <div id="variantsContainerEdit">
-                            @foreach($product->variants as $variant)
-                                <div class="variant-row-edit"
-                                    style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
-                                    <input type="hidden" name="variants[{{ $loop->index }}][id]" value="{{ $variant->id }}" />
-                                    <input type="text" name="variants[{{ $loop->index }}][name]" value="{{ $variant->name }}"
-                                        placeholder="e.g., S, M, L, XL"
-                                        style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; font-size: 0.875rem;"
-                                        required />
-                                    <input type="number" name="variants[{{ $loop->index }}][stock]"
-                                        value="{{ $variant->stock }}" min="0" placeholder="Stock"
-                                        style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; font-size: 0.875rem;"
-                                        required />
-                                    <input type="text" name="variants[{{ $loop->index }}][sku]" value="{{ $variant->sku }}"
-                                        placeholder="SKU (optional)"
-                                        style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; font-size: 0.875rem; font-family: monospace;" />
-                                    <button type="button" class="removeVariantBtnEdit"
-                                        style="padding: 0.5rem; background: #dc2626; color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 600;">×</button>
-                                </div>
-                            @endforeach
+                        <div style="padding: 1.5rem;">
+                            <div style="margin-bottom: 1.5rem;">
+                                <label
+                                    style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Product
+                                    Name *</label>
+                                <input type="text" name="name" value="{{ old('name', $product->name) }}" required
+                                    style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; transition: all 0.2s;" />
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label
+                                    style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Jersey
+                                    Type *</label>
+                                <select name="jersey_type" required
+                                    style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
+                                    <option value="Player Home" {{ old('jersey_type', $product->jersey_type) == 'Player Home' ? 'selected' : '' }}>Player Home</option>
+                                    <option value="Player Away" {{ old('jersey_type', $product->jersey_type) == 'Player Away' ? 'selected' : '' }}>Player Away</option>
+                                    <option value="GK Home" {{ old('jersey_type', $product->jersey_type) == 'GK Home' ? 'selected' : '' }}>GK Home</option>
+                                    <option value="GK Away" {{ old('jersey_type', $product->jersey_type) == 'GK Away' ? 'selected' : '' }}>GK Away</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom: 0;">
+                                <label
+                                    style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Description</label>
+                                <textarea name="description"
+                                    style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; font-family: inherit; min-height: 120px;"
+                                    placeholder="Enter product description...">{{ old('description', $product->description) }}</textarea>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Status Section -->
-                    <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e5e7eb;">
-                        <h2
-                            style="font-size: 1.125rem; font-weight: 700; color: #111827; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                            ✓ Status</h2>
+                    <!-- Variants Card -->
+                    <div
+                        style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                        <div
+                            style="padding: 1.5rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div
+                                    style="width: 2.5rem; height: 2.5rem; background: #ecfdf5; color: #059669; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center;">
+                                    <i data-feather="sliders" style="width: 20px; height: 20px;"></i>
+                                </div>
+                                <h2
+                                    style="font-size: 1rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
+                                    Inventory Matrix</h2>
+                            </div>
+                            <button type="button" id="addVariantBtnEdit"
+                                style="padding: 0.5rem 1rem; background: #111827; color: white; border: none; border-radius: 0.75rem; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                                <i data-feather="plus" style="width: 14px; height: 14px;"></i> Add Size
+                            </button>
+                        </div>
+                        <div style="padding: 1.5rem;">
+                            <!-- Pre-order Hint -->
+                            <div id="preorderHintEdit"
+                                style="display: none; margin-bottom: 1.5rem; padding: 1rem; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 0.75rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+                                <i data-feather="info"
+                                    style="width: 18px; height: 18px; color: #3b82f6; flex-shrink: 0; margin-top: 0.125rem;"></i>
+                                <p
+                                    style="margin: 0; font-size: 0.8125rem; color: #1e40af; font-weight: 500; line-height: 1.4;">
+                                    <strong>Pre-order Mode Active:</strong> You can still manage available
+                                    <strong>Sizes</strong>. Individual stock management is disabled for pre-order items.
+                                </p>
+                            </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                            <label
-                                style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.75rem; border-radius: 0.5rem; transition: background 0.2s; user-select: none;">
-                                <input type="checkbox" name="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }} style="width: 1.25rem; height: 1.25rem; cursor: pointer;" />
-                                <span style="font-weight: 500; color: #111827;">Active Product</span>
-                            </label>
-                            <label
-                                style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.75rem; border-radius: 0.5rem; transition: background 0.2s; user-select: none;">
-                                <input type="checkbox" name="available_for_preorder" value="1" {{ old('available_for_preorder', $product->available_for_preorder) ? 'checked' : '' }}
-                                    style="width: 1.25rem; height: 1.25rem; cursor: pointer;" />
-                                <span style="font-weight: 500; color: #111827;">Preorder Enabled</span>
-                            </label>
+                            <div id="variantsContainerEdit" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                @foreach($product->variants as $variant)
+                                    <div class="variant-row-edit"
+                                        style="display: grid; grid-template-columns: 2fr 1.5fr 2fr auto; gap: 0.75rem; align-items: center; padding: 0.75rem; background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 1rem;">
+                                        <input type="hidden" name="variants[{{ $loop->index }}][id]"
+                                            value="{{ $variant->id }}" />
+                                        <input type="text" name="variants[{{ $loop->index }}][name]"
+                                            value="{{ $variant->name }}" placeholder="Size"
+                                            style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;"
+                                            required />
+                                        <input type="number" name="variants[{{ $loop->index }}][stock]"
+                                            value="{{ $variant->stock }}" min="0" placeholder="Qty"
+                                            style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;"
+                                            required />
+                                        <input type="text" name="variants[{{ $loop->index }}][sku]" value="{{ $variant->sku }}"
+                                            placeholder="SKU Override"
+                                            style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-family: monospace; font-weight: 600;" />
+                                        <button type="button" class="removeVariantBtnEdit"
+                                            style="width: 2.25rem; height: 2.25rem; background: #fee2e2; color: #ef4444; border: none; border-radius: 0.625rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                            <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+                                        </button>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column: Image & Preview -->
-                <div>
+                <!-- Sidebar Column -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- Gallery Preview Card -->
                     <div
-                        style="background: white; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; position: sticky; top: 1rem;">
-                        <h2
-                            style="font-size: 1.125rem; font-weight: 700; color: #111827; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                            🖼️ Product Images</h2>
+                        style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                        <div
+                            style="padding: 1.25rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-feather="camera" style="width: 18px; height: 18px; color: #6b7280;"></i>
+                            <h2
+                                style="font-size: 0.875rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
+                                Current Library</h2>
+                        </div>
+                        <div style="padding: 1.25rem;">
+                            @php
+                                $paths = [];
+                                if ($product->image_path)
+                                    $paths[] = $product->image_path;
+                                foreach ($product->images as $img)
+                                    $paths[] = $img->path;
+                            @endphp
 
-                        <div style="margin-bottom: 1rem;">
-                            @if($product->image_path || $product->images->count())
+                            @if(count($paths) > 0)
                                 <div
-                                    style="margin-bottom: 1rem; border-radius: 0.5rem; overflow: hidden; border: 1px solid #e5e7eb; background: #f9fafb; display: flex; align-items: center; justify-content: center; min-height: 200px;">
-                                    @php
-                                        $paths = [];
-                                        if ($product->image_path)
-                                            $paths[] = $product->image_path;
-                                        foreach ($product->images as $img) {
-                                            $paths[] = $img->path;
-                                        }
-                                        $first = $paths[0] ?? null;
-                                    @endphp
-                                    @if($first)
-                                        <img src="{{ asset('storage/' . $first) }}"
-                                            style="max-width: 100%; max-height: 200px; object-fit: contain; padding: 0.5rem;"
-                                            alt="{{ $product->name }}" />
-                                    @else
-                                        <p style="color:#9ca3af; margin:0;">No image</p>
-                                    @endif
+                                    style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.5rem;">
+                                    @foreach($paths as $path)
+                                        <div
+                                            style="aspect-ratio: 1; border-radius: 0.75rem; overflow: hidden; border: 1px solid #f3f4f6; position: relative; group">
+                                            <img src="{{ asset('storage/' . $path) }}"
+                                                style="width: 100%; height: 100%; object-fit: cover;" alt="Product image" />
+                                        </div>
+                                    @endforeach
                                 </div>
                             @else
                                 <div
-                                    style="margin-bottom: 1rem; border-radius: 0.5rem; border: 2px dashed #d1d5db; padding: 2rem; text-align: center; background: #f9fafb;">
-                                    <p style="color: #9ca3af; margin: 0; font-size: 2rem;">📸</p>
-                                    <p style="color: #6b7280; margin: 0.5rem 0 0 0; font-size: 0.9rem;">No image</p>
+                                    style="text-align: center; padding: 2rem 0; color: #9ca3af; background: #f9fafb; border-radius: 1rem; border: 1px dashed #e5e7eb; margin-bottom: 1.5rem;">
+                                    <i data-feather="slash"
+                                        style="width: 24px; height: 24px; margin-bottom: 0.5rem; opacity: 0.3;"></i>
+                                    <p style="font-size: 0.75rem; font-weight: 600;">No images linked</p>
                                 </div>
                             @endif
-                        </div>
 
-                        <div style="margin-bottom: 0.5rem;">
-                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #111827;">Upload
-                                Images</label>
                             <div id="dropzoneImagesEdit"
-                                style="border:2px dashed #d1d5db; border-radius:0.5rem; padding:1rem; text-align:center; cursor:pointer;">
-                                <div style="font-weight:600; color:#111827;">Drag & drop up to 4 images</div>
-                                <div style="color:#6b7280; font-size:0.9rem; margin-top:0.25rem;">or click to select</div>
+                                style="border: 2px dashed #e5e7eb; border-radius: 1rem; padding: 1.5rem 1rem; text-align: center; cursor: pointer; transition: all 0.2s; background: #f9fafb;"
+                                onmouseover="this.style.borderColor='#3b82f6';"
+                                onmouseout="this.style.borderColor='#e5e7eb';">
+                                <i data-feather="plus-circle"
+                                    style="width: 20px; height: 20px; color: #3b82f6; margin-bottom: 0.5rem;"></i>
+                                <p style="font-size: 0.75rem; font-weight: 700; color: #111827; margin: 0;">Add New Media
+                                </p>
                             </div>
                             <input type="file" name="images[]" accept="image/*" id="imageInputEdit" multiple
                                 style="display:none;" />
-                            <div id="imagePreviewGridEdit"
-                                style="display:grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap:0.5rem; margin-top:0.75rem;">
-                            </div>
-                            <div id="imageStatusTextEdit"
-                                style="margin-top:0.5rem; color:#dc2626; font-size:0.875rem; display:none;">Maksimal 4
-                                gambar</div>
-                            <div style="margin-top:0.5rem;">
-                                <button type="button" id="clearImagesBtnEdit"
-                                    style="background:#e5e7eb; color:#111827; padding:0.4rem 0.8rem; border:none; border-radius:0.375rem; font-weight:600; cursor:pointer;">Clear</button>
-                            </div>
-                        </div>
-                        <p style="font-size: 0.8rem; color: #9ca3af; margin: 0.5rem 0 0 0;">PNG, JPG, GIF (max 5MB)</p>
 
-                        <!-- Quick Stats -->
-                        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
-                            <h3
-                                style="font-size: 0.9rem; font-weight: 600; color: #6b7280; margin: 0 0 0.75rem 0; text-transform: uppercase; letter-spacing: 0.05em;">
-                                Quick Stats</h3>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.9rem;">
-                                <div style="background: #f3f4f6; padding: 0.75rem; border-radius: 0.5rem;">
-                                    <p style="color: #6b7280; margin: 0; font-size: 0.8rem;">ID</p>
-                                    <p
-                                        style="color: #111827; margin: 0.25rem 0 0 0; font-weight: 600; font-family: monospace; font-size: 0.85rem;">
-                                        {{ substr($product->uuid, 0, 8) }}...</p>
-                                </div>
-                                <div style="background: #f3f4f6; padding: 0.75rem; border-radius: 0.5rem;">
-                                    <p style="color: #6b7280; margin: 0; font-size: 0.8rem;">Stock</p>
-                                    <p style="color: #111827; margin: 0.25rem 0 0 0; font-weight: 600;">
-                                        {{ $product->stock ?? 0 }} units</p>
-                                </div>
+                            <div id="imagePreviewGridEdit"
+                                style="display:grid; grid-template-columns: repeat(2, 1fr); gap:0.75rem; margin-top:1rem;">
+                            </div>
+
+                            <div id="imageStatusTextEdit"
+                                style="margin-top:0.75rem; padding: 0.5rem; background: #fef2f2; color: #ef4444; border-radius: 0.5rem; font-size: 0.7rem; font-weight: 700; display: none;">
+                                Limit 4 images total.
+                            </div>
+
+                            <div style="margin-top: 1rem; display: flex; justify-content: center;">
+                                <button type="button" id="clearImagesBtnEdit"
+                                    style="font-size: 0.7rem; font-weight: 700; color: #6b7280; background: none; border: none; cursor: pointer; text-transform: uppercase;">
+                                    Reset Selection
+                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Action Buttons -->
-            <div style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
-                <button type="submit"
-                    style="padding: 0.875rem 1.75rem; background: #000; color: white; border: none; border-radius: 0.5rem; font-weight: 600; font-size: 1rem; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 0.5rem;">
-                    💾 Save Changes
-                </button>
-                <a href="{{ route('admin.products.index') }}"
-                    style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 1.75rem; background: #e5e7eb; color: #111827; border: none; border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background 0.2s; cursor: pointer;">
-                    ✕ Cancel
-                </a>
+                    <!-- Market Controls Card -->
+                    <div
+                        style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                        <div
+                            style="padding: 1.25rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-feather="settings" style="width: 18px; height: 18px; color: #6b7280;"></i>
+                            <h2
+                                style="font-size: 0.875rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
+                                Market Status</h2>
+                        </div>
+                        <div style="padding: 1.25rem;">
+                            <div style="margin-bottom: 1.25rem;">
+                                <label
+                                    style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.375rem; letter-spacing: 0.05em;">Active
+                                    Price (MYR)</label>
+                                <div style="position: relative;">
+                                    <span
+                                        style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: #9ca3af; font-size: 0.875rem;">RM</span>
+                                    <input type="number" step="0.01" min="0" name="price"
+                                        value="{{ old('price', $product->price) }}" required
+                                        style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 3rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; font-weight: 700; color: #111827;" />
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 1.25rem;">
+                                <label
+                                    style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.375rem; letter-spacing: 0.05em;">Master
+                                    SKU</label>
+                                <input type="text" name="sku" value="{{ old('sku', $product->sku) }}"
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; font-family: monospace; font-weight: 600; text-transform: uppercase;"
+                                    placeholder="MM-OR-XXXX" />
+                            </div>
+
+                            <div style="margin-bottom: 1.25rem;">
+                                <label
+                                    style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.375rem; letter-spacing: 0.05em;">Total
+                                    Stock Override</label>
+                                <input type="number" name="stock" value="{{ old('stock', $product->stock) }}" min="0"
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; font-weight: 600; color: #111827;" />
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem; padding-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }}
+                                        style="width: 1.125rem; height: 1.125rem; border-radius: 0.375rem; cursor: pointer;" />
+                                    <span style="font-size: 0.875rem; font-weight: 600; color: #374151;">Market
+                                        Visibility</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                                    <input type="checkbox" name="available_for_preorder" value="1" {{ old('available_for_preorder', $product->available_for_preorder) ? 'checked' : '' }}
+                                        style="width: 1.125rem; height: 1.125rem; border-radius: 0.375rem; cursor: pointer;" />
+                                    <span style="font-size: 0.875rem; font-weight: 600; color: #374151;">Pre-order
+                                        Status</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <button type="submit"
+                            style="width: 100%; padding: 1rem; background: #111827; color: white; border: none; border-radius: 1rem; font-weight: 800; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                            Apply Updates
+                        </button>
+                        <a href="{{ route('admin.products.index') }}"
+                            style="width: 100%; padding: 1rem; background: white; border: 1px solid #e5e7eb; color: #6b7280; border-radius: 1rem; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; text-align: center;">
+                            Cancel Edit
+                        </a>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
+
     <script>
         (function () {
             const dz = document.getElementById('dropzoneImagesEdit');
@@ -295,7 +304,6 @@
             const status = document.getElementById('imageStatusTextEdit');
             const clearBtn = document.getElementById('clearImagesBtnEdit');
 
-            // Store current files in memory
             let currentFiles = [];
 
             function updateInputFiles(files) {
@@ -307,51 +315,29 @@
 
             function render(files) {
                 grid.innerHTML = '';
-                for (let i = 0; i < files.length; i++) {
-                    const f = files[i];
+                files.forEach((f, i) => {
                     const reader = new FileReader();
                     reader.onload = function (evt) {
                         const container = document.createElement('div');
-                        container.style.position = 'relative';
-                        container.style.width = '100%';
+                        container.style.cssText = 'position: relative; aspect-ratio: 1; border-radius: 0.75rem; overflow: hidden; border: 1px solid #e5e7eb;';
 
                         const img = document.createElement('img');
                         img.src = evt.target.result;
-                        img.style.width = '100%';
-                        img.style.height = '80px';
-                        img.style.objectFit = 'cover';
-                        img.style.borderRadius = '0.375rem';
-                        img.style.border = '1px solid #e5e7eb';
+                        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
 
                         const removeBtn = document.createElement('button');
-                        removeBtn.textContent = '×';
+                        removeBtn.innerHTML = '<i data-feather="x" style="width: 14px; height: 14px;"></i>';
                         removeBtn.type = 'button';
-                        removeBtn.style.position = 'absolute';
-                        removeBtn.style.top = '2px';
-                        removeBtn.style.right = '2px';
-                        removeBtn.style.background = '#dc2626';
-                        removeBtn.style.color = 'white';
-                        removeBtn.style.border = 'none';
-                        removeBtn.style.borderRadius = '50%';
-                        removeBtn.style.width = '20px';
-                        removeBtn.style.height = '20px';
-                        removeBtn.style.cursor = 'pointer';
-                        removeBtn.style.fontSize = '14px';
-                        removeBtn.style.fontWeight = 'bold';
-                        removeBtn.style.display = 'flex';
-                        removeBtn.style.alignItems = 'center';
-                        removeBtn.style.justifyContent = 'center';
-                        removeBtn.style.lineHeight = '1';
-                        removeBtn.onclick = function () {
-                            removeFile(i);
-                        };
+                        removeBtn.style.cssText = 'position: absolute; top: 0.25rem; right: 0.25rem; width: 1.5rem; height: 1.5rem; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);';
+                        removeBtn.onclick = () => removeFile(i);
 
                         container.appendChild(img);
                         container.appendChild(removeBtn);
                         grid.appendChild(container);
+                        if (typeof feather !== 'undefined') feather.replace();
                     };
                     reader.readAsDataURL(f);
-                }
+                });
                 status.style.display = files.length >= 4 ? 'block' : 'none';
             }
 
@@ -362,27 +348,10 @@
             }
 
             function addFiles(newFiles) {
-                // Filter only image files
                 const imageFiles = Array.from(newFiles).filter(f => f.type.startsWith('image/'));
                 if (imageFiles.length === 0) return;
 
-                // Calculate remaining slots
-                const remainingSlots = 4 - currentFiles.length;
-                if (remainingSlots <= 0) {
-                    status.textContent = 'Maksimal 4 gambar sudah tercapai';
-                    status.style.display = 'block';
-                    setTimeout(() => {
-                        if (currentFiles.length < 4) status.style.display = 'none';
-                    }, 2000);
-                    return;
-                }
-
-                // Add new files, avoiding duplicates
-                const seen = new Set();
-                currentFiles.forEach(f => {
-                    seen.add(`${f.name}-${f.size}`);
-                });
-
+                const seen = new Set(currentFiles.map(f => `${f.name}-${f.size}`));
                 for (const file of imageFiles) {
                     if (currentFiles.length >= 4) break;
                     const key = `${file.name}-${file.size}`;
@@ -391,90 +360,209 @@
                         currentFiles.push(file);
                     }
                 }
-
                 updateInputFiles(currentFiles);
                 render(currentFiles);
             }
 
-            dz.addEventListener('click', function () {
-                input.click();
-            });
+            dz.onclick = () => input.click();
+            dz.ondragover = (e) => { e.preventDefault(); dz.style.borderColor = '#3b82f6'; };
+            dz.ondragleave = () => { dz.style.borderColor = '#e5e7eb'; };
+            dz.ondrop = (e) => { e.preventDefault(); addFiles(e.dataTransfer.files); };
+            input.onchange = (e) => addFiles(e.target.files);
+            clearBtn.onclick = () => { currentFiles = []; updateInputFiles([]); render([]); };
 
-            dz.addEventListener('dragover', function (e) {
-                e.preventDefault();
-                dz.style.background = '#f9fafb';
-            });
-
-            dz.addEventListener('dragleave', function () {
-                dz.style.background = 'transparent';
-            });
-
-            dz.addEventListener('drop', function (e) {
-                e.preventDefault();
-                dz.style.background = 'transparent';
-                const files = e.dataTransfer.files;
-                if (files.length) {
-                    addFiles(files);
-                }
-            });
-
-            input.addEventListener('change', function (e) {
-                // When user selects files via file picker, add them to existing files
-                if (e.target.files.length) {
-                    addFiles(e.target.files);
-                }
-            });
-
-            clearBtn.addEventListener('click', function () {
-                currentFiles = [];
-                input.value = '';
-                grid.innerHTML = '';
-                status.style.display = 'none';
-            });
-
-            // Variant Management for Edit Form
+            // Variant Management
             let variantIndexEdit = {{ $product->variants->count() }};
-            const variantsContainerEdit = document.getElementById('variantsContainerEdit');
-            const addVariantBtnEdit = document.getElementById('addVariantBtnEdit');
+            const container = document.getElementById('variantsContainerEdit');
+            const addBtn = document.getElementById('addVariantBtnEdit');
 
-            function createVariantRowEdit(name = '', stock = 0, sku = '', id = null) {
+            function createRowEdit(name = '', stock = 0, sku = '', id = null) {
                 const row = document.createElement('div');
                 row.className = 'variant-row-edit';
-                row.style.display = 'grid';
-                row.style.gridTemplateColumns = '2fr 1fr 2fr auto';
-                row.style.gap = '0.5rem';
-                row.style.marginBottom = '0.75rem';
-                row.style.alignItems = 'center';
-                
+                row.style.cssText = 'display: grid; grid-template-columns: 2fr 1.5fr 2fr auto; gap: 0.75rem; align-items: center; padding: 0.75rem; background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 1rem;';
+
                 const idInput = id ? `<input type="hidden" name="variants[${variantIndexEdit}][id]" value="${id}" />` : '';
-                
+
                 row.innerHTML = `
-                    ${idInput}
-                    <input type="text" name="variants[${variantIndexEdit}][name]" value="${name}" placeholder="e.g., S, M, L, XL" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; font-size: 0.875rem;" required />
-                    <input type="number" name="variants[${variantIndexEdit}][stock]" value="${stock}" min="0" placeholder="Stock" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; font-size: 0.875rem;" required />
-                    <input type="text" name="variants[${variantIndexEdit}][sku]" value="${sku}" placeholder="SKU (optional)" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; font-size: 0.875rem; font-family: monospace;" />
-                    <button type="button" class="removeVariantBtnEdit" style="padding: 0.5rem; background: #dc2626; color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 600;">×</button>
-                `;
-                
-                const removeBtn = row.querySelector('.removeVariantBtnEdit');
-                removeBtn.addEventListener('click', function() {
-                    row.remove();
-                });
-                
-                variantsContainerEdit.appendChild(row);
+                                    ${idInput}
+                                    <div>
+                                        <input type="text" name="variants[${variantIndexEdit}][name]" value="${name}" placeholder="Size" 
+                                               style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;" required />
+                                    </div>
+                                    <div>
+                                        <input type="number" name="variants[${variantIndexEdit}][stock]" value="${stock}" min="0" placeholder="Qty" 
+                                               style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;" required />
+                                    </div>
+                                    <div>
+                                        <input type="text" name="variants[${variantIndexEdit}][sku]" value="${sku}" placeholder="SKU Override" 
+                                               style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-family: monospace; font-weight: 600;" />
+                                    </div>
+                                    <button type="button" class="remove-v-edit" style="width: 2.25rem; height: 2.25rem; background: #fee2e2; color: #ef4444; border: none; border-radius: 0.625rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                        <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+                                    </button>
+                                `;
+
+                row.querySelector('.remove-v-edit').onclick = () => row.remove();
+                container.appendChild(row);
                 variantIndexEdit++;
+                if (typeof feather !== 'undefined') feather.replace();
             }
 
-            addVariantBtnEdit.addEventListener('click', function() {
-                createVariantRowEdit();
+            addBtn.onclick = () => createRowEdit();
+
+            // Re-apply removal logic to existing items
+            document.querySelectorAll('.removeVariantBtnEdit').forEach(btn => {
+                btn.onclick = function () { this.closest('.variant-row-edit').remove(); };
             });
 
-            // Add remove functionality to existing variants
-            document.querySelectorAll('.removeVariantBtnEdit').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    this.closest('.variant-row-edit').remove();
+            // Dynamic Stock Summation
+            function updateTotalStockEdit() {
+                const stockInputs = container.querySelectorAll('input[name*="[stock]"]');
+                let total = 0;
+                stockInputs.forEach(input => {
+                    total += parseInt(input.value) || 0;
                 });
+                const totalStockInput = document.querySelector('input[name="stock"]');
+                if (totalStockInput) totalStockInput.value = total;
+            }
+
+            container.addEventListener('input', function (e) {
+                if (e.target.name && e.target.name.includes('[stock]')) {
+                    updateTotalStockEdit();
+                }
             });
+
+            const observer = new MutationObserver(updateTotalStockEdit);
+            observer.observe(container, { childList: true });
+
+            // MutationObserver to ensure new rows respect preorder state
+            const stateObserver = new MutationObserver(() => {
+                const isPreorder = document.querySelector('input[name="available_for_preorder"]').checked;
+                if (isPreorder) {
+                    const stocks = container.querySelectorAll('input[name*="[stock]"]');
+                    stocks.forEach(s => {
+                        s.disabled = true;
+                        s.style.opacity = '0.5';
+                        s.style.background = '#f3f4f6';
+                        s.style.cursor = 'not-allowed';
+                        s.value = 0;
+                    });
+                }
+            });
+            stateObserver.observe(container, { childList: true });
+
+            updateTotalStockEdit();
+
+            // SKU Auto-Generation
+            const nameInput = document.querySelector('input[name="name"]');
+            const skuInput = document.querySelector('input[name="sku"]');
+
+            function generateSKU() {
+                if (!nameInput.value) return;
+
+                const nameSlug = nameInput.value
+                    .trim()
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9 ]/g, '')
+                    .split(' ')
+                    .map(word => word.substring(0, 3))
+                    .join('')
+                    .substring(0, 8);
+
+                const random = Math.floor(1000 + Math.random() * 9000);
+                const masterSku = `MXM-${nameSlug}-${random}`;
+                skuInput.value = masterSku;
+
+                // Sync variant SKUs
+                updateVariantSKUs();
+            }
+
+            function updateVariantSKUs() {
+                const masterSku = skuInput.value;
+                const rows = container.querySelectorAll('.variant-row-edit');
+                rows.forEach(row => {
+                    const nameField = row.querySelector('input[name*="[name]"]');
+                    const skuField = row.querySelector('input[name*="[sku]"]');
+                    if (nameField && skuField && (!skuField.value || skuField.value.startsWith('MXM-'))) {
+                        skuField.value = `${masterSku}-${nameField.value.toUpperCase().replace(/[^A-Z0-9]/g, '')}`;
+                    }
+                });
+            }
+
+            nameInput.addEventListener('change', function () {
+                if (!skuInput.value || skuInput.value === '') {
+                    generateSKU();
+                }
+            });
+
+            // Re-sync variants if master SKU changes manually
+            skuInput.addEventListener('change', updateVariantSKUs);
+
+            // Re-sync variant SKU if its size name changes
+            container.addEventListener('input', function (e) {
+                if (e.target.name && e.target.name.includes('[name]')) {
+                    updateVariantSKUs();
+                }
+            });
+
+            // Pre-order Toggle Logic
+            const preOrderToggle = document.querySelector('input[name="available_for_preorder"]');
+            const variantsSection = document.getElementById('variantsContainerEdit');
+            const addVariantBtn = document.getElementById('addVariantBtnEdit');
+            const masterStockInput = document.querySelector('input[name="stock"]');
+            const hint = document.getElementById('preorderHintEdit');
+
+            function togglePreorderModeEdit() {
+                const isPreorder = preOrderToggle.checked;
+
+                // Toggle Hint
+                hint.style.display = isPreorder ? 'flex' : 'none';
+
+                // Toggle Stock inputs in variants
+                const stockInputs = variantsSection.querySelectorAll('input[name*="[stock]"]');
+                stockInputs.forEach(el => {
+                    el.disabled = isPreorder;
+                    el.style.opacity = isPreorder ? '0.5' : '1';
+                    el.style.background = isPreorder ? '#f3f4f6' : 'white';
+                    el.style.cursor = isPreorder ? 'not-allowed' : 'auto';
+                    if (isPreorder) el.value = 0;
+                });
+
+                // Keep Name and SKU inputs enabled
+                const otherInputs = variantsSection.querySelectorAll('input[name*="[name]"], input[name*="[sku]"]');
+                otherInputs.forEach(el => {
+                    el.disabled = false;
+                    el.style.opacity = '1';
+                    el.style.background = 'white';
+                    el.style.cursor = 'auto';
+                });
+
+                // Keep Add / Remove Buttons enabled
+                const buttons = variantsSection.querySelectorAll('button');
+                buttons.forEach(el => {
+                    el.disabled = false;
+                    el.style.opacity = '1';
+                    el.style.cursor = 'pointer';
+                });
+
+                addVariantBtn.disabled = false;
+                addVariantBtn.style.opacity = '1';
+                addVariantBtn.style.cursor = 'pointer';
+
+                // Disable Master Stock if Preorder
+                masterStockInput.disabled = isPreorder;
+                masterStockInput.style.background = isPreorder ? '#f3f4f6' : 'white';
+                if (isPreorder) {
+                    masterStockInput.value = 0;
+                } else {
+                    updateTotalStockEdit();
+                }
+            }
+
+            preOrderToggle.addEventListener('change', togglePreorderModeEdit);
+
+            // Initial check
+            togglePreorderModeEdit();
         })();
     </script>
 @endsection

@@ -33,6 +33,10 @@
             cursor: pointer;
         }
         .prod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        @media (max-width: 768px) {
+            .prod-grid { grid-template-columns: 1fr; }
+            .prod-image { order: -1; }
+        }
         .prod-image { background:#fff; border:1px solid #e2e8f0; border-radius:0.75rem; padding:0.75rem; display:flex; align-items:center; justify-content:center; min-height: 320px; }
         .prod-title { font-size:2rem; font-weight:800; color:#0f172a; margin:0 0 0.5rem; }
         .prod-type { display:inline-block; background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; padding:0.25rem 0.5rem; border-radius:0.375rem; }
@@ -45,17 +49,7 @@
 
 @section('content')
     <section class="prod-container">
-        <!-- Currency Selector -->
-        <div class="currency-bar">
-            <div class="currency-select">
-                <label>Currency:</label>
-                <select id="currencySelector">
-                    <option value="MYR" {{ ($currency ?? 'MYR') === 'MYR' ? 'selected' : '' }}>RM (Malaysia)</option>
-                    <option value="BND" {{ ($currency ?? 'MYR') === 'BND' ? 'selected' : '' }}>$ (Brunei)</option>
-                    <option value="IDR" {{ ($currency ?? 'MYR') === 'IDR' ? 'selected' : '' }}>Rp (Indonesia)</option>
-                </select>
-            </div>
-        </div>
+
         <div class="prod-grid">
             <div class="prod-image" id="prodGallery">
                 @php
@@ -154,7 +148,7 @@
                                 </div>
                                 <label style="grid-column: span 2; display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
                                     <input type="checkbox" id="longSleeveCheckbox" name="long_sleeve" value="1" style="width:1.25rem;height:1.25rem; cursor:pointer;">
-                                    <span style="color:#111827;">Long Sleeve <span id="longSleeveLabel" style="color:#64748b; font-size:0.875rem;">(+RM 3.00)</span></span>
+                                    <span style="color:#111827;">Long Sleeve <span id="longSleeveLabel" style="color:#64748b; font-size:0.875rem;">(+{{ $currency === 'MYR' ? 'RM' : ($currency === 'BND' ? '$' : 'Rp') }} {{ number_format($currencyConfig['longSleeve'], $currency === 'IDR' ? 0 : 2) }})</span></span>
                                 </label>
                             </div>
                             <button type="submit" class="btn" style="background:#111827;"><i data-feather="shopping-bag"></i> Add to Cart</button>
@@ -357,9 +351,9 @@
         })();
         // Currency configuration
         const currencies = {
-            MYR: { symbol: 'RM', rate: 1, longSleeve: 3 },
-            BND: { symbol: '$', rate: 1.05, longSleeve: 3 },
-            IDR: { symbol: 'Rp', rate: 5200, longSleeve: 15600 }
+            MYR: { symbol: 'RM', rate: 1, longSleeve: {{ config('currencies.MYR.longSleeve', 10) }} },
+            BND: { symbol: '$', rate: 1.05, longSleeve: {{ config('currencies.BND.longSleeve', 3) }} },
+            IDR: { symbol: 'Rp', rate: 5200, longSleeve: {{ config('currencies.IDR.longSleeve', 15600) }} }
         };
         
         let currentCurrency = '{{ $currency ?? 'MYR' }}';
