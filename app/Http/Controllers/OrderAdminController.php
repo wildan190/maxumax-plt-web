@@ -58,6 +58,30 @@ class OrderAdminController extends Controller
         return view('admin.orders.index', compact('orders', 'counts'));
     }
 
+    public function printIndex(Request $request)
+    {
+        $query = Preorder::query()
+            ->whereHas('product', function ($q) {
+                $q->where('available_for_preorder', false)
+                    ->where('is_active', true);
+            })
+            ->orderByDesc('created_at');
+        if ($request->filled('search')) {
+            $search = $request->query('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('order_number', 'like', "%{$search}%");
+            });
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->query('status'));
+        }
+        $orders = $query->with(['product', 'variant'])->get();
+        return view('admin.orders.print', compact('orders'));
+    }
+
     public function markPaid(Request $request, Preorder $order)
     {
         if ($order->status !== 'confirmed') {
@@ -232,6 +256,12 @@ class OrderAdminController extends Controller
         ));
 
         return view('admin.orders.show', compact('order'));
+    }
+
+    public function printShow(Preorder $order)
+    {
+        $order->load('product', 'variant', 'histories');
+        return view('admin.orders.print_show', compact('order'));
     }
 
     public function exportCsv(Request $request): StreamedResponse

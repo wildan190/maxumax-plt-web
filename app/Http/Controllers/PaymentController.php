@@ -33,10 +33,21 @@ class PaymentController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'required|string|max:50',
-            'address' => 'required|string',
+            'region' => 'required|string|max:255',
+            'province' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:20',
+            'address_detail' => 'required|string',
             'currency' => 'nullable|string|in:MYR,BND,IDR',
             'notes' => 'nullable|string',
         ]);
+        $fullAddress = trim(implode(', ', array_filter([
+            $data['address_detail'] ?? null,
+            $data['city'] ?? null,
+            $data['province'] ?? null,
+            'Postal ' . ($data['postal_code'] ?? ''),
+            $data['region'] ?? null,
+        ])));
 
         $cart = session()->get('cart', []);
         if (empty($cart)) {
@@ -105,16 +116,20 @@ class PaymentController extends Controller
                 'metadata' => [
                     'name' => $data['name'],
                     'phone' => $data['phone'],
-                    'address' => $data['address'],
+                    'address' => $fullAddress,
                     'currency' => $currency,
                     'notes' => $data['notes'] ?? '',
+                    'region' => $data['region'],
+                    'province' => $data['province'],
+                    'city' => $data['city'],
+                    'postal_code' => $data['postal_code'],
                 ],
             ]);
 
             // Store checkout session data in session for later use
             session()->put('stripe_checkout', [
                 'session_id' => $checkoutSession->id,
-                'order_data' => $data,
+                'order_data' => array_merge($data, ['address' => $fullAddress]),
                 'order_items' => $orderItems,
                 'currency' => $currency,
                 'total_amount' => $totalAmount,
@@ -298,11 +313,23 @@ class PaymentController extends Controller
             'items.*.namesets_ls.*.value' => 'required_with:items.*.namesets_ls|string',
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string',
-            'currency' => 'nullable|string|in:MYR,BND,IDR',
+            'phone' => 'required|string|max:50',
+            'region' => 'required|string|max:255',
+            'province' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:20',
+            'address_detail' => 'required|string',
+            'currency' => 'nullable|string|in:MYR,BND,IDR,SGD',
             'notes' => 'nullable|string',
         ]);
+        $fullAddress = trim(implode(', ', array_filter([
+            $data['address_detail'] ?? null,
+            $data['city'] ?? null,
+            $data['province'] ?? null,
+            'Postal ' . ($data['postal_code'] ?? ''),
+            $data['region'] ?? null,
+        ])));
+        $data['address'] = $fullAddress;
 
         $product = Product::findOrFail($data['product_id']);
         if (!$product->is_active && !$product->available_for_preorder) {

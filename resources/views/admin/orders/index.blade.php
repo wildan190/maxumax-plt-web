@@ -12,6 +12,7 @@
                 <input type="text" name="search" placeholder="Search by name/email/order number..." value="{{ request('search') }}" style="padding: 0.625rem 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.95rem;" />
                 <button type="submit" style="background: #000; color: white; padding: 0.625rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Search</button>
             </form>
+            <a href="{{ route('admin.orders.print', request()->query()) }}" style="background: #111827; color: white; padding: 0.625rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center;">Print View</a>
         </div>
     </div>
 

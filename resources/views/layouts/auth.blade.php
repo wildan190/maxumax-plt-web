@@ -28,8 +28,14 @@
                 <div class="auth-side-logo">
                     {{ config('app.name', 'Maxumax') }}
                 </div>
-                <h2 class="auth-side-title">@yield('auth-title', 'Selamat Datang')</h2>
-                <p class="auth-side-desc">@yield('auth-subtitle', 'Kelola bisnis Anda dengan mudah dan efisien')</p>
+
+                <h2 class="auth-side-title">
+                    @yield('auth-title', 'Welcome')
+                </h2>
+
+                <p class="auth-side-desc">
+                    @yield('auth-subtitle', 'Manage your business easily and efficiently')
+                </p>
 
                 <div class="auth-side-features">
                     <div class="auth-side-feature">
@@ -38,28 +44,30 @@
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                         <div class="auth-side-feature-text">
-                            <h4>Keamanan Terjamin</h4>
-                            <p>Enkripsi end-to-end untuk melindungi data Anda</p>
+                            <h4>Secure by Design</h4>
+                            <p>End-to-end encryption to protect your data</p>
                         </div>
                     </div>
+
                     <div class="auth-side-feature">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                         <div class="auth-side-feature-text">
-                            <h4>Akses Mudah</h4>
-                            <p>Diakses dari mana saja kapan saja</p>
+                            <h4>Easy Access</h4>
+                            <p>Access anytime, anywhere</p>
                         </div>
                     </div>
+
                     <div class="auth-side-feature">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                         <div class="auth-side-feature-text">
-                            <h4>Dukungan Penuh</h4>
-                            <p>Tim support siap membantu 24/7</p>
+                            <h4>Full Support</h4>
+                            <p>Our support team is available 24/7</p>
                         </div>
                     </div>
                 </div>

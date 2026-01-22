@@ -153,9 +153,33 @@
 
                         <div class="form-group">
                             <label>Delivery Address <span class="required">*</span></label>
-                            <textarea name="address" class="form-control" required
-                                placeholder="Enter your full address for delivery">{{ old('address') }}</textarea>
-                            @error('address')<div class="form-error">{{ $message }}</div>@enderror
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <div>
+                                    <label>Region <span class="required">*</span></label>
+                                    <input type="text" name="region" class="form-control" required value="{{ old('region') }}" placeholder="Enter region" />
+                                    @error('region')<div class="form-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div>
+                                    <label>Country/Province <span class="required">*</span></label>
+                                    <input type="text" name="province" class="form-control" required value="{{ old('province') }}" placeholder="Enter country/province" />
+                                    @error('province')<div class="form-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div>
+                                    <label>City <span class="required">*</span></label>
+                                    <input type="text" name="city" class="form-control" required value="{{ old('city') }}" placeholder="Enter city" />
+                                    @error('city')<div class="form-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div>
+                                    <label>Postal Code <span class="required">*</span></label>
+                                    <input type="text" name="postal_code" class="form-control" required value="{{ old('postal_code') }}" placeholder="Enter postal code" />
+                                    @error('postal_code')<div class="form-error">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <label>Address Detail <span class="required">*</span></label>
+                                <textarea name="address_detail" class="form-control" required placeholder="Enter address detail">{{ old('address_detail') }}</textarea>
+                                @error('address_detail')<div class="form-error">{{ $message }}</div>@enderror
+                            </div>
                         </div>
 
                         <div class="form-nav">
@@ -444,11 +468,19 @@
                     // Step 2
                     const nameInput = document.querySelector('input[name="name"]');
                     const phoneInput = document.querySelector('input[name="phone"]');
-                    const addressInput = document.querySelector('textarea[name="address"]');
+                    const regionInput = document.querySelector('input[name="region"]');
+                    const provinceInput = document.querySelector('input[name="province"]');
+                    const cityInput = document.querySelector('input[name="city"]');
+                    const postalInput = document.querySelector('input[name="postal_code"]');
+                    const addressDetailInput = document.querySelector('textarea[name="address_detail"]');
 
                     if (!nameInput.value.trim()) { alert('Full name is required'); return; }
                     if (!phoneInput.value.trim()) { alert('Phone number is required'); return; }
-                    if (!addressInput.value.trim()) { alert('Delivery address is required'); return; }
+                    if (!regionInput.value.trim()) { alert('Region is required'); return; }
+                    if (!provinceInput.value.trim()) { alert('Country/Province is required'); return; }
+                    if (!cityInput.value.trim()) { alert('City is required'); return; }
+                    if (!postalInput.value.trim()) { alert('Postal code is required'); return; }
+                    if (!addressDetailInput.value.trim()) { alert('Address detail is required'); return; }
                 }
                 if (currentStep === 3) {
                     // Step 3
@@ -627,7 +659,12 @@
             // Customer Details
             const name = document.querySelector('input[name="name"]').value || '-';
             const phone = document.querySelector('input[name="phone"]').value || '-';
-            const address = document.querySelector('textarea[name="address"]').value || '-';
+            const region = document.querySelector('input[name="region"]').value || '';
+            const province = document.querySelector('input[name="province"]').value || '';
+            const city = document.querySelector('input[name="city"]').value || '';
+            const postal = document.querySelector('input[name="postal_code"]').value || '';
+            const addressDetail = document.querySelector('textarea[name="address_detail"]').value || '';
+            const address = [addressDetail, city, province, (postal ? ('Postal ' + postal) : ''), region].filter(Boolean).join(', ');
             const customerDetailsEl = document.getElementById('reviewCustomerDetails');
             if (customerDetailsEl) {
                 customerDetailsEl.innerHTML = `<div style="font-weight:700;">${name}</div><div style="font-size:0.9rem;color:#4b5563;">${phone}</div><div style="font-size:0.9rem;color:#4b5563;">${address}</div>`;
@@ -758,11 +795,13 @@
 
         // Check for errors and restore step
         document.addEventListener("DOMContentLoaded", function () {
-            @if($errors->hasAny(['name', 'email', 'phone', 'address']))
+            const hasStep2Errors = {!! $errors->hasAny(['name','email','phone','region','province','city','postal_code','address_detail']) ? 'true' : 'false' !!};
+            const hasStep3Errors = {!! ($errors->has('items') || collect($errors->keys())->contains(fn($k) => str_contains($k, 'items.'))) ? 'true' : 'false' !!};
+            if (hasStep2Errors) {
                 showStep(2);
-            @elseif($errors->has('items') || collect($errors->keys())->contains(fn($k) => str_contains($k, 'items.')))
+            } else if (hasStep3Errors) {
                 showStep(3);
-            @endif
-            });
+            }
+        });
     </script>
 @endsection

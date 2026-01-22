@@ -85,6 +85,12 @@
                                             class="px-3 py-1 bg-slate-50 rounded-lg text-xs font-black text-slate-500 uppercase tracking-widest border border-slate-100 italic">
                                             Size {{ $it['size'] ?? '-' }}
                                         </div>
+                                        @if(!empty($it['variant_sku']))
+                                            <div
+                                                class="px-3 py-1 bg-slate-50 rounded-lg text-xs font-black text-slate-500 uppercase tracking-widest border border-slate-100 italic">
+                                                SKU {{ $it['variant_sku'] }}
+                                            </div>
+                                        @endif
                                         @if(!empty($it['long_sleeve']))
                                             <div
                                                 class="px-3 py-1 bg-emerald-50 rounded-lg text-xs font-black text-emerald-600 uppercase tracking-widest border border-emerald-100 italic">
@@ -155,7 +161,8 @@
                             <form method="POST" action="{{ route('checkout.cod') }}" class="space-y-6">
                                 @csrf
                                 <input type="hidden" name="currency" value="{{ $currency }}">
-                                <input type="hidden" name="payment_method" value="cod">
+                                <input type="hidden" id="selected_action_cod" value="{{ route('checkout.cod') }}">
+                                <input type="hidden" id="selected_action_stripe" value="{{ route('checkout.stripe') }}">
 
                                 <div class="space-y-4 pt-4">
                                     <div class="group">
@@ -163,18 +170,65 @@
                                             class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
                                     </div>
                                     <div class="group">
-                                        <input type="text" name="phone" placeholder="WhatsApp Number" required
+                                        <input type="email" name="email" placeholder="Email"
                                             class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
                                     </div>
                                     <div class="group">
-                                        <textarea name="address" placeholder="Delivery Address" required rows="3"
+                                        <input type="text" name="phone" placeholder="WhatsApp Number" required
+                                            class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div class="group">
+                                            <input type="text" name="region" placeholder="Region" required
+                                                class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                                        </div>
+                                        <div class="group">
+                                            <input type="text" name="province" placeholder="Country/Province" required
+                                                class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                                        </div>
+                                        <div class="group">
+                                            <input type="text" name="city" placeholder="City" required
+                                                class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                                        </div>
+                                        <div class="group">
+                                            <input type="text" name="postal_code" placeholder="Postal Code" required
+                                                class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                                        </div>
+                                    </div>
+                                    <div class="group">
+                                        <textarea name="address_detail" placeholder="Address Detail" required rows="3"
                                             class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"></textarea>
+                                    </div>
+                                    <div class="group">
+                                        <textarea name="notes" placeholder="Notes (optional)" rows="2"
+                                            class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"></textarea>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div class="text-slate-400 font-bold text-xs uppercase tracking-widest">
+                                            Metode Pembayaran
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <label class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 cursor-pointer hover:border-blue-500 transition-colors">
+                                                <input type="radio" name="payment_method" value="cod" class="accent-blue-500" checked>
+                                                <div>
+                                                    <div class="font-black text-white uppercase tracking-widest text-xs">Cash On Delivery</div>
+                                                    <div class="text-slate-400 text-[10px] font-bold">Bayar saat barang tiba</div>
+                                                </div>
+                                            </label>
+                                            <label class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 cursor-pointer hover:border-blue-500 transition-colors">
+                                                <input type="radio" name="payment_method" value="stripe" class="accent-blue-500">
+                                                <div>
+                                                    <div class="font-black text-white uppercase tracking-widest text-xs">Stripe</div>
+                                                    <div class="text-slate-400 text-[10px] font-bold">Kartu debit/kredit aman</div>
+                                                </div>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <button type="submit"
+                                <button type="submit" id="checkoutSubmit"
                                     class="w-full py-6 bg-white text-slate-900 font-black text-lg rounded-[2rem] hover:bg-blue-400 hover:scale-101 active:scale-95 transition-all shadow-xl shadow-white/5 uppercase tracking-[0.2em]">
-                                    Complete Order
+                                    Proceed Checkout
                                 </button>
                                 <p class="text-center text-[10px] text-slate-500 font-bold uppercase tracking-widest">
                                     Secured via Maxumax Protocol v2.6
@@ -186,4 +240,18 @@
             @endif
         </div>
     </section>
+    <script>
+        (function () {
+            const form = document.querySelector('form[action*="checkout"]') || document.querySelector('form');
+            const submitBtn = document.getElementById('checkoutSubmit');
+            const codUrl = document.getElementById('selected_action_cod')?.value;
+            const stripeUrl = document.getElementById('selected_action_stripe')?.value;
+            if (form && submitBtn && codUrl && stripeUrl) {
+                form.addEventListener('submit', function (e) {
+                    const selected = document.querySelector('input[name="payment_method"]:checked')?.value || 'cod';
+                    form.action = selected === 'stripe' ? stripeUrl : codUrl;
+                });
+            }
+        })();
+    </script>
 @endsection

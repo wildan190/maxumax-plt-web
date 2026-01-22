@@ -117,8 +117,10 @@
                                 style="display: none; margin-bottom: 1.5rem; padding: 1rem; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 0.75rem; display: flex; align-items: flex-start; gap: 0.75rem;">
                                 <i data-feather="info"
                                     style="width: 18px; height: 18px; color: #3b82f6; flex-shrink: 0; margin-top: 0.125rem;"></i>
-                                <p style="margin: 0; font-size: 0.8125rem; color: #1e40af; font-weight: 500; line-height: 1.4;">
-                                    <strong>Pre-order Mode Active:</strong> You can still manage available <strong>Sizes</strong>. Individual stock management is disabled for pre-order items.
+                                <p
+                                    style="margin: 0; font-size: 0.8125rem; color: #1e40af; font-weight: 500; line-height: 1.4;">
+                                    <strong>Pre-order Mode Active:</strong> You can still manage available
+                                    <strong>Sizes</strong>. Individual stock management is disabled for pre-order items.
                                 </p>
                             </div>
 
@@ -243,6 +245,15 @@
                                         value="{{ old('price', $product->price) }}" required
                                         style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 3rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; font-weight: 700; color: #111827;" />
                                 </div>
+                            </div>
+
+                            <div style="margin-bottom: 1.25rem;">
+                                <label
+                                    style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.375rem; letter-spacing: 0.05em;">Master
+                                    SKU</label>
+                                <input type="text" name="sku" value="{{ old('sku', $product->sku) }}"
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; font-family: monospace; font-weight: 600; text-transform: uppercase;"
+                                    placeholder="MM-OR-XXXX" />
                             </div>
 
                             <div style="margin-bottom: 1.25rem;">
@@ -373,23 +384,23 @@
                 const idInput = id ? `<input type="hidden" name="variants[${variantIndexEdit}][id]" value="${id}" />` : '';
 
                 row.innerHTML = `
-                                ${idInput}
-                                <div>
-                                    <input type="text" name="variants[${variantIndexEdit}][name]" value="${name}" placeholder="Size" 
-                                           style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;" required />
-                                </div>
-                                <div>
-                                    <input type="number" name="variants[${variantIndexEdit}][stock]" value="${stock}" min="0" placeholder="Qty" 
-                                           style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;" required />
-                                </div>
-                                <div>
-                                    <input type="text" name="variants[${variantIndexEdit}][sku]" value="${sku}" placeholder="SKU Override" 
-                                           style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-family: monospace; font-weight: 600;" />
-                                </div>
-                                <button type="button" class="remove-v-edit" style="width: 2.25rem; height: 2.25rem; background: #fee2e2; color: #ef4444; border: none; border-radius: 0.625rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                                    <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
-                                </button>
-                            `;
+                                    ${idInput}
+                                    <div>
+                                        <input type="text" name="variants[${variantIndexEdit}][name]" value="${name}" placeholder="Size" 
+                                               style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;" required />
+                                    </div>
+                                    <div>
+                                        <input type="number" name="variants[${variantIndexEdit}][stock]" value="${stock}" min="0" placeholder="Qty" 
+                                               style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;" required />
+                                    </div>
+                                    <div>
+                                        <input type="text" name="variants[${variantIndexEdit}][sku]" value="${sku}" placeholder="SKU Override" 
+                                               style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-family: monospace; font-weight: 600;" />
+                                    </div>
+                                    <button type="button" class="remove-v-edit" style="width: 2.25rem; height: 2.25rem; background: #fee2e2; color: #ef4444; border: none; border-radius: 0.625rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                        <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+                                    </button>
+                                `;
 
                 row.querySelector('.remove-v-edit').onclick = () => row.remove();
                 container.appendChild(row);
@@ -503,10 +514,10 @@
 
             function togglePreorderModeEdit() {
                 const isPreorder = preOrderToggle.checked;
-                
+
                 // Toggle Hint
                 hint.style.display = isPreorder ? 'flex' : 'none';
-                
+
                 // Toggle Stock inputs in variants
                 const stockInputs = variantsSection.querySelectorAll('input[name*="[stock]"]');
                 stockInputs.forEach(el => {

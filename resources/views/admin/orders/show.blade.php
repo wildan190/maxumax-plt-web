@@ -8,6 +8,8 @@
             <a href="{{ route('admin.orders.index') }}"
                 style="color: #6b7280; text-decoration: none; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.5rem;"
                 title="Back">← Back to Orders</a>
+            <a href="{{ route('admin.orders.printShow', $order) }}"
+               style="margin-left: 0.5rem; background: #111827; color: white; padding: 0.375rem 0.875rem; border: none; border-radius: 0.5rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center;">Print View</a>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 340px; gap: 2rem;">

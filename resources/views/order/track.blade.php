@@ -92,6 +92,20 @@
                                     <span
                                         class="text-slate-900 font-black text-right">{{ optional($preorder->product)->name ?? ($preorder->category ?? 'Individual Item') }}</span>
                                 </div>
+                                @php
+                                    $variantSku = optional($preorder->variant)->sku;
+                                @endphp
+                                @if($preorder->size || $variantSku)
+                                    <div class="flex justify-between items-end pb-4 border-b border-slate-50">
+                                        <span class="text-slate-400 font-bold text-xs uppercase tracking-widest">Variant</span>
+                                        <span class="text-slate-900 font-black text-right">
+                                            {{ $preorder->size ?? optional($preorder->variant)->name ?? '-' }}
+                                            @if($variantSku)
+                                                <span class="text-slate-500 font-bold text-xs uppercase tracking-widest ml-2">SKU {{ $variantSku }}</span>
+                                            @endif
+                                        </span>
+                                    </div>
+                                @endif
                                 <div class="flex justify-between items-end pb-4 border-b border-slate-50">
                                     <span class="text-slate-400 font-bold text-xs uppercase tracking-widest">Quantity</span>
                                     <span class="text-slate-900 font-black">{{ $preorder->quantity }} Units</span>

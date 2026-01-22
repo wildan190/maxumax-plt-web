@@ -123,11 +123,22 @@ class PreorderController extends Controller
             'items.*.namesets_ls.*.value' => 'required_with:items.*.namesets_ls|string',
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string',
+            'phone' => 'required|string|max:50',
+            'region' => 'required|string|max:255',
+            'province' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:20',
+            'address_detail' => 'required|string',
             'currency' => 'nullable|string|in:MYR,SGD,IDR,BND',
             'notes' => 'nullable|string',
         ]);
+        $fullAddress = trim(implode(', ', array_filter([
+            $data['address_detail'] ?? null,
+            $data['city'] ?? null,
+            $data['province'] ?? null,
+            'Postal ' . ($data['postal_code'] ?? ''),
+            $data['region'] ?? null,
+        ])));
 
         $product = Product::findOrFail($data['product_id']);
         if (!$product->is_active && !$product->available_for_preorder) {
@@ -146,7 +157,7 @@ class PreorderController extends Controller
         $uuid = (string) \Illuminate\Support\Str::uuid();
 
         // Transaction for Stock Check & Order Creation
-        $orders = DB::transaction(function () use ($data, $itemsData, $product, $config, $currency, $uuid) {
+        $orders = DB::transaction(function () use ($data, $itemsData, $product, $config, $currency, $uuid, $fullAddress) {
             $totalQty = 0;
             $totalAmount = 0;
             $orderItems = [];
@@ -252,7 +263,7 @@ class PreorderController extends Controller
                 'name' => $data['name'],
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
-                'address' => $data['address'] ?? null,
+                'address' => $fullAddress,
                 'jersey_type' => $product->jersey_type ?? null,
                 'size' => $firstVariantName,
                 'long_sleeve' => $hasLongSleeveGlobal,
@@ -497,6 +508,13 @@ class PreorderController extends Controller
         $items = [];
         $total = 0.0;
         foreach ($cart as $it) {
+            $variantSku = null;
+            if (!empty($it['product_variant_id'])) {
+                $variant = \App\Models\ProductVariant::find($it['product_variant_id']);
+                if ($variant) {
+                    $variantSku = $variant->sku;
+                }
+            }
             $unit = (float) $it['price'] * $config['rate'];
             if (!empty($it['long_sleeve'])) {
                 $unit += $config['longSleeve'];
@@ -506,6 +524,7 @@ class PreorderController extends Controller
                 'unit' => $unit,
                 'line_total' => $line,
                 'currency' => $currency,
+                'variant_sku' => $variantSku,
             ]);
             $total += $line;
         }
@@ -557,10 +576,21 @@ class PreorderController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'required|string|max:50',
-            'address' => 'required|string',
+            'region' => 'required|string|max:255',
+            'province' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:20',
+            'address_detail' => 'required|string',
             'currency' => 'nullable|string|in:MYR,BND,IDR,SGD',
             'notes' => 'nullable|string',
         ]);
+        $fullAddress = trim(implode(', ', array_filter([
+            $data['address_detail'] ?? null,
+            $data['city'] ?? null,
+            $data['province'] ?? null,
+            'Postal ' . ($data['postal_code'] ?? ''),
+            $data['region'] ?? null,
+        ])));
         $cart = session()->get('cart', []);
         if (empty($cart)) {
             return back()->withErrors(['cart' => 'Cart kosong']);
@@ -569,7 +599,7 @@ class PreorderController extends Controller
         $config = $this->getCurrencyConfig($currency);
         $orders = [];
         foreach ($cart as $it) {
-            $pre = DB::transaction(function () use ($it, $data, $config, $currency) {
+            $pre = DB::transaction(function () use ($it, $data, $config, $currency, $fullAddress) {
                 $product = Product::where('id', $it['product_id'])->lockForUpdate()->first();
                 if (!$product || (!$product->is_active && !$product->available_for_preorder)) {
                     return null;
@@ -607,7 +637,7 @@ class PreorderController extends Controller
                     'name' => $data['name'],
                     'email' => $data['email'] ?? null,
                     'phone' => $data['phone'] ?? null,
-                    'address' => $data['address'] ?? null,
+                    'address' => $fullAddress,
                     'jersey_type' => $product->jersey_type ?? null,
                     'size' => $it['size'] ?? ($variant ? $variant->name : null),
                     'long_sleeve' => !empty($it['long_sleeve']),

@@ -252,7 +252,19 @@
                         <div class="order-item">
                             <div class="order-info">
                                 <div class="order-number">{{ $o->order_number }}</div>
-                                <div class="order-product">{{ optional($o->product)->name ?? $o->jersey_type ?? 'Product' }}</div>
+                                <div class="order-product">
+                                    {{ optional($o->product)->name ?? $o->jersey_type ?? 'Product' }}
+                                    @php $sku = optional($o->variant)->sku; @endphp
+                                    @if($o->size || $sku)
+                                        <span style="color:#94a3b8; font-size:0.8rem;">
+                                            ({{ $o->size ?? optional($o->variant)->name ?? '-' }}
+                                            @if($sku)
+                                                • SKU {{ $sku }}
+                                            @endif
+                                            )
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                             <div class="order-status">
                                 <span

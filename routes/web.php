@@ -49,8 +49,10 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     // Admin order management (product orders, not preorders)
     Route::get('/orders', [App\Http\Controllers\OrderAdminController::class, 'index'])->name('admin.orders.index');
+    Route::get('/orders/print', [App\Http\Controllers\OrderAdminController::class, 'printIndex'])->name('admin.orders.print');
     Route::get('/orders/export/csv', [App\Http\Controllers\OrderAdminController::class, 'exportCsv'])->name('admin.orders.export');
     Route::get('/orders/{order}', [App\Http\Controllers\OrderAdminController::class, 'show'])->name('admin.orders.show');
+    Route::get('/orders/{order}/print', [App\Http\Controllers\OrderAdminController::class, 'printShow'])->name('admin.orders.printShow');
     Route::post('/orders/{order}/confirm', [App\Http\Controllers\OrderAdminController::class, 'confirm'])->name('admin.orders.confirm');
     Route::post('/orders/{order}/mark-paid', [App\Http\Controllers\OrderAdminController::class, 'markPaid'])->name('admin.orders.markPaid');
     Route::post('/orders/{order}/mark-packing', [App\Http\Controllers\OrderAdminController::class, 'markPacking'])->name('admin.orders.markPacking');
