@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderCreated;
 use App\Mail\PaymentSuccess;
 use App\Jobs\SendEmailJob;
+use Illuminate\Support\Facades\Notification;
+use App\Models\User;
+use App\Notifications\NewOrderNotification;
+use App\Notifications\NewPreorderNotification;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Stripe\Exception\ApiErrorException;
@@ -270,6 +274,28 @@ class PaymentController extends Controller
                 if ($pre->email) {
                     SendEmailJob::dispatch($pre->email, new OrderCreated($pre), 2);
                     SendEmailJob::dispatch($pre->email, new PaymentSuccess($pre), 5);
+                }
+
+                // Notify admins (DB notifications only, no email)
+                $admins = User::whereIn('role', ['admin', 'staff'])->get();
+                if ($admins->isNotEmpty()) {
+                    if (str_starts_with($pre->order_number, 'MM-PO-')) {
+                        Notification::send($admins, new NewPreorderNotification($pre));
+                    } else {
+                        Notification::send($admins, new NewOrderNotification($pre));
+                    }
+
+                    // Store DB notification for buyer if registered
+                    if (!empty($pre->email)) {
+                        $buyer = User::where('email', $pre->email)->first();
+                        if ($buyer) {
+                            if (str_starts_with($pre->order_number, 'MM-PO-')) {
+                                $buyer->notify(new NewPreorderNotification($pre));
+                            } else {
+                                $buyer->notify(new NewOrderNotification($pre));
+                            }
+                        }
+                    }
                 }
             }
 
