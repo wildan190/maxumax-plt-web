@@ -4,6 +4,14 @@
         <a href="{{ route('dashboard') }}" class="admin-sidebar-logo">
             {{ config('app.name', 'Maxumax') }}
         </a>
+        <!-- Close Button for Mobile -->
+        <button type="button" class="admin-sidebar-close" id="sidebarClose" aria-label="Close sidebar">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
     </div>
 
     <nav class="admin-sidebar-nav">
@@ -41,6 +49,9 @@
                 <path d="M3 7h18M3 12h18M3 17h18"></path>
             </svg>
             <span>Preorders</span>
+            @if(auth()->user()->unreadNotifications->where('data.type', 'new_preorder')->count() > 0)
+                <span class="notification-dot"></span>
+            @endif
         </a>
 
         <a href="{{ route('admin.orders.index') }}"
@@ -53,6 +64,9 @@
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
             <span>Orders</span>
+            @if(auth()->user()->unreadNotifications->whereIn('data.type', ['new_order', 'replacement_ready'])->count() > 0)
+                <span class="notification-dot"></span>
+            @endif
         </a>
 
         <a href="{{ route('admin.products.index') }}"
@@ -108,6 +122,9 @@
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
             <span>Complaints</span>
+            @if(auth()->user()->unreadNotifications->where('data.type', 'new_complaint')->count() > 0)
+                <span class="notification-dot"></span>
+            @endif
         </a>
 
         @if(auth()->user()->isAdmin())
