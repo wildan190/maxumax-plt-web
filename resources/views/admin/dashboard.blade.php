@@ -20,8 +20,7 @@
         </div>
 
         <!-- Stats Grid -->
-        <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="dashboard-stats-grid">
             <!-- Stat Card: Total Orders -->
             <div
                 style="background: var(--secondary); border: 1px solid var(--border-gray); border-radius: 0.75rem; padding: 1.5rem; transition: all 0.3s ease;">
@@ -38,7 +37,8 @@
                     </svg>
                 </div>
                 <p style="font-size: 2.5rem; font-weight: 700; color: var(--primary); margin: 0;">
-                    {{ number_format($totalOrders) }}</p>
+                    {{ number_format($totalOrders) }}
+                </p>
                 <p style="font-size: 0.875rem; color: var(--text-light); margin: 0.5rem 0 0;">All orders</p>
             </div>
 
@@ -58,7 +58,8 @@
                     </svg>
                 </div>
                 <p style="font-size: 2.5rem; font-weight: 700; color: var(--primary); margin: 0;">{{ $currencySymbol }}
-                    {{ number_format($totalRevenue, 0, ',', '.') }}</p>
+                    {{ number_format($totalRevenue, 0, ',', '.') }}
+                </p>
                 <p style="font-size: 0.875rem; color: var(--text-light); margin: 0.5rem 0 0;">Total income</p>
             </div>
 
@@ -79,7 +80,8 @@
                     </svg>
                 </div>
                 <p style="font-size: 2.5rem; font-weight: 700; color: #ef4444; margin: 0;">{{ $currencySymbol }}
-                    {{ number_format($totalRefunded, 0, ',', '.') }}</p>
+                    {{ number_format($totalRefunded, 0, ',', '.') }}
+                </p>
                 <p style="font-size: 0.875rem; color: var(--text-light); margin: 0.5rem 0 0;">{{ $refundedOrdersCount }}
                     refunded orders</p>
             </div>
@@ -126,7 +128,7 @@
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="dashboard-main-grid">
             <!-- Chart Section -->
             <div
                 style="background: var(--secondary); border: 1px solid var(--border-gray); border-radius: 0.75rem; padding: 1.5rem;">
@@ -219,7 +221,7 @@
 
         <!-- Recent Activity (Orders) -->
         <div
-            style="background: var(--secondary); border: 1px solid var(--border-gray); border-radius: 0.75rem; padding: 2rem;">
+            style="background: var(--secondary); border: 1px solid var(--border-gray); border-radius: 0.75rem; padding: clamp(1rem, 5vw, 2rem); overflow-x: hidden;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin: 0;">Recent Orders</h2>
                 <a href="{{ route('admin.orders.index') }}"
@@ -235,10 +237,11 @@
                                     style="width: 40px; height: 40px; border-radius: 50%; background: var(--light-gray); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                     <span style="font-weight: 700; color: var(--primary);">{{ substr($order->name, 0, 1) }}</span>
                                 </div>
-                                <div style="flex: 1;">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                        <div>
-                                            <p style="font-weight: 600; color: var(--primary); margin: 0; font-size: 0.95rem;">
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                                        <div style="min-width: 0;">
+                                            <p
+                                                style="font-weight: 600; color: var(--primary); margin: 0; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                                 {{ $order->name }}
                                                 <span style="font-weight: normal; color: var(--text-light);">ordered</span>
                                                 {{ $order->product ? $order->product->name : 'Product Deleted' }}
@@ -250,30 +253,31 @@
                                         </div>
                                         <div style="text-align: right;">
                                             <span style="
-                                                    display: inline-block; 
-                                                    padding: 0.25rem 0.5rem; 
-                                                    border-radius: 0.375rem; 
-                                                    font-size: 0.75rem; 
-                                                    font-weight: 600;
-                                                    background-color: {{ match ($order->status) {
+                                                                                    display: inline-block; 
+                                                                                    padding: 0.25rem 0.5rem; 
+                                                                                    border-radius: 0.375rem; 
+                                                                                    font-size: 0.75rem; 
+                                                                                    font-weight: 600;
+                                                                                    background-color: {{ match ($order->status) {
                         'paid', 'completed', 'shipped', 'delivered' => '#dcfce7',
                         'confirmed' => '#e0f2fe',
                         'pending' => '#fef9c3',
                         'cancelled', 'rejected', 'refunded' => '#fee2e2',
                         default => '#f3f4f6'
                     } }};
-                                                    color: {{ match ($order->status) {
+                                                                                    color: {{ match ($order->status) {
                         'paid', 'completed', 'shipped', 'delivered' => '#166534',
                         'confirmed' => '#075985',
                         'pending' => '#854d0e',
                         'cancelled', 'rejected', 'refunded' => '#991b1b',
                         default => '#374151'
                     } }};
-                                                ">
+                                                                                ">
                                                 {{ ucfirst($order->status) }}
                                             </span>
                                             <p style="color: var(--text-light); font-size: 0.75rem; margin: 0.25rem 0 0;">
-                                                {{ $order->created_at->diffForHumans() }}</p>
+                                                {{ $order->created_at->diffForHumans() }}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -286,61 +290,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const ctx = document.getElementById('revenueChart').getContext('2d');
-
-            const chartData = @json($chartData);
-            const chartLabels = @json($chartLabels);
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: chartLabels,
-                    datasets: [{
-                        label: 'Revenue (IDR)',
-                        data: chartData,
-                        borderColor: '#000000',
-                        backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#000000',
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            },
-                            ticks: {
-                                callback: function (value) {
-                                    return 'Rp ' + value.toLocaleString('id-ID');
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-        });
+    <script>     document.addEventListener('DOMContentLoaded', function () {         const ctx = document.getElementById('revenueChart').getContext('2d');
+             const chartData = @json($chartData);         const chartLabels = @json($chartLabels);
+             new Chart(ctx, {             type: 'line',             data: {                 labels: chartLabels,                 datasets: [{                     label: 'Revenue (IDR)',                     data: chartData,                     borderColor: '#000000',                     backgroundColor: 'rgba(0, 0, 0, 0.1)',                     borderWidth: 2,                     tension: 0.4,                     fill: true,                     pointBackgroundColor: '#000000',                     pointRadius: 4                 }]             },             options: {                 responsive: true,                 maintainAspectRatio: false,                 plugins: {                     legend: {                         display: false                     },                     tooltip: {                         mode: 'index',                         intersect: false,                     }                 },                 scales: {                     y: {                         beginAtZero: true,                         grid: {                             color: 'rgba(0, 0, 0, 0.05)'                         },                         ticks: {                             callback: function (value) {                                 return 'Rp ' + value.toLocaleString('id-ID');                             }                         }                     },                     x: {                         grid: {                             display: false                         }                     }                 }             }         });     });
     </script>
 @endsection

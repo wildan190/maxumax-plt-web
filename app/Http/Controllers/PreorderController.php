@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderCreated;
 use App\Mail\RefundRequested;
 use App\Jobs\SendEmailJob;
+use Illuminate\Support\Facades\Notification;
+use App\Models\User;
+use App\Notifications\NewOrderNotification;
+use App\Notifications\NewPreorderNotification;
 
 class PreorderController extends Controller
 {
@@ -287,9 +291,32 @@ class PreorderController extends Controller
             return [$pre];
         });
 
-        // Send Email
+        // Send Email to buyer
         if (!empty($orders) && $orders[0]->email) {
             SendEmailJob::dispatch($orders[0]->email, new OrderCreated($orders[0]), 2);
+        }
+
+        // Database notifications for admins
+        $admins = User::whereIn('role', ['admin', 'staff'])->get();
+        if ($admins->isNotEmpty()) {
+            // Database notifications for admins only (no email)
+            if (str_starts_with($orders[0]->order_number, 'MM-PO-')) {
+                Notification::send($admins, new NewPreorderNotification($orders[0]));
+            } else {
+                Notification::send($admins, new NewOrderNotification($orders[0]));
+            }
+
+            // Database notifications for buyer (if registered)
+            if (!empty($orders[0]->email)) {
+                $buyer = User::where('email', $orders[0]->email)->first();
+                if ($buyer) {
+                    if (str_starts_with($orders[0]->order_number, 'MM-PO-')) {
+                        $buyer->notify(new NewPreorderNotification($orders[0]));
+                    } else {
+                        $buyer->notify(new NewOrderNotification($orders[0]));
+                    }
+                }
+            }
         }
 
         $redirect = $product->available_for_preorder ? 'preorder.thankyou' : 'order.thankyou';

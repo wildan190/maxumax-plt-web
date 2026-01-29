@@ -3,9 +3,82 @@
 @section('page-title', 'Account Settings')
 
 @section('content')
-    <div style="max-width: 1000px; margin: 0 auto;">
+    <style>
+        .profile-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .profile-header {
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 2.5rem;
+            align-items: start;
+        }
+
+        .profile-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .profile-main {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .profile-container {
+                padding: 0 1rem;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 1.5rem;
+            }
+
+            .profile-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .form-grid-2 {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .profile-card {
+                border-radius: 1rem !important;
+            }
+
+            .card-padding {
+                padding: 1.5rem !important;
+            }
+        }
+    </style>
+
+    <div class="profile-container">
         <!-- Header Section -->
-        <div style="margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <div class="profile-header">
             <div>
                 <h1
                     style="font-size: 1.5rem; font-weight: 800; color: #111827; margin: 0; letter-spacing: -0.025em; text-transform: uppercase;">
@@ -30,21 +103,23 @@
             </div>
         @endif
 
-        <div style="display: grid; grid-template-columns: 320px 1fr; gap: 2.5rem; align-items: start;">
+        <div class="profile-grid">
 
             <!-- Sidebar Column -->
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div class="profile-sidebar">
                 <!-- Profile Summary Card -->
-                <div
+                <div class="profile-card"
                     style="background: white; border-radius: 1.5rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; text-align: center; padding: 2.5rem 1.5rem;">
                     <div
                         style="width: 100px; height: 100px; margin: 0 auto 1.5rem; background: #111827; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; border: 4px solid #f3f4f6; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
                     <h2 style="font-size: 1.25rem; font-weight: 800; color: #111827; margin: 0 0 0.25rem;">
-                        {{ auth()->user()->name }}</h2>
+                        {{ auth()->user()->name }}
+                    </h2>
                     <p style="font-size: 0.875rem; color: #6b7280; font-weight: 500; margin-bottom: 1.5rem;">
-                        {{ auth()->user()->email }}</p>
+                        {{ auth()->user()->email }}
+                    </p>
 
                     <div
                         style="padding-top: 1.5rem; border-top: 1px solid #f3f4f6; display: flex; flex-direction: column; gap: 0.75rem; text-align: left;">
@@ -75,10 +150,10 @@
             </div>
 
             <!-- Main Content Column -->
-            <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <div class="profile-main">
 
                 <!-- Personal Information Card -->
-                <div
+                <div class="profile-card"
                     style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
                     <div
                         style="padding: 1.5rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.75rem;">
@@ -90,12 +165,12 @@
                             style="font-size: 1rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
                             Personal Information</h3>
                     </div>
-                    <div style="padding: 2rem;">
+                    <div class="card-padding" style="padding: 2rem;">
                         <form method="POST" action="{{ route('profile.update') }}">
                             @csrf
                             @method('PUT')
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div class="form-grid-2">
                                 <div>
                                     <label for="name"
                                         style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Display
@@ -107,7 +182,8 @@
                                     @error('name')
                                         <div
                                             style="color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 0.375rem;">
-                                            {{ $message }}</div>
+                                            {{ $message }}
+                                        </div>
                                     @enderror
                                 </div>
 
@@ -122,7 +198,8 @@
                                     @error('email')
                                         <div
                                             style="color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 0.375rem;">
-                                            {{ $message }}</div>
+                                            {{ $message }}
+                                        </div>
                                     @enderror
                                 </div>
                             </div>
@@ -138,7 +215,7 @@
                 </div>
 
                 <!-- Security Card -->
-                <div
+                <div class="profile-card"
                     style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
                     <div
                         style="padding: 1.5rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.75rem;">
@@ -150,7 +227,7 @@
                             style="font-size: 1rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
                             Security & Password</h3>
                     </div>
-                    <div style="padding: 2rem;">
+                    <div class="card-padding" style="padding: 2rem;">
                         <form method="POST" action="{{ route('password.update') }}">
                             @csrf
                             @method('PUT')
@@ -163,11 +240,12 @@
                                     style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 600;">
                                 @error('current_password')
                                     <div style="color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 0.375rem;">
-                                        {{ $message }}</div>
+                                        {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div class="form-grid-2">
                                 <div>
                                     <label for="password"
                                         style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">New
@@ -177,7 +255,8 @@
                                     @error('password')
                                         <div
                                             style="color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 0.375rem;">
-                                            {{ $message }}</div>
+                                            {{ $message }}
+                                        </div>
                                     @enderror
                                 </div>
 
@@ -201,7 +280,7 @@
                 </div>
 
                 <!-- Danger Zone -->
-                <div
+                <div class="profile-card"
                     style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 1.25rem; overflow: hidden; margin-top: 1rem;">
                     <div
                         style="padding: 1.5rem; border-bottom: 1px solid #fee2e2; display: flex; align-items: center; gap: 0.75rem;">
@@ -213,7 +292,8 @@
                             style="font-size: 1rem; font-weight: 700; color: #991b1b; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
                             Danger Area</h3>
                     </div>
-                    <div style="padding: 2rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div class="card-padding"
+                        style="padding: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
                         <div>
                             <h4 style="font-size: 0.875rem; font-weight: 700; color: #991b1b; margin: 0 0 0.25rem;">
                                 Permanent Account Deletion</h4>
@@ -225,7 +305,7 @@
                             @csrf
                             @method('DELETE')
                             <button type="submit"
-                                style="padding: 0.75rem 1.5rem; background: #dc2626; color: white; border: none; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: all 0.2s;">
+                                style="padding: 0.75rem 1.5rem; background: #dc2626; color: white; border: none; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
                                 Delete Account
                             </button>
                         </form>

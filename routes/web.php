@@ -89,6 +89,14 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::post('/{complaint}/reject', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'reject'])->name('reject');
         Route::post('/{complaint}/confirm-return', [App\Http\Controllers\Admin\ComplaintAdminController::class, 'confirmReturn'])->name('confirm-return');
     });
+
+    // Notifications
+    Route::prefix('notifications')->name('admin.notifications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('index');
+        Route::post('/{id}/mark-as-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('markAsRead');
+        Route::post('/mark-all-as-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('markAllAsRead');
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('destroy');
+    });
 });
 
 // Public Gallery
