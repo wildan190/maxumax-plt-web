@@ -3,107 +3,109 @@
 @section('title', 'Complaint Details')
 
 @section('content')
-    <div class="container mx-auto px-4 py-6 max-w-4xl">
+    <div style="max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem;">
         @if(session('success'))
-            <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6">
+            <div style="background: #ecfdf5; border: 1px solid #86efac; color: #166534; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
                 {{ session('success') }}
             </div>
         @endif
 
         @if(session('error'))
-            <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
                 {{ session('error') }}
             </div>
         @endif
 
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-gray-900 to-gray-700 text-white px-6 py-4 flex justify-between items-center">
+        <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.06); overflow: hidden;">
+            <div style="background: linear-gradient(to right, #111827, #374151); color: #ffffff; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;">
                 <div>
-                    <h1 class="text-xl font-bold">Complaint #{{ $complaint->id }}</h1>
-                    <p class="text-sm text-gray-300 mt-1">Order: {{ $complaint->preorder->order_number }}</p>
+                    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Complaint #{{ $complaint->id }}</h1>
+                    <p style="font-size: 0.875rem; color: #d1d5db; margin: 0.25rem 0 0;">Order: {{ $complaint->preorder->order_number }}</p>
                 </div>
-                @php
-                    $statusColors = [
-                        'pending' => 'bg-yellow-500',
-                        'approved' => 'bg-green-500',
-                        'rejected' => 'bg-red-500',
-                        'completed' => 'bg-blue-500',
-                    ];
-                @endphp
-                <span
-                    class="px-3 py-1 rounded-full text-sm font-semibold {{ $statusColors[$complaint->status] ?? 'bg-gray-500' }}">
-                    {{ ucfirst($complaint->status) }}
-                </span>
+                @if($complaint->status === 'pending')
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; background: #f59e0b; color: #ffffff;">
+                        {{ ucfirst($complaint->status) }}
+                    </span>
+                @elseif($complaint->status === 'approved')
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; background: #10b981; color: #ffffff;">
+                        {{ ucfirst($complaint->status) }}
+                    </span>
+                @elseif($complaint->status === 'rejected')
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; background: #ef4444; color: #ffffff;">
+                        {{ ucfirst($complaint->status) }}
+                    </span>
+                @elseif($complaint->status === 'completed')
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; background: #3b82f6; color: #ffffff;">
+                        {{ ucfirst($complaint->status) }}
+                    </span>
+                @else
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; background: #6b7280; color: #ffffff;">
+                        {{ ucfirst($complaint->status) }}
+                    </span>
+                @endif
             </div>
 
-            <div class="p-6">
-                <!-- Complaint Info -->
-                <div class="grid grid-cols-2 gap-6 mb-6">
+            <div style="padding: 1.5rem;">
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-700 mb-1">Type</h3>
-                        <p class="text-gray-900 capitalize">{{ $complaint->type }}</p>
+                        <h3 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin: 0 0 0.25rem;">Type</h3>
+                        <p style="color: #111827; text-transform: capitalize; margin: 0;">{{ $complaint->type }}</p>
                     </div>
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-700 mb-1">Amount</h3>
-                        <p class="text-gray-900">{{ $complaint->preorder->currency }}
+                        <h3 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin: 0 0 0.25rem;">Amount</h3>
+                        <p style="color: #111827; margin: 0;">{{ $complaint->preorder->currency }}
                             {{ number_format($complaint->preorder->total_amount, 2) }}
                         </p>
                     </div>
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-700 mb-1">Submitted</h3>
-                        <p class="text-gray-900">{{ $complaint->created_at->format('F j, Y g:i A') }}</p>
+                        <h3 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin: 0 0 0.25rem;">Submitted</h3>
+                        <p style="color: #111827; margin: 0;">{{ $complaint->created_at->format('F j, Y g:i A') }}</p>
                     </div>
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-700 mb-1">Expires</h3>
-                        <p class="text-gray-900">{{ $complaint->expires_at->format('F j, Y') }}</p>
+                        <h3 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin: 0 0 0.25rem;">Expires</h3>
+                        <p style="color: #111827; margin: 0;">{{ $complaint->expires_at->format('F j, Y') }}</p>
                     </div>
                 </div>
 
-                <!-- Customer Reason -->
-                <div class="mb-6">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-2">Customer's Reason</h3>
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin: 0 0 0.5rem;">Customer's Reason</h3>
+                    <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem;">
                         {{ $complaint->reason }}
                     </div>
                 </div>
 
-                <!-- Admin Actions -->
                 @if($complaint->status === 'pending')
-                    <div class="border-t pt-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Admin Actions</h3>
+                    <div style="border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 700; color: #111827; margin: 0 0 1rem;">Admin Actions</h3>
 
-                        <!-- Approve Form -->
-                        <form method="POST" action="{{ route('admin.complaints.approve', $complaint) }}" class="mb-4">
+                        <form method="POST" action="{{ route('admin.complaints.approve', $complaint) }}" style="margin-bottom: 1rem;">
                             @csrf
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Admin Notes (Optional)</label>
-                            <textarea name="admin_notes" rows="3" class="w-full border-gray-300 rounded-lg mb-3"
+                            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin: 0 0 0.5rem;">Admin Notes (Optional)</label>
+                            <textarea name="admin_notes" rows="3" style="width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.75rem; font-family: inherit; margin-bottom: 0.75rem;"
                                 placeholder="Internal notes about this decision..."></textarea>
                             <button type="submit" onclick="return confirm('Approve this {{ $complaint->type }} request?')"
-                                class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700">
+                                style="background: #16a34a; color: #ffffff; padding: 0.5rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">
                                 Approve {{ ucfirst($complaint->type) }}
                             </button>
                         </form>
 
-                        <!-- Reject Form -->
                         <form method="POST" action="{{ route('admin.complaints.reject', $complaint) }}">
                             @csrf
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Rejection Reason *</label>
-                            <textarea name="rejection_reason" rows="3" required class="w-full border-gray-300 rounded-lg mb-3"
+                            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin: 0 0 0.5rem;">Rejection Reason *</label>
+                            <textarea name="rejection_reason" rows="3" required style="width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.75rem; font-family: inherit; margin-bottom: 0.75rem;"
                                 placeholder="Explain why this complaint is being rejected..."></textarea>
                             <button type="submit" onclick="return confirm('Reject this complaint?')"
-                                class="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700">
+                                style="background: #dc2626; color: #ffffff; padding: 0.5rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">
                                 Reject Complaint
                             </button>
                         </form>
                     </div>
                 @endif
 
-                <!-- Confirm Return Receipt -->
                 @if($complaint->canConfirmReturn())
-                    <div class="border-t pt-6 bg-blue-50 -mx-6 px-6 pb-6">
-                        <h3 class="text-lg font-semibold text-blue-900 mb-2">Process Return</h3>
-                        <p class="text-sm text-blue-700 mb-4">
+                    <div style="border-top: 1px solid #e5e7eb; padding: 1.5rem; background: #eff6ff; border-radius: 0.5rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 700; color: #1e40af; margin: 0 0 0.5rem;">Process Return</h3>
+                        <p style="font-size: 0.875rem; color: #1d4ed8; margin: 0 0 1rem;">
                             The replacement order <strong>#{{ $complaint->replacement_order_number }}</strong> is currently
                             <strong>Pending</strong>.
                             Confirm receipt of the returned item to activate the replacement order.
@@ -112,8 +114,8 @@
                             @csrf
                             <button type="submit"
                                 onclick="return confirm('Confirm that you have received the returned item? This will activate the replacement order.')"
-                                class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                                style="background: #2563eb; color: #ffffff; padding: 0.5rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="20 6 9 17 4 12"></polyline>
                                 </svg>
@@ -124,22 +126,22 @@
                 @endif
 
                 @if($complaint->admin_notes)
-                    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h3 class="text-sm font-semibold text-blue-900 mb-1">Admin Notes</h3>
-                        <p class="text-blue-800">{{ $complaint->admin_notes }}</p>
+                    <div style="margin-top: 1.5rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.5rem; padding: 1rem;">
+                        <h3 style="font-size: 0.875rem; font-weight: 600; color: #1e40af; margin: 0 0 0.25rem;">Admin Notes</h3>
+                        <p style="color: #1e3a8a; margin: 0;">{{ $complaint->admin_notes }}</p>
                     </div>
                 @endif
 
                 @if($complaint->rejection_reason)
-                    <div class="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
-                        <h3 class="text-sm font-semibold text-red-900 mb-1">Rejection Reason</h3>
-                        <p class="text-red-800">{{ $complaint->rejection_reason }}</p>
+                    <div style="margin-top: 1.5rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 1rem;">
+                        <h3 style="font-size: 0.875rem; font-weight: 600; color: #7f1d1d; margin: 0 0 0.25rem;">Rejection Reason</h3>
+                        <p style="color: #7f1d1d; margin: 0;">{{ $complaint->rejection_reason }}</p>
                     </div>
                 @endif
             </div>
 
-            <div class="px-6 py-4 bg-gray-50 border-t">
-                <a href="{{ route('admin.complaints.index') }}" class="text-blue-600 hover:text-blue-800 font-medium">
+            <div style="padding: 1rem 1.5rem; background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <a href="{{ route('admin.complaints.index') }}" style="color: #2563eb; text-decoration: none; font-weight: 500;">
                     ← Back to Complaints List
                 </a>
             </div>
