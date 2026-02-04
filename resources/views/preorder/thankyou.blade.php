@@ -395,12 +395,36 @@
                         <div class="value">{{ $firstOrder->notes }}</div>
                     </div>
                 @endif
+
+                @if($firstOrder->shipping_cost > 0)
+                    <div style="margin-top: 1rem; border-top: 1px dashed var(--gray-200); padding-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <div style="color: var(--gray-500);">
+                                Shipping 
+                                @if($firstOrder->shipping_courier_name)
+                                    <span style="font-size: 0.85rem; background: var(--gray-100); padding: 2px 6px; border-radius: 4px; margin-left: 5px;">
+                                        {{ $firstOrder->shipping_courier_name }} - {{ $firstOrder->shipping_service_name }}
+                                    </span>
+                                @endif
+                            </div>
+                            <div style="font-weight: 600;">{{ $currency }} {{ number_format($firstOrder->shipping_cost, 2) }}</div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div class="order-total-bar">
                 <div>
                     <div class="label">Total Price</div>
-                    <div class="pay-note">Pay on delivery</div>
+                    <div class="pay-note">
+                        @if($firstOrder->status == 'paid')
+                            Paid via Stripe
+                        @elseif($firstOrder->status == 'pending')
+                            Pending Payment/Confirmation
+                        @else
+                            {{ ucfirst($firstOrder->status) }}
+                        @endif
+                    </div>
                 </div>
                 <div class="price">{{ $currency }} {{ number_format($grandTotal, 2) }}</div>
             </div>

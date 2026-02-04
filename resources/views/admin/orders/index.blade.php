@@ -312,9 +312,49 @@
         </div>
 
         <!-- Pagination -->
-        <div style="padding: 1.5rem 0; display: flex; justify-content: center;">
-            {{ $orders->links() }}
-        </div>
+        @if ($orders->hasPages())
+            <div style="padding: 1.5rem 0; display: flex; justify-content: center;">
+                <nav aria-label="Pagination" style="display:flex; gap:0.5rem; align-items:center;">
+                    @if ($orders->onFirstPage())
+                        <span style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #9ca3af; background:#f9fafb; border-radius: 0.375rem; font-size: 0.875rem;">« Prev</span>
+                    @else
+                        <a href="{{ $orders->previousPageUrl() }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #111827; background:#fff; border-radius: 0.375rem; font-size: 0.875rem; text-decoration:none;">« Prev</a>
+                    @endif
+
+                    @php
+                        $start = max(1, $orders->currentPage() - 2);
+                        $end = min($orders->lastPage(), $orders->currentPage() + 2);
+                    @endphp
+                    @if ($start > 1)
+                        <a href="{{ $orders->url(1) }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #111827; background:#fff; border-radius: 0.375rem; font-size: 0.875rem; text-decoration:none;">1</a>
+                        @if ($start > 2)
+                            <span style="padding: 0.5rem 0.75rem; color: #9ca3af; font-size: 0.875rem;">…</span>
+                        @endif
+                    @endif
+
+                    @for ($page = $start; $page <= $end; $page++)
+                        @if ($page == $orders->currentPage())
+                            <span style="padding: 0.5rem 0.75rem; border: 1px solid #111827; color: #fff; background:#111827; border-radius: 0.375rem; font-size: 0.875rem; font-weight:700;">{{ $page }}</span>
+                        @else
+                            <a href="{{ $orders->url($page) }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #111827; background:#fff; border-radius: 0.375rem; font-size: 0.875rem; text-decoration:none;">{{ $page }}</a>
+                        @endif
+                    @endfor
+
+                    @if ($end < $orders->lastPage())
+                        @if ($end < $orders->lastPage() - 1)
+                            <span style="padding: 0.5rem 0.75rem; color: #9ca3af; font-size: 0.875rem;">…</span>
+                        @endif
+                        <a href="{{ $orders->url($orders->lastPage()) }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #111827; background:#fff; border-radius: 0.375rem; font-size: 0.875rem; text-decoration:none;">{{ $orders->lastPage() }}</a>
+                    @endif
+
+                    @if ($orders->hasMorePages())
+                        <a href="{{ $orders->nextPageUrl() }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #111827; background:#fff; border-radius: 0.375rem; font-size: 0.875rem; text-decoration:none;">Next »</a>
+                    @else
+                        <span style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #9ca3af; background:#f9fafb; border-radius: 0.375rem; font-size: 0.875rem;">Next »</span>
+                    @endif
+                </nav>
+            </div>
+        @endif
     @else
         <div style="background: white; border-radius: 0.75rem; padding: 3rem; text-align: center;">
             <p style="color: #6b7280; font-size: 1rem; margin: 0;">Tidak ada order ditemukan</p>

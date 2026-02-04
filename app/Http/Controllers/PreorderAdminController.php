@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Preorder;
 use App\Models\PreorderHistory;
+use App\Services\EasyParcelService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -122,7 +123,133 @@ class PreorderAdminController extends Controller
             Mail::to($preorder->email)->send(new PaymentSuccess($preorder));
         }
 
-        return back()->with('status', 'Marked as paid');
+        $autoBookingMsg = null;
+        if (empty($preorder->tracking_number) && !empty($preorder->shipping_service_id)) {
+            try {
+                $weight = max(1, (int) $preorder->quantity * 0.5);
+                $addr = (string) ($preorder->address ?? '');
+                $segments = preg_split('/,\s*/', $addr);
+                $postal = null;
+                $state = null;
+                $city = null;
+                foreach ($segments as $i => $seg) {
+                    if (stripos($seg, 'Postal ') === 0) {
+                        $postal = trim(substr($seg, 7));
+                        $state = $segments[$i - 1] ?? null;
+                        $city = $segments[$i - 2] ?? null;
+                        break;
+                    }
+                }
+                $isDelyva = !empty($preorder->shipping_courier_name) && stripos($preorder->shipping_courier_name, 'delyva') !== false;
+                if ($isDelyva) {
+                    $delyva = new \App\Services\DelyvaService();
+                    $origin = [
+                        'name' => config('app.name'),
+                        'address1' => 'Lot 1-35, 1st Floor, Suria Sabah Shopping Mall, 1, Jln Tun Fuad Stephens',
+                        'postcode' => '88000',
+                        'state' => 'Sabah',
+                        'city' => 'Kota Kinabalu',
+                        'country' => 'MY',
+                        'phone' => $preorder->phone ?? '',
+                        'email' => $preorder->email ?? null,
+                    ];
+                    $destination = [
+                        'name' => $preorder->name,
+                        'address1' => $preorder->address ?? '',
+                        'postcode' => $postal,
+                        'state' => $state,
+                        'city' => $city,
+                        'country' => 'MY',
+                        'phone' => $preorder->phone ?? '',
+                        'email' => $preorder->email ?? null,
+                    ];
+                    $items = [
+                        [
+                            'name' => 'Jersey',
+                            'quantity' => $preorder->quantity,
+                            'weight' => ['unit' => 'kg', 'value' => $weight],
+                        ]
+                    ];
+                    $meta = [
+                        'reference' => $preorder->order_number,
+                        'cod' => ['amount' => 0, 'currency' => $preorder->currency],
+                        'price' => ['amount' => $preorder->shipping_cost ?? 0, 'currency' => $preorder->currency],
+                    ];
+                    $created = $delyva->createOrder($origin, $destination, $items, $meta);
+                    $orderId = $created['data']['id'] ?? null;
+                    if ($orderId) {
+                        $serviceCode = $preorder->shipping_service_id;
+                        $delyva->processOrder($orderId, $serviceCode);
+                        $details = $delyva->getOrder($orderId);
+                        $consignmentNo = $details['data']['consignmentNo'] ?? null;
+                        if ($consignmentNo) {
+                            $preorder->tracking_number = $consignmentNo;
+                            $preorder->shipping_status = 'shipped';
+                            $preorder->save();
+                            PreorderHistory::create([
+                                'preorder_id' => $preorder->id,
+                                'old_status' => $preorder->status,
+                                'new_status' => $preorder->status,
+                                'note' => 'Auto-booked via Delyva. Consignment: ' . $consignmentNo,
+                            ]);
+                            $autoBookingMsg = 'Auto-booked shipment (Consignment: ' . $consignmentNo . ')';
+                        }
+                    }
+                } else {
+                    $easyParcel = new EasyParcelService();
+                    $orderData = [
+                        'weight' => $weight,
+                        'content' => 'Jersey',
+                        'value' => $preorder->total_amount,
+                        'service_id' => $preorder->shipping_service_id,
+                        'order_number' => $preorder->order_number,
+                        'pick_name' => config('app.name'),
+                        'pick_company' => config('app.name'),
+                        'pick_contact' => $preorder->phone ?? '',
+                        'pick_mobile' => $preorder->phone ?? '',
+                        'pick_addr1' => 'Lot 1-35, 1st Floor, Suria Sabah Shopping Mall, 1, Jln Tun Fuad Stephens',
+                        'pick_code' => '88000',
+                        'pick_state' => 'Sabah',
+                        'pick_province' => 'Sabah',
+                        'pick_country' => 'MY',
+                        'send_name' => $preorder->name,
+                        'send_contact' => $preorder->phone ?? '',
+                        'send_mobile' => $preorder->phone ?? '',
+                        'send_addr1' => $preorder->address ?? '',
+                        'send_code' => $postal,
+                        'send_state' => $state,
+                        'send_province' => $state,
+                        'send_country' => 'MY',
+                        'send_email' => $preorder->email,
+                    ];
+                    $result = $easyParcel->submitOrder($orderData);
+                    if (isset($result['api_status']) && $result['api_status'] === 'Success') {
+                        $shipment = $result['result'][0] ?? [];
+                        $awb = $shipment['awb'] ?? null;
+                        if ($awb) {
+                            $preorder->tracking_number = $awb;
+                            $preorder->shipping_status = 'shipped';
+                            $preorder->save();
+                            PreorderHistory::create([
+                                'preorder_id' => $preorder->id,
+                                'old_status' => $preorder->status,
+                                'new_status' => $preorder->status,
+                                'note' => 'Auto-booked via EasyParcel. AWB: ' . $awb,
+                            ]);
+                            $autoBookingMsg = 'Auto-booked shipment (AWB: ' . $awb . ')';
+                        } else {
+                            $autoBookingMsg = 'Booking success without AWB';
+                        }
+                    } else {
+                        $autoBookingMsg = 'Booking failed: ' . json_encode($result);
+                    }
+                }
+            } catch (\Throwable $e) {
+                $autoBookingMsg = 'Booking error: ' . $e->getMessage();
+            }
+        }
+ 
+        return back()->with('status', trim('Marked as paid' . ($autoBookingMsg ? ' — ' . $autoBookingMsg : '')));
     }
 
     public function confirm(Request $request, Preorder $preorder)
@@ -286,7 +413,7 @@ class PreorderAdminController extends Controller
 
         $response = new StreamedResponse(function () {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['id', 'name', 'email', 'phone', 'jersey_type', 'size', 'long_sleeve', 'nameset', 'nameset_text', 'quantity', 'unit_price', 'total_amount', 'status', 'created_at']);
+            fputcsv($handle, ['id', 'name', 'email', 'phone', 'address', 'jersey_type', 'size', 'long_sleeve', 'nameset', 'nameset_text', 'quantity', 'unit_price', 'shipping_courier', 'shipping_service', 'shipping_cost', 'tracking_number', 'total_amount', 'status', 'created_at']);
 
             Preorder::whereHas('product', function ($q) {
                 $q->where('available_for_preorder', true);
@@ -297,6 +424,7 @@ class PreorderAdminController extends Controller
                         $r->name,
                         $r->email,
                         $r->phone,
+                        $r->address,
                         $r->jersey_type,
                         $r->size,
                         $r->long_sleeve ? '1' : '0',
@@ -304,6 +432,10 @@ class PreorderAdminController extends Controller
                         $r->nameset_text,
                         $r->quantity,
                         number_format($r->unit_price, 2, '.', ''),
+                        $r->shipping_courier_name,
+                        $r->shipping_service_name,
+                        number_format($r->shipping_cost, 2, '.', ''),
+                        $r->tracking_number,
                         number_format($r->total_amount, 2, '.', ''),
                         $r->status,
                         $r->created_at,
@@ -473,5 +605,272 @@ class PreorderAdminController extends Controller
             return (int) round($amount);
         }
         return (int) round($amount * 100);
+    }
+
+    public function shipping(Preorder $preorder)
+    {
+        $rates = session('rates');
+        return view('admin.preorders.shipping', compact('preorder', 'rates'));
+    }
+
+    public function checkRates(Request $request, Preorder $preorder, EasyParcelService $easyParcel, \App\Services\DelyvaService $delyva)
+    {
+        $data = $request->validate([
+            'pick_code' => 'required',
+            'pick_state' => 'required',
+            'pick_country' => 'required',
+            'send_code' => 'required',
+            'send_state' => 'required',
+            'send_country' => 'required',
+            'weight' => 'required|numeric',
+        ]);
+
+        $result = $easyParcel->checkRate($data);
+        $epRates = [];
+        if (isset($result['api_status']) && $result['api_status'] === 'Success') {
+            $epRates = $result['result'][0]['rates'] ?? [];
+        }
+
+        $origin = [
+            'address1' => 'Lot 1-35, 1st Floor, Suria Sabah Shopping Mall, 1, Jln Tun Fuad Stephens',
+            'postcode' => $data['pick_code'],
+            'state' => $data['pick_state'],
+            'city' => 'Kota Kinabalu',
+            'country' => $data['pick_country'],
+        ];
+        $destination = [
+            'address1' => $preorder->address ?? '',
+            'postcode' => $data['send_code'],
+            'state' => $data['send_state'],
+            'city' => null,
+            'country' => $data['send_country'],
+        ];
+        $items = [
+            [
+                'name' => 'Jersey',
+                'quantity' => max(1, (int) $preorder->quantity),
+                'weight' => ['unit' => 'kg', 'value' => (float) $data['weight']],
+            ]
+        ];
+        $delyvaQuote = $delyva->quote($origin, $destination, $items);
+
+        $formattedEp = collect($epRates)->map(function($r) {
+            return [
+                'source' => 'easyparcel',
+                'service_id' => $r['service_id'] ?? null,
+                'courier_name' => $r['courier_name'] ?? 'EasyParcel',
+                'courier_logo' => $r['courier_logo'] ?? null,
+                'service_name' => $r['service_name'] ?? '',
+                'price' => isset($r['price']) ? (float) $r['price'] : null,
+                'delivery' => $r['delivery'] ?? 'N/A',
+            ];
+        });
+
+        $formattedDelyva = collect([]);
+        if (!empty($delyvaQuote['data']) && is_array($delyvaQuote['data'])) {
+            $formattedDelyva = collect($delyvaQuote['data'])->map(function($q) {
+                $price = null;
+                if (isset($q['price'])) {
+                    $price = is_array($q['price']) ? ($q['price']['amount'] ?? null) : $q['price'];
+                }
+                return [
+                    'source' => 'delyva',
+                    'service_id' => $q['serviceCode'] ?? $q['serviceId'] ?? null,
+                    'courier_name' => 'Delyva',
+                    'courier_logo' => null,
+                    'service_name' => $q['serviceCode'] ?? 'Delyva Service',
+                    'price' => $price ? (float) $price : null,
+                    'delivery' => $q['delivery'] ?? 'N/A',
+                ];
+            });
+        }
+
+        $rates = $formattedEp->merge($formattedDelyva)->filter(fn($x) => $x['service_id'] && $x['price'] !== null)->sortBy('price')->values()->toArray();
+        if (empty($rates)) {
+            return back()->withInput()->with('error', 'No rates available');
+        }
+
+        return redirect()->route('admin.preorders.shipping', $preorder)
+            ->with('rates', $rates)
+            ->withInput();
+    }
+
+    public function bookShipping(Request $request, Preorder $preorder, EasyParcelService $easyParcel, \App\Services\DelyvaService $delyva)
+    {
+        // For simplicity, we assume the user selected a rate and we just need to submit the order
+        // We need all details for EPSubmitOrderBulk
+        
+        $request->validate([
+            'service_id' => 'required',
+            'weight' => 'required|numeric',
+            'pick_code' => 'required',
+            'pick_state' => 'required',
+            'pick_country' => 'required',
+            'pick_name' => 'required',
+            'pick_contact' => 'required',
+            'pick_addr1' => 'required',
+            'send_code' => 'required',
+            'send_state' => 'required',
+            'send_country' => 'required',
+            'send_name' => 'required',
+            'send_contact' => 'required',
+            'send_addr1' => 'required',
+            'courier_source' => 'nullable|string|in:easyparcel,delyva',
+        ]);
+        $source = $request->input('courier_source', 'easyparcel');
+        if ($source === 'delyva') {
+            $origin = [
+                'name' => $request->pick_name,
+                'address1' => $request->pick_addr1,
+                'postcode' => $request->pick_code,
+                'state' => $request->pick_state,
+                'city' => 'Kota Kinabalu',
+                'country' => $request->pick_country,
+                'phone' => $request->pick_contact,
+                'email' => $preorder->email,
+            ];
+            $destination = [
+                'name' => $request->send_name,
+                'address1' => $request->send_addr1,
+                'postcode' => $request->send_code,
+                'state' => $request->send_state,
+                'city' => null,
+                'country' => $request->send_country,
+                'phone' => $request->send_contact,
+                'email' => $preorder->email,
+            ];
+            $items = [
+                [
+                    'name' => 'Jersey',
+                    'quantity' => max(1, (int) $preorder->quantity),
+                    'weight' => ['unit' => 'kg', 'value' => (float) $request->weight],
+                ]
+            ];
+            $meta = [
+                'reference' => $preorder->order_number,
+                'cod' => ['amount' => 0, 'currency' => $preorder->currency],
+                'price' => ['amount' => $preorder->shipping_cost ?? 0, 'currency' => $preorder->currency],
+            ];
+            $created = $delyva->createOrder($origin, $destination, $items, $meta);
+            $orderId = $created['data']['id'] ?? null;
+            if ($orderId) {
+                $serviceCode = $request->service_id;
+                $delyva->processOrder($orderId, $serviceCode);
+                $details = $delyva->getOrder($orderId);
+                $consignmentNo = $details['data']['consignmentNo'] ?? null;
+                if ($consignmentNo) {
+                    $preorder->tracking_number = $consignmentNo;
+                    $preorder->shipping_status = 'shipped';
+                    $preorder->save();
+                    PreorderHistory::create([
+                        'preorder_id' => $preorder->id,
+                        'old_status' => $preorder->status,
+                        'new_status' => $preorder->status,
+                        'note' => 'Booked via Delyva. Consignment: ' . $consignmentNo,
+                    ]);
+                    return redirect()->route('admin.preorders.show', $preorder)->with('status', 'Shipment booked successfully. Consignment: ' . $consignmentNo);
+                }
+                return back()->with('error', 'Booking successful but consignment not returned.');
+            }
+            return back()->with('error', 'Booking failed: ' . json_encode($created));
+        }
+
+        $orderData = [
+             'weight' => $request->weight,
+             'content' => 'Jersey',
+             'value' => $preorder->total_amount,
+             'service_id' => $request->service_id,
+             'order_number' => $preorder->order_number,
+             
+             'pick_name' => $request->pick_name,
+             'pick_company' => $request->pick_company ?? config('app.name'),
+             'pick_contact' => $request->pick_contact,
+             'pick_mobile' => $request->pick_contact, // Required by EasyParcel
+             'pick_addr1' => $request->pick_addr1,
+             'pick_addr2' => $request->pick_addr2 ?? '',
+             'pick_code' => $request->pick_code,
+             'pick_state' => $request->pick_state,
+             'pick_province' => $request->pick_state, // Sometimes required
+             'pick_country' => $request->pick_country,
+             'pick_city' => 'Kota Kinabalu',
+             'pick_email' => config('mail.from.address'),
+             
+             'send_name' => $request->send_name,
+             'send_contact' => $request->send_contact,
+             'send_mobile' => $request->send_contact, // Required by EasyParcel
+             'send_addr1' => $request->send_addr1,
+             'send_addr2' => $request->send_addr2 ?? '',
+             'send_code' => $request->send_code,
+             'send_state' => $request->send_state,
+             'send_province' => $request->send_state, // Sometimes required
+             'send_country' => $request->send_country,
+             'send_city' => $request->send_city ?? '',
+             
+             // Optional: Email
+             'send_email' => $preorder->email,
+        ];
+        
+        $result = $easyParcel->submitOrder($orderData);
+        
+        if (isset($result['api_status']) && $result['api_status'] === 'Success') {
+             // Depending on response structure
+             $shipment = $result['result'][0] ?? null;
+             $awb = $shipment['awb'] ?? ($shipment['awb_no'] ?? null);
+             
+             if ($awb) {
+                 $preorder->tracking_number = $awb;
+                 $preorder->shipping_status = 'shipped'; 
+                 $preorder->save();
+                 
+                 PreorderHistory::create([
+                    'preorder_id' => $preorder->id,
+                    'old_status' => $preorder->status,
+                    'new_status' => $preorder->status,
+                    'note' => 'Booked via EasyParcel. AWB: ' . $awb,
+                 ]);
+                 
+                 return redirect()->route('admin.preorders.show', $preorder)->with('status', 'Shipment booked successfully. AWB: ' . $awb);
+             } else {
+                 // Maybe it needs payment or something else
+                 return back()->with('error', 'Booking successful but no AWB returned. Response: ' . json_encode($result));
+             }
+        }
+        
+        return back()->with('error', 'Booking failed: ' . json_encode($result));
+    }
+
+    public function refreshTracking(Preorder $preorder, EasyParcelService $easyParcel)
+    {
+        if (empty($preorder->tracking_number)) {
+            return back()->with('error', 'No tracking number found for this order');
+        }
+        try {
+            $result = $easyParcel->trackParcel($preorder->tracking_number);
+            if (isset($result['api_status']) && $result['api_status'] === 'Success') {
+                $track = $result['result'][0] ?? [];
+                $status = $track['status'] ?? null;
+                if ($status) {
+                    $normalized = strtolower($status);
+                    if (str_contains($normalized, 'deliver')) {
+                        $preorder->shipping_status = 'delivered';
+                    } elseif (str_contains($normalized, 'ship')) {
+                        $preorder->shipping_status = 'shipped';
+                    } elseif (str_contains($normalized, 'pack')) {
+                        $preorder->shipping_status = 'packing';
+                    }
+                    $preorder->save();
+                    PreorderHistory::create([
+                        'preorder_id' => $preorder->id,
+                        'old_status' => $preorder->status,
+                        'new_status' => $preorder->status,
+                        'note' => 'Tracking refreshed: ' . ($status ?? 'N/A'),
+                    ]);
+                }
+                return back()->with('status', 'Tracking refreshed: ' . ($status ?? 'N/A'));
+            }
+            return back()->with('error', 'Failed to refresh tracking: ' . json_encode($result));
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Error refreshing tracking: ' . $e->getMessage());
+        }
     }
 }
