@@ -929,14 +929,20 @@
                 card.onclick = () => selectShipping(card, rate);
                 
                 const logoHtml = rate.courier_logo ? `<img src="${rate.courier_logo}" alt="${rate.courier_name}">` : '';
-                
+                const conf = currencies[currentCurrency] || { symbol: 'RM', rate: 1 };
+                const converted = parseFloat(rate.price) * conf.rate;
+                const displayAmount = currentCurrency === 'IDR'
+                    ? Math.round(converted).toLocaleString('id-ID')
+                    : converted.toFixed(2);
+                const priceHtml = `${conf.symbol} ${displayAmount}`;
+ 
                 card.innerHTML = `
                     ${logoHtml}
                     <div style="font-weight: 600;">${rate.courier_name}</div>
                     <div style="font-size: 0.9rem; color: #64748b;">${rate.service_name}</div>
                     <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.25rem;">Est: ${rate.delivery_period}</div>
                     <div style="margin-top: 0.5rem; font-weight: 700; color: #111827;">
-                        RM ${parseFloat(rate.price).toFixed(2)}
+                        ${priceHtml}
                     </div>
                 `;
                 list.appendChild(card);
