@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 use App\Notifications\NewOrderNotification;
 use App\Notifications\NewPreorderNotification;
+use App\Services\EasyParcelService;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Stripe\Exception\ApiErrorException;
@@ -347,6 +348,11 @@ class PaymentController extends Controller
             'address_detail' => 'required|string',
             'currency' => 'nullable|string|in:MYR,BND,IDR,SGD',
             'notes' => 'nullable|string',
+            'shipping_courier_name' => 'required|string|max:255',
+            'shipping_courier_logo' => 'nullable|string|max:255',
+            'shipping_service_name' => 'required|string|max:255',
+            'shipping_service_id' => 'required|string|max:255',
+            'shipping_cost' => 'required|numeric|min:0',
         ]);
         $fullAddress = trim(implode(', ', array_filter([
             $data['address_detail'] ?? null,
@@ -471,6 +477,25 @@ class PaymentController extends Controller
             ];
         }
 
+        // Add Shipping Cost
+        $shippingCost = (float) ($data['shipping_cost'] ?? 0);
+        $convertedShippingCost = $shippingCost * $config['rate'];
+        $totalAmount += $convertedShippingCost;
+
+        if ($convertedShippingCost > 0) {
+            $lineItems[] = [
+                'price_data' => [
+                    'currency' => strtolower($currency),
+                    'product_data' => [
+                        'name' => 'Shipping Fee',
+                        'description' => ($data['shipping_courier_name'] ?? 'Courier') . ' - ' . ($data['shipping_service_name'] ?? 'Service'),
+                    ],
+                    'unit_amount' => $this->convertToCents($convertedShippingCost, $currency),
+                ],
+                'quantity' => 1,
+            ];
+        }
+
         // Update data with flattened custom_fields for session storage compatibility
         $data['custom_fields'] = $allCustomFields;
 
@@ -500,6 +525,13 @@ class PaymentController extends Controller
                 'product_id' => $product->id,
                 'currency' => $currency,
                 'total_amount' => $totalAmount,
+                'shipping_data' => [
+                    'shipping_courier_name' => $data['shipping_courier_name'],
+                    'shipping_courier_logo' => $data['shipping_courier_logo'],
+                    'shipping_service_name' => $data['shipping_service_name'],
+                    'shipping_service_id' => $data['shipping_service_id'],
+                    'shipping_cost' => $convertedShippingCost,
+                ],
             ]);
 
             return redirect($checkoutSession->url);
@@ -605,7 +637,15 @@ class PaymentController extends Controller
                 $firstVariantName = $firstItem['variant_name'] ?? null;
 
                 $orderNumber = $this->generateOrderNumberForProduct($product);
-                $totalAmount = $checkoutData['total_amount']; // Includes nameset
+                $totalAmount = $checkoutData['total_amount']; // Includes nameset and shipping
+
+                // Retrieve shipping data
+                $shippingData = $checkoutData['shipping_data'] ?? [];
+                $shippingCost = $shippingData['shipping_cost'] ?? 0;
+                
+                // Calculate unit price average before adding shipping
+                $amountExcludingShipping = $totalAmount - $shippingCost;
+                $unitPriceAvg = $totalQty > 0 ? ($amountExcludingShipping / $totalQty) : 0;
 
                 $order = Preorder::create([
                     'uuid' => $uuid,
@@ -621,7 +661,7 @@ class PaymentController extends Controller
                     'long_sleeve' => !empty($orderData['long_sleeve']),
                     'custom_fields' => $orderData['custom_fields'] ?? null,
                     'quantity' => $totalQty,
-                    'unit_price' => $totalQty > 0 ? ($totalAmount / $totalQty) : 0,
+                    'unit_price' => $unitPriceAvg,
                     'total_amount' => $totalAmount,
                     'currency' => $currency,
                     'status' => 'paid',
@@ -629,6 +669,11 @@ class PaymentController extends Controller
                     'items' => $finalItems, // JSON
                     'stripe_payment_intent_id' => $paymentIntentId,
                     'stripe_session_id' => $sessionId,
+                    'shipping_courier_name' => $shippingData['shipping_courier_name'] ?? null,
+                    'shipping_courier_logo' => $shippingData['shipping_courier_logo'] ?? null,
+                    'shipping_service_name' => $shippingData['shipping_service_name'] ?? null,
+                    'shipping_service_id' => $shippingData['shipping_service_id'] ?? null,
+                    'shipping_cost' => $shippingCost,
                 ]);
 
                 PreorderHistory::create([
@@ -645,6 +690,115 @@ class PaymentController extends Controller
                 $this->refundStripePayment($paymentIntentId);
                 Log::error('Preorder creation failed after payment: ' . $e->getMessage());
                 return redirect()->route('preorder.landing')->withErrors(['payment' => 'Order creation failed. Payment refunded. Error: ' . $e->getMessage()]);
+            }
+
+            try {
+                if ($order && !empty($order->shipping_service_id)) {
+                    $weight = max(1, $order->quantity * 0.5);
+                    $sendCode = $orderData['postal_code'] ?? null;
+                    $sendState = $orderData['province'] ?? null;
+                    $sendCity = $orderData['city'] ?? null;
+                    $sendCountry = 'MY';
+                    $isDelyva = !empty($order->shipping_courier_name) && stripos($order->shipping_courier_name, 'delyva') !== false;
+                    if ($isDelyva) {
+                        $delyva = new \App\Services\DelyvaService();
+                        $origin = [
+                            'name' => config('app.name'),
+                            'address1' => 'Lot 1-35, 1st Floor, Suria Sabah Shopping Mall, 1, Jln Tun Fuad Stephens',
+                            'postcode' => '88000',
+                            'state' => 'Sabah',
+                            'city' => 'Kota Kinabalu',
+                            'country' => 'MY',
+                            'phone' => $orderData['phone'] ?? '',
+                            'email' => null,
+                        ];
+                        $destination = [
+                            'name' => $order->name,
+                            'address1' => $orderData['address_detail'] ?? ($order->address ?? ''),
+                            'postcode' => $sendCode,
+                            'state' => $sendState,
+                            'city' => $sendCity,
+                            'country' => $sendCountry,
+                            'phone' => $order->phone ?? '',
+                            'email' => $order->email ?? null,
+                        ];
+                        $items = [
+                            [
+                                'name' => 'Jersey',
+                                'quantity' => $order->quantity,
+                                'weight' => ['unit' => 'kg', 'value' => $weight],
+                            ]
+                        ];
+                        $meta = [
+                            'reference' => $order->order_number,
+                            'cod' => ['amount' => 0, 'currency' => $order->currency],
+                            'price' => ['amount' => $order->shipping_cost ?? 0, 'currency' => $order->currency],
+                        ];
+                        $created = $delyva->createOrder($origin, $destination, $items, $meta);
+                        $orderId = $created['data']['id'] ?? null;
+                        if ($orderId) {
+                            $serviceCode = $order->shipping_service_id;
+                            $delyva->processOrder($orderId, $serviceCode);
+                            $details = $delyva->getOrder($orderId);
+                            $consignmentNo = $details['data']['consignmentNo'] ?? null;
+                            if ($consignmentNo) {
+                                $order->tracking_number = $consignmentNo;
+                                $order->shipping_status = 'shipped';
+                                $order->save();
+                                PreorderHistory::create([
+                                    'preorder_id' => $order->id,
+                                    'old_status' => $order->status,
+                                    'new_status' => $order->status,
+                                    'note' => 'Booked via Delyva. Consignment: ' . $consignmentNo,
+                                ]);
+                            }
+                        }
+                    } else {
+                        $easyParcel = new EasyParcelService();
+                        $orderPayload = [
+                            'weight' => $weight,
+                            'content' => 'Jersey',
+                            'value' => $order->total_amount,
+                            'service_id' => $order->shipping_service_id,
+                            'order_number' => $order->order_number,
+                            'pick_name' => config('app.name'),
+                            'pick_contact' => $orderData['phone'] ?? '',
+                            'pick_mobile' => $orderData['phone'] ?? '',
+                            'pick_addr1' => 'Lot 1-35, 1st Floor, Suria Sabah Shopping Mall, 1, Jln Tun Fuad Stephens',
+                            'pick_code' => '88000',
+                            'pick_state' => 'Sabah',
+                            'pick_province' => 'Sabah',
+                            'pick_country' => 'MY',
+                            'send_name' => $order->name,
+                            'send_contact' => $order->phone ?? '',
+                            'send_mobile' => $order->phone ?? '',
+                            'send_addr1' => $orderData['address_detail'] ?? ($order->address ?? ''),
+                            'send_code' => $sendCode,
+                            'send_state' => $sendState,
+                            'send_province' => $sendState,
+                            'send_country' => $sendCountry,
+                            'send_email' => $order->email,
+                        ];
+                        $result = $easyParcel->submitOrder($orderPayload);
+                        if (isset($result['api_status']) && $result['api_status'] === 'Success') {
+                            $shipment = $result['result'][0] ?? [];
+                            $awb = $shipment['awb'] ?? null;
+                            if ($awb) {
+                                $order->tracking_number = $awb;
+                                $order->shipping_status = 'shipped';
+                                $order->save();
+                                PreorderHistory::create([
+                                    'preorder_id' => $order->id,
+                                    'old_status' => $order->status,
+                                    'new_status' => $order->status,
+                                    'note' => 'Booked via EasyParcel. AWB: ' . $awb,
+                                ]);
+                            }
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::error('Auto-booking error: ' . $e->getMessage());
             }
 
             // Send Email

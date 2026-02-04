@@ -92,12 +92,22 @@
                                              </td>
                                          </tr>
                                      @endforeach
-                                     <tr style="border-top: 2px solid #e5e7eb;">
-                                         <td colspan="4" style="padding: 0.75rem 0; font-weight: 700; text-align: right;">Grand Total</td>
-                                         <td style="padding: 0.75rem 0; font-weight: 800; text-align: right; color: #111827;">
-                                              {{ $preorder->currency }} {{ number_format($preorder->total_amount, 2) }}
-                                         </td>
-                                     </tr>
+                                    @if($preorder->shipping_cost > 0)
+                                        <tr style="border-bottom: 1px solid #f3f4f6;">
+                                            <td colspan="4" style="padding: 0.75rem 0; text-align: right; color: #6b7280;">
+                                                Shipping ({{ $preorder->shipping_courier_name ?? 'Courier' }} - {{ $preorder->shipping_service_name ?? 'Service' }})
+                                            </td>
+                                            <td style="padding: 0.75rem 0; text-align: right; font-weight: 600;">
+                                                {{ $preorder->currency }} {{ number_format($preorder->shipping_cost, 2) }}
+                                            </td>
+                                        </tr>
+                                    @endif
+                                    <tr style="border-top: 2px solid #e5e7eb;">
+                                        <td colspan="4" style="padding: 0.75rem 0; font-weight: 700; text-align: right;">Grand Total</td>
+                                        <td style="padding: 0.75rem 0; font-weight: 800; text-align: right; color: #111827;">
+                                             {{ $preorder->currency }} {{ number_format($preorder->total_amount, 2) }}
+                                        </td>
+                                    </tr>
                                  </tbody>
                              </table>
                         </div>
@@ -233,6 +243,34 @@
                     <div style="padding: 1.5rem; border-top: 1px solid #e5e7eb; background: #f9fafb;">
                         <h3 style="font-size: 1rem; font-weight: 600; color: #111827; margin: 0 0 1rem 0;">📦 Shipping Management</h3>
                         
+                        @if($preorder->shipping_courier_name)
+                            <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px dashed #d1d5db;">
+                                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Selected Shipping Method</p>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    @if($preorder->shipping_courier_logo)
+                                        <img src="{{ $preorder->shipping_courier_logo }}" alt="Courier" style="height: 30px; object-fit: contain; background: white; padding: 2px; border-radius: 4px; border: 1px solid #e5e7eb;">
+                                    @endif
+                                    <div>
+                                        <p style="font-weight: 700; color: #111827; margin: 0;">{{ $preorder->shipping_courier_name }}</p>
+                                        <p style="font-size: 0.85rem; color: #4b5563; margin: 0;">{{ $preorder->shipping_service_name }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                        
+                        @if($preorder->tracking_number)
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                                <div>
+                                    <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">Tracking Number</p>
+                                    <p style="font-weight: 700; color: #111827; margin: 0;">{{ $preorder->tracking_number }}</p>
+                                </div>
+                                <form action="{{ route('admin.preorders.refreshTracking', $preorder) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" style="padding: 0.5rem 1rem; background: #0ea5e9; color: white; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; font-size: 0.875rem;">Refresh Tracking</button>
+                                </form>
+                            </div>
+                        @endif
+
                         @if($preorder->shipping_status)
                             <div style="margin-bottom: 1rem;">
                                 <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.25rem 0;">Shipping Status</p>
@@ -257,11 +295,23 @@
                         @endif
 
                         @if(!$preorder->shipping_status || $preorder->shipping_status === 'pending')
-                            <form action="{{ route('admin.preorders.markPacking', $preorder) }}" method="POST" style="display: inline;">
-                                @csrf
-                                <button type="submit" style="padding: 0.75rem 1.25rem; background: #f59e0b; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">📦 Mark as Packing</button>
-                            </form>
+                            <div style="margin-bottom: 1rem;">
+                                <form action="{{ route('admin.preorders.markPacking', $preorder) }}" method="POST" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" style="padding: 0.75rem 1.25rem; background: #f59e0b; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">📦 Mark as Packing</button>
+                                </form>
+                                <a href="{{ route('admin.preorders.shipping', $preorder) }}" 
+                                    style="display: inline-block; padding: 0.75rem 1.25rem; background: #8b5cf6; color: white; text-decoration: none; border-radius: 0.5rem; font-weight: 600; margin-left: 0.5rem;">
+                                    🚀 EasyParcel
+                                </a>
+                            </div>
                         @elseif($preorder->shipping_status === 'packing')
+                            <div style="margin-bottom: 1rem;">
+                                 <a href="{{ route('admin.preorders.shipping', $preorder) }}" 
+                                    style="display: inline-block; padding: 0.75rem 1.25rem; background: #8b5cf6; color: white; text-decoration: none; border-radius: 0.5rem; font-weight: 600; margin-bottom: 1rem;">
+                                    🚀 Book with EasyParcel
+                                </a>
+                            </div>
                             <form action="{{ route('admin.preorders.markShipped', $preorder) }}" method="POST" id="shippedForm" style="display: none; margin-top: 1rem;">
                                 @csrf
                                 <div style="margin-bottom: 1rem;">

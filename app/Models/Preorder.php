@@ -36,6 +36,11 @@ class Preorder extends Model
         'refund_reason',
         'tracking_number',
         'shipping_status',
+        'shipping_courier_name',
+        'shipping_courier_logo',
+        'shipping_service_name',
+        'shipping_service_id',
+        'shipping_cost',
         'items', // JSON column for multi-item orders
         'uuid',  // Ensure UUID is fillable if manually setting it (though booted logic handles it)
     ];
@@ -47,6 +52,7 @@ class Preorder extends Model
         'total_amount' => 'decimal:2',
         'custom_fields' => 'array',
         'items' => 'array',
+        'shipping_cost' => 'decimal:2',
     ];
 
     public function product()

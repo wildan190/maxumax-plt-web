@@ -28,6 +28,11 @@
             <div class="step-connector"></div>
             <div class="step-item" data-step="4">
                 <div class="step-circle">4</div>
+                <span class="step-label">Shipping</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-item" data-step="5">
+                <div class="step-circle">5</div>
                 <span class="step-label">Review</span>
             </div>
         </div>
@@ -318,8 +323,61 @@
                         </div>
                     </div>
 
-                    <!-- Step 4: Review -->
+                    <!-- Step 4: Shipping -->
                     <div class="form-step" id="step4">
+                        <h3 class="step-title"><span class="icon">4</span> Select Shipping</h3>
+
+                        <style>
+                            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                            .shipping-card {
+                                border: 2px solid #e2e8f0;
+                                border-radius: 0.5rem;
+                                padding: 1rem;
+                                cursor: pointer;
+                                transition: all 0.2s;
+                                position: relative;
+                            }
+                            .shipping-card:hover {
+                                border-color: #cbd5e1;
+                                background: #f8fafc;
+                            }
+                            .shipping-card.selected {
+                                border-color: #111827;
+                                background: #f0f9ff;
+                            }
+                            .shipping-card img {
+                                height: 32px;
+                                object-fit: contain;
+                                margin-bottom: 0.5rem;
+                            }
+                        </style>
+
+                        <div id="shipping-loader" style="text-align: center; padding: 2rem; display: none;">
+                            <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                            <p>Fetching best shipping rates...</p>
+                        </div>
+
+                        <div id="shipping-error" style="color: #ef4444; padding: 1rem; background: #fee2e2; border-radius: 0.5rem; display: none; margin-bottom: 1rem;"></div>
+
+                        <div id="shipping-rates-list" class="shipping-options-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+                            <!-- Populated by JS -->
+                        </div>
+
+                        <!-- Hidden inputs for selected shipping -->
+                        <input type="hidden" name="shipping_courier_name" id="input_shipping_courier_name">
+                        <input type="hidden" name="shipping_courier_logo" id="input_shipping_courier_logo">
+                        <input type="hidden" name="shipping_service_name" id="input_shipping_service_name">
+                        <input type="hidden" name="shipping_service_id" id="input_shipping_service_id">
+                        <input type="hidden" name="shipping_cost" id="input_shipping_cost">
+
+                        <div class="form-nav">
+                            <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                            <button type="button" class="btn btn-primary" onclick="nextStep()" id="btn-shipping-next" disabled>Continue →</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Review -->
+                    <div class="form-step" id="step5">
                         <h3 class="step-title"><span class="icon">✓</span> Review Your Order</h3>
 
                         <div class="review-block">
@@ -421,8 +479,9 @@
 
         let currentCurrency = '{{ $currency }}';
         let currentStep = 1;
-        const totalSteps = 4;
+        const totalSteps = 5;
         const basePrice = parseFloat('{{ number_format($product->price, 2, ".", "") }}');
+        let shippingCost = 0;
 
         function updateCurrencyDisplay() {
             if (!currencies[currentCurrency]) return;
@@ -494,11 +553,21 @@
                         return;
                     }
                 }
+                if (currentStep === 4) {
+                    // Step 4: Shipping
+                    const courier = document.getElementById('input_shipping_courier_name').value;
+                    if (!courier) {
+                        alert('Please select a shipping method');
+                        return;
+                    }
+                }
             }
 
             // Visual update
             document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+            
+            // Fix stepper visual update
+            document.querySelectorAll('.stepper .step-item').forEach(el => el.classList.remove('active'));
 
             const targetStep = document.getElementById('step' + step);
             if (targetStep) {
@@ -507,12 +576,15 @@
             }
 
             for (let i = 1; i <= step; i++) {
-                const stepEl = document.querySelector('.steps .step:nth-child(' + i + ')');
-                if (stepEl) stepEl.classList.add('active');
+                const stepItem = document.querySelector(`.stepper .step-item[data-step="${i}"]`);
+                if (stepItem) stepItem.classList.add('active');
             }
 
             currentStep = step;
             if (step === 4) {
+                fetchShippingRates();
+            }
+            if (step === 5) {
                 recalc();
                 updateReviewDetails();
             }
@@ -701,6 +773,32 @@
                 }
             });
 
+            // Add Shipping Row
+            if (shippingCost > 0) {
+                const courierName = document.getElementById('input_shipping_courier_name').value;
+                const serviceName = document.getElementById('input_shipping_service_name').value;
+                
+                // Estimate converted shipping cost for display if needed, or just show RM
+                // For clarity, let's show the converted amount that contributes to total
+                const conf = currencies[currentCurrency];
+                const displayShipping = shippingCost * conf.rate;
+                const symbol = conf.symbol;
+                const formattedShipping = currentCurrency === 'IDR' ? Math.round(displayShipping).toLocaleString('id-ID') : displayShipping.toFixed(2);
+
+                const shippingDiv = document.createElement('div');
+                shippingDiv.style.marginBottom = '1rem';
+                shippingDiv.style.paddingBottom = '1rem';
+                shippingDiv.style.borderBottom = '1px solid #f1f5f9';
+                shippingDiv.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; font-weight:600; color: #0f172a;">
+                        <span>Shipping: ${courierName}</span>
+                        <span>${symbol} ${formattedShipping}</span>
+                    </div>
+                    <div style="font-size:0.85rem; color:#64748b; margin-top:0.25rem;">${serviceName}</div>
+                `;
+                itemsContainer.appendChild(shippingDiv);
+            }
+
             if (!hasItems) itemsContainer.innerHTML = '<div style="color:#64748b; font-style:italic;">No items selected</div>';
         }
 
@@ -749,12 +847,125 @@
                 }
             });
 
+            // Add Shipping Cost
+            if (shippingCost > 0) {
+                grandTotal += (shippingCost * conf.rate);
+            }
+
             // Update Summary
             const el = document.getElementById('summaryTotal');
             if (el) {
                 if (currentCurrency === 'IDR') el.innerText = conf.symbol + ' ' + Math.round(grandTotal).toLocaleString('id-ID');
                 else el.innerText = conf.symbol + ' ' + grandTotal.toFixed(2);
             }
+        }
+
+        function fetchShippingRates() {
+            const loader = document.getElementById('shipping-loader');
+            const list = document.getElementById('shipping-rates-list');
+            const errorDiv = document.getElementById('shipping-error');
+            const btnNext = document.getElementById('btn-shipping-next');
+            
+            loader.style.display = 'block';
+            list.style.display = 'none';
+            errorDiv.style.display = 'none';
+            list.innerHTML = '';
+            btnNext.disabled = true;
+
+            // Gather data
+            const postcode = document.querySelector('input[name="postal_code"]').value;
+            const state = document.querySelector('input[name="province"]').value;
+            const country = 'MY'; // Default to Malaysia for now, or derive from province/input if possible. EasyParcel usually requires country code.
+            // Note: If province/country logic is complex, might need mapping. For now assuming MY.
+            
+            // Gather items for weight calculation
+            let items = [];
+            document.querySelectorAll('.variant-card').forEach(row => {
+                const variantId = row.getAttribute('data-variant-id');
+                const qtySS = parseInt(row.querySelector(`input[name="items[${variantId}][quantity_ss]"]`).value || 0);
+                const qtyLS = parseInt(row.querySelector(`input[name="items[${variantId}][quantity_ls]"]`).value || 0);
+                
+                if (qtySS > 0) items.push({ quantity: qtySS });
+                if (qtyLS > 0) items.push({ quantity: qtyLS });
+            });
+
+            fetch('{{ route("shipping.rates") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    postcode: postcode,
+                    state: state,
+                    country: country,
+                    items: items
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loader.style.display = 'none';
+                if (data.success && data.rates.length > 0) {
+                    list.style.display = 'grid';
+                    renderShippingRates(data.rates);
+                } else {
+                    errorDiv.innerText = data.message || 'No shipping rates available for your location.';
+                    errorDiv.style.display = 'block';
+                }
+            })
+            .catch(err => {
+                loader.style.display = 'none';
+                errorDiv.innerText = 'Failed to load shipping rates. Please try again.';
+                errorDiv.style.display = 'block';
+                console.error(err);
+            });
+        }
+
+        function renderShippingRates(rates) {
+            const list = document.getElementById('shipping-rates-list');
+            rates.forEach(rate => {
+                const card = document.createElement('div');
+                card.className = 'shipping-card';
+                card.onclick = () => selectShipping(card, rate);
+                
+                const logoHtml = rate.courier_logo ? `<img src="${rate.courier_logo}" alt="${rate.courier_name}">` : '';
+                const conf = currencies[currentCurrency] || { symbol: 'RM', rate: 1 };
+                const converted = parseFloat(rate.price) * conf.rate;
+                const displayAmount = currentCurrency === 'IDR'
+                    ? Math.round(converted).toLocaleString('id-ID')
+                    : converted.toFixed(2);
+                const priceHtml = `${conf.symbol} ${displayAmount}`;
+ 
+                card.innerHTML = `
+                    ${logoHtml}
+                    <div style="font-weight: 600;">${rate.courier_name}</div>
+                    <div style="font-size: 0.9rem; color: #64748b;">${rate.service_name}</div>
+                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.25rem;">Est: ${rate.delivery_period}</div>
+                    <div style="margin-top: 0.5rem; font-weight: 700; color: #111827;">
+                        ${priceHtml}
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function selectShipping(cardElement, rate) {
+            // UI
+            document.querySelectorAll('.shipping-card').forEach(c => c.classList.remove('selected'));
+            cardElement.classList.add('selected');
+            
+            // Enable Next
+            document.getElementById('btn-shipping-next').disabled = false;
+
+            // Set inputs
+            document.getElementById('input_shipping_courier_name').value = rate.courier_name;
+            document.getElementById('input_shipping_courier_logo').value = rate.courier_logo || '';
+            document.getElementById('input_shipping_service_name').value = rate.service_name;
+            document.getElementById('input_shipping_service_id').value = rate.service_id;
+            document.getElementById('input_shipping_cost').value = rate.price;
+
+            // Update cost variable
+            shippingCost = parseFloat(rate.price);
         }
 
         function submitForm() {

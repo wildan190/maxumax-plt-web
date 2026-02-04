@@ -20,6 +20,8 @@ Route::get('/', function () {
     return view('home', compact('products', 'highlightedGallery', 'currency', 'currencyConfig'));
 });
 
+Route::post('/shipping/rates', [App\Http\Controllers\ShippingController::class, 'checkRates'])->name('shipping.rates');
+
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
@@ -38,6 +40,17 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('/preorders/{preorder}/mark-packing', [App\Http\Controllers\PreorderAdminController::class, 'markPacking'])->name('admin.preorders.markPacking');
     Route::post('/preorders/{preorder}/mark-shipped', [App\Http\Controllers\PreorderAdminController::class, 'markShipped'])->name('admin.preorders.markShipped');
     Route::post('/preorders/{preorder}/mark-delivered', [App\Http\Controllers\PreorderAdminController::class, 'markDelivered'])->name('admin.preorders.markDelivered');
+    
+    // EasyParcel
+    Route::get('/preorders/{preorder}/shipping', [App\Http\Controllers\PreorderAdminController::class, 'shipping'])->name('admin.preorders.shipping');
+    
+    Route::post('/preorders/{preorder}/shipping/rates', [App\Http\Controllers\PreorderAdminController::class, 'checkRates'])->name('admin.preorders.checkRates');
+    Route::get('/preorders/{preorder}/shipping/rates', [App\Http\Controllers\PreorderAdminController::class, 'shipping']); // Fallback for 405
+    
+    Route::post('/preorders/{preorder}/shipping/book', [App\Http\Controllers\PreorderAdminController::class, 'bookShipping'])->name('admin.preorders.bookShipping');
+    Route::get('/preorders/{preorder}/shipping/book', [App\Http\Controllers\PreorderAdminController::class, 'shipping']); // Fallback for 405
+    Route::post('/preorders/{preorder}/shipping/refresh', [App\Http\Controllers\PreorderAdminController::class, 'refreshTracking'])->name('admin.preorders.refreshTracking');
+
     Route::post('/preorders/{preorder}/request-refund', [App\Http\Controllers\PreorderAdminController::class, 'requestRefund'])->name('admin.preorders.requestRefund');
     Route::post('/preorders/{preorder}/approve-refund', [App\Http\Controllers\PreorderAdminController::class, 'approveRefund'])->name('admin.preorders.approveRefund');
     Route::post('/preorders/{preorder}/reject-refund', [App\Http\Controllers\PreorderAdminController::class, 'rejectRefund'])->name('admin.preorders.rejectRefund');
@@ -62,6 +75,14 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('/orders/{order}/approve-refund', [App\Http\Controllers\OrderAdminController::class, 'approveRefund'])->name('admin.orders.approveRefund');
     Route::post('/orders/{order}/reject-refund', [App\Http\Controllers\OrderAdminController::class, 'rejectRefund'])->name('admin.orders.rejectRefund');
     Route::delete('/orders/{order}', [App\Http\Controllers\OrderAdminController::class, 'destroy'])->name('admin.orders.destroy');
+    
+    // Admin order shipping
+    Route::get('/orders/{order}/shipping', [App\Http\Controllers\OrderAdminController::class, 'shipping'])->name('admin.orders.shipping');
+    Route::post('/orders/{order}/shipping/rates', [App\Http\Controllers\OrderAdminController::class, 'checkRates'])->name('admin.orders.checkRates');
+    Route::get('/orders/{order}/shipping/rates', [App\Http\Controllers\OrderAdminController::class, 'shipping']); // Fallback for 405
+    Route::post('/orders/{order}/shipping/book', [App\Http\Controllers\OrderAdminController::class, 'bookShipping'])->name('admin.orders.bookShipping');
+    Route::get('/orders/{order}/shipping/book', [App\Http\Controllers\OrderAdminController::class, 'shipping']); // Fallback for 405
+    Route::post('/orders/{order}/shipping/refresh', [App\Http\Controllers\OrderAdminController::class, 'refreshTracking'])->name('admin.orders.refreshTracking');
 
     // Product management
     Route::get('/products', [ProductController::class, 'index'])->name('admin.products.index');

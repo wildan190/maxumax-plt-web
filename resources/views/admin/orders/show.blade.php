@@ -281,6 +281,12 @@
                 @if(in_array($order->status, ['confirmed', 'paid']))
                     <div class="card-padding" style="padding: 1.5rem; border-top: 1px solid #e5e7eb; background: #f9fafb;">
                         <h3 style="font-size: 1rem; font-weight: 600; color: #111827; margin: 0 0 1rem 0;">📦 Shipping Management</h3>
+                        <div style="margin-bottom: 1rem;">
+                            <a href="{{ route('admin.orders.shipping', $order) }}"
+                               style="display:inline-flex; align-items:center; gap:0.5rem; background:#111827; color:white; padding:0.625rem 1rem; border:none; border-radius:0.5rem; font-weight:600; text-decoration:none;">
+                               Manage Shipping (Check Rates & Book)
+                            </a>
+                        </div>
                         
                         @if($order->shipping_status)
                             <div style="margin-bottom: 1rem;">

@@ -3,64 +3,34 @@
 @section('title', 'Maxumax - Elevated Sports Performance')
 
 @section('content')
-    <!-- Hero Section -->
-    <section
-        class="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-slate-900 border-b border-white/10">
-        <!-- Animated Background Gradient -->
-        <div class="absolute inset-0 z-0">
-            <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black opacity-95"></div>
-            <div
-                class="absolute -top-[30%] -right-[10%] w-[70%] h-[70%] rounded-full bg-blue-600/10 blur-[120px] animate-pulse">
-            </div>
-            <div class="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-indigo-500/10 blur-[100px] animate-pulse"
-                style="animation-delay: 2s;"></div>
+    <!-- Hero Section MAXUMAX -->
+    <section class="relative min-h-screen flex items-center justify-center bg-black overflow-hidden">
+
+        <!-- Subtle gradient glow -->
+        <div class="absolute inset-0">
+            <div class="absolute inset-0 bg-gradient-to-br from-black via-slate-900 to-black"></div>
         </div>
 
-        <div class="relative z-10 max-w-7xl mx-auto px-6 text-center" x-data="{ loaded: false }"
-            x-init="setTimeout(() => loaded = true, 100)">
-            <div x-show="loaded" x-cloak x-transition:enter="transition ease-out duration-1000"
-                x-transition:enter-start="opacity-0 translate-y-12" x-transition:enter-end="opacity-100 translate-y-0">
-                <span
-                    class="inline-block px-5 py-2 mb-8 text-xs font-black tracking-[0.3em] text-blue-400 uppercase bg-blue-400/5 border border-blue-400/20 rounded-full">
-                    Defined by Excellence
-                </span>
-                <h1
-                    class="text-white font-black text-5xl md:text-8xl lg:text-9xl mb-8 tracking-tighter leading-[0.95] italic uppercase">
-                    Unleash Your <br />
-                    <span
-                        class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Greatness.</span>
-                </h1>
-                <p class="text-slate-400 text-lg md:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed font-medium">
-                    Premium sports apparel engineered for the modern athlete. <br class="hidden md:block" /> Join the elite.
-                    Pre-order your exclusive season series now.
-                </p>
+        <!-- Content -->
+        <div class="relative z-10 flex flex-col items-center justify-center text-center px-6">
 
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
-                    <a href="{{ route('preorder.landing') }}"
-                        class="w-full sm:w-auto px-10 py-5 bg-white text-black font-black text-lg rounded-2xl hover:bg-slate-100 transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-white/5 uppercase tracking-widest">
-                        Start Pre-order
-                    </a>
-                    <a href="#about"
-                        class="w-full sm:w-auto px-10 py-5 bg-white/5 backdrop-blur-md border border-white/10 text-white font-bold text-lg rounded-2xl hover:bg-white/10 transition-all uppercase tracking-widest">
-                        Our Story
-                    </a>
-                </div>
+            <!-- Logo -->
+            <img src="{{ asset('assets/img/logo.png') }}" alt="MAXUMAX"
+                class="w-[300px] sm:w-[420px] md:w-[540px]
+                   mb-10 select-none
+                   filter brightness-0 invert" />
 
-                <div class="flex flex-wrap justify-center gap-x-12 gap-y-6 pt-12 border-t border-white/10 opacity-60">
-                    <div class="flex items-center gap-3 text-white font-bold text-sm uppercase tracking-widest">
-                        <i data-feather="check-circle" class="text-blue-400" style="width:18px;height:18px;"></i>
-                        Premium Tech
-                    </div>
-                    <div class="flex items-center gap-3 text-white font-bold text-sm uppercase tracking-widest">
-                        <i data-feather="check-circle" class="text-blue-400" style="width:18px;height:18px;"></i>
-                        Custom Fit
-                    </div>
-                    <div class="flex items-center gap-3 text-white font-bold text-sm uppercase tracking-widest">
-                        <i data-feather="check-circle" class="text-blue-400" style="width:18px;height:18px;"></i>
-                        Global Shipping
-                    </div>
-                </div>
-            </div>
+            <!-- CTA Button -->
+            <a href="{{ route('preorder.landing') }}"
+                class="inline-flex items-center justify-center px-10 py-4
+                   bg-white text-black font-black text-sm tracking-widest
+                   rounded-full uppercase
+                   transition-all duration-300
+                   hover:bg-slate-200 hover:scale-105
+                   active:scale-95">
+                Shop Now
+            </a>
+
         </div>
     </section>
 
@@ -185,7 +155,7 @@
     </section>
 
     <!-- Product Grid -->
-    @if(isset($products) && $products->count() > 0)
+    @if (isset($products) && $products->count() > 0)
         <section class="bg-slate-900 py-32 px-6 relative overflow-hidden">
             <div class="absolute inset-0 opacity-10"
                 style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 40px 40px;"></div>
@@ -204,13 +174,13 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    @foreach($products as $product)
+                    @foreach ($products as $product)
                         <div
                             class="group bg-white/5 backdrop-blur-md rounded-[2.5rem] border border-white/10 overflow-hidden hover:border-blue-400/50 transition-all duration-500">
                             <div class="aspect-square bg-slate-800 flex items-center justify-center p-10 relative">
                                 <span
                                     class="absolute top-6 left-6 bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Available</span>
-                                @if($product->image_path)
+                                @if ($product->image_path)
                                     <img src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}"
                                         class="w-full h-full object-contain drop-shadow-2xl group-hover:scale-110 transition-transform duration-700">
                                 @else
@@ -238,17 +208,19 @@
     @endif
 
     <!-- Gallery Section -->
-    @if(isset($highlightedGallery) && $highlightedGallery->count() > 0)
+    @if (isset($highlightedGallery) && $highlightedGallery->count() > 0)
         <section class="py-32 bg-white px-6">
             <div class="max-w-7xl mx-auto">
                 <div class="text-center mb-20">
-                    <span class="text-blue-600 font-black uppercase tracking-[0.3em] text-sm mb-4 inline-block">Visuals</span>
-                    <h2 class="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase italic">The Lookbook.
+                    <span
+                        class="text-blue-600 font-black uppercase tracking-[0.3em] text-sm mb-4 inline-block">Visuals</span>
+                    <h2 class="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase italic">The
+                        Lookbook.
                     </h2>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    @foreach($highlightedGallery as $gallery)
+                    @foreach ($highlightedGallery as $gallery)
                         <div class="relative aspect-square rounded-[2rem] overflow-hidden group shadow-2xl">
                             <img src="{{ Storage::url($gallery->image_path) }}" alt="{{ $gallery->title }}"
                                 class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110">
@@ -282,13 +254,25 @@
             <div x-data="{ active: null }" class="space-y-4">
                 @php
                     $faqs = [
-                        ['q' => 'Shipping Timeline', 'a' => 'Our preorder window closes soon. Production takes 14 days, with delivery expected late January 2026.'],
-                        ['q' => 'Customization Limits', 'a' => 'No limits. Names and numbers are fully customizable during the checkout phase at no extra cost.'],
-                        ['q' => 'Payment Options', 'a' => 'We support Pay on Delivery (COD) for certain regions, Bank Transfers, and secure Online Payments.'],
+                        [
+                            'q' => 'Shipping Timeline',
+                            'a' =>
+                                'Our preorder window closes soon. Production takes 14 days, with delivery expected late January 2026.',
+                        ],
+                        [
+                            'q' => 'Customization Limits',
+                            'a' =>
+                                'No limits. Names and numbers are fully customizable during the checkout phase at no extra cost.',
+                        ],
+                        [
+                            'q' => 'Payment Options',
+                            'a' =>
+                                'We support Pay on Delivery (COD) for certain regions, Bank Transfers, and secure Online Payments.',
+                        ],
                     ];
                 @endphp
 
-                @foreach($faqs as $index => $faq)
+                @foreach ($faqs as $index => $faq)
                     <div class="bg-white rounded-3xl border border-slate-100 overflow-hidden transition-all"
                         :class="active === {{ $index }} ? 'shadow-2xl ring-2 ring-blue-600' : ''">
                         <button @click="active = (active === {{ $index }} ? null : {{ $index }})"

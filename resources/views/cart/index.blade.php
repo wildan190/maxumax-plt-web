@@ -158,7 +158,7 @@
                                 </div>
                             </div>
 
-                            <form method="POST" action="{{ route('checkout.cod') }}" class="space-y-6">
+                            <form method="POST" action="{{ route('checkout.cod') }}" class="space-y-6" id="cartCheckoutForm">
                                 @csrf
                                 <input type="hidden" name="currency" value="{{ $currency }}">
                                 <input type="hidden" id="selected_action_cod" value="{{ route('checkout.cod') }}">
@@ -203,10 +203,34 @@
                                         <textarea name="notes" placeholder="Notes (optional)" rows="2"
                                             class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"></textarea>
                                     </div>
+                                    <div class="space-y-4">
+                                        <div class="text-slate-400 font-bold text-xs uppercase tracking-widest">
+                                            Pilih Tarif Pengiriman
+                                        </div>
+                                        <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                                            <div id="shipping-loader" class="text-center hidden">
+                                                <div class="mx-auto mb-3 w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                                <div class="text-slate-300 font-bold text-xs uppercase tracking-widest">Mengambil tarif...</div>
+                                            </div>
+                                            <div id="shipping-error" class="hidden p-3 bg-red-50 text-red-600 rounded-xl text-xs font-bold"></div>
+                                            <div id="shipping-rates-list" class="grid grid-cols-1 gap-3"></div>
+                                            <div class="mt-4">
+                                                <button type="button" id="btnFetchRates" class="px-4 py-2 bg-white text-slate-900 rounded-xl font-black uppercase tracking-widest hover:bg-blue-400 transition-colors">
+                                                    Cek Tarif Pengiriman
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="shipping_courier_name" id="input_shipping_courier_name">
+                                        <input type="hidden" name="shipping_courier_logo" id="input_shipping_courier_logo">
+                                        <input type="hidden" name="shipping_service_name" id="input_shipping_service_name">
+                                        <input type="hidden" name="shipping_service_id" id="input_shipping_service_id">
+                                        <input type="hidden" name="shipping_cost" id="input_shipping_cost">
+                                    </div>
                                     <div class="space-y-3">
                                         <div class="text-slate-400 font-bold text-xs uppercase tracking-widest">
                                             Metode Pembayaran
                                         </div>
+                                        
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <label class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 cursor-pointer hover:border-blue-500 transition-colors">
                                                 <input type="radio" name="payment_method" value="cod" class="accent-blue-500" checked>
@@ -248,10 +272,96 @@
             const stripeUrl = document.getElementById('selected_action_stripe')?.value;
             if (form && submitBtn && codUrl && stripeUrl) {
                 form.addEventListener('submit', function (e) {
+                    const shipId = document.getElementById('input_shipping_service_id')?.value;
+                    if (!shipId) {
+                        e.preventDefault();
+                        document.getElementById('shipping-error').classList.remove('hidden');
+                        document.getElementById('shipping-error').innerText = 'Silakan pilih tarif pengiriman terlebih dahulu.';
+                        return;
+                    }
                     const selected = document.querySelector('input[name="payment_method"]:checked')?.value || 'cod';
                     form.action = selected === 'stripe' ? stripeUrl : codUrl;
                 });
             }
+            const btnFetch = document.getElementById('btnFetchRates');
+            const loader = document.getElementById('shipping-loader');
+            const list = document.getElementById('shipping-rates-list');
+            const errDiv = document.getElementById('shipping-error');
+            function fetchRates() {
+                loader.classList.remove('hidden');
+                list.innerHTML = '';
+                list.classList.add('hidden');
+                errDiv.classList.add('hidden');
+                const postcode = document.querySelector('input[name="postal_code"]').value;
+                const state = document.querySelector('input[name="province"]').value;
+                const country = 'MY';
+                const raw = document.getElementById('cart_items_json')?.value || '[]';
+                let items = [];
+                try { items = JSON.parse(raw) } catch(e) { items = [] }
+                const payloadItems = items.map(function(it){ return { quantity: parseInt(it.quantity || 0) }; }).filter(function(i){ return i.quantity > 0; });
+                fetch('{{ route("shipping.rates") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ postcode, state, country, items: payloadItems })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    loader.classList.add('hidden');
+                    if (data.success && data.rates.length > 0) {
+                        list.classList.remove('hidden');
+                        renderRates(data.rates);
+                    } else {
+                        errDiv.innerText = data.message || 'Tarif tidak tersedia untuk lokasi Anda.';
+                        errDiv.classList.remove('hidden');
+                    }
+                })
+                .catch(() => {
+                    loader.classList.add('hidden');
+                    errDiv.innerText = 'Gagal memuat tarif. Coba lagi.';
+                    errDiv.classList.remove('hidden');
+                });
+            }
+            function renderRates(rates) {
+                list.innerHTML = '';
+                rates.forEach(rate => {
+                    const card = document.createElement('button');
+                    card.type = 'button';
+                    card.className = 'w-full text-left p-4 bg-white/5 border border-white/10 rounded-xl hover:border-blue-500 transition-colors';
+                    const logo = rate.courier_logo ? `<img src="${rate.courier_logo}" alt="${rate.courier_name}" class="w-10 h-10 mr-3 inline-block align-middle">` : '';
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                ${logo}
+                                <div>
+                                    <div class="font-black text-white text-xs uppercase tracking-widest">${rate.courier_name}</div>
+                                    <div class="text-slate-400 text-[10px] font-bold">${rate.service_name}</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">RM</div>
+                                <div class="text-xl font-black text-white">${parseFloat(rate.price).toFixed(2)}</div>
+                            </div>
+                        </div>
+                    `;
+                    card.addEventListener('click', function () {
+                        document.getElementById('input_shipping_courier_name').value = rate.courier_name;
+                        document.getElementById('input_shipping_courier_logo').value = rate.courier_logo || '';
+                        document.getElementById('input_shipping_service_name').value = rate.service_name;
+                        document.getElementById('input_shipping_service_id').value = rate.service_id;
+                        document.getElementById('input_shipping_cost').value = rate.price;
+                        Array.from(list.children).forEach(c => c.classList.remove('border-blue-500'));
+                        card.classList.add('border-blue-500');
+                    });
+                    list.appendChild(card);
+                });
+            }
+            if (btnFetch) {
+                btnFetch.addEventListener('click', fetchRates);
+            }
         })();
     </script>
+    <input type="hidden" id="cart_items_json" value="{{ e(json_encode($items)) }}">
 @endsection
