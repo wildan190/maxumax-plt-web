@@ -94,12 +94,22 @@
             <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Available Rates</h3>
             
             <div style="background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                @php $cheapest = $rates[0] ?? null; @endphp
+                @php
+                    $cheapest = $rates[0] ?? null;
+                    $currency = $preorder->currency ?? 'MYR';
+                    $conf = config("currencies.$currency", config('currencies.MYR'));
+                    $symbol = $conf['symbol'] ?? 'RM';
+                    $rateConv = $conf['rate'] ?? 1;
+                @endphp
                 @if($cheapest)
                     <div style="padding: 1rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
                         <div style="font-size: 0.875rem; color: #374151;">
                             Auto Book Termurah: 
-                            <strong>{{ $cheapest['courier_name'] }}</strong> — {{ $cheapest['service_name'] }} (RM {{ number_format($cheapest['price'], 2) }})
+                            @php
+                                $cheapConverted = ($cheapest['price'] ?? 0) * $rateConv;
+                                $cheapDisplay = $currency === 'IDR' ? number_format($cheapConverted, 0, '.', ',') : number_format($cheapConverted, 2);
+                            @endphp
+                            <strong>{{ $cheapest['courier_name'] }}</strong> — {{ $cheapest['service_name'] }} ({{ $symbol }} {{ $cheapDisplay }})
                         </div>
                         <form action="{{ route('admin.preorders.bookShipping', $preorder) }}" method="POST">
                             @csrf
@@ -128,7 +138,7 @@
                         <tr>
                             <th style="text-align: left; padding: 1rem; font-size: 0.875rem; color: #6b7280;">Courier</th>
                             <th style="text-align: left; padding: 1rem; font-size: 0.875rem; color: #6b7280;">Service</th>
-                            <th style="text-align: right; padding: 1rem; font-size: 0.875rem; color: #6b7280;">Price (RM)</th>
+                            <th style="text-align: right; padding: 1rem; font-size: 0.875rem; color: #6b7280;">Price ({{ $symbol }})</th>
                             <th style="padding: 1rem;"></th>
                         </tr>
                     </thead>
@@ -148,7 +158,11 @@
                                     <span style="font-size: 0.8rem; color: #6b7280;">{{ $rate['delivery'] }}</span>
                                 </td>
                                 <td style="padding: 1rem; text-align: right; font-weight: 600;">
-                                    {{ $rate['price'] }}
+                                    @php
+                                        $p = ($rate['price'] ?? 0) * $rateConv;
+                                        $pDisp = $currency === 'IDR' ? number_format($p, 0, '.', ',') : number_format($p, 2);
+                                    @endphp
+                                    {{ $symbol }} {{ $pDisp }}
                                 </td>
                                 <td style="padding: 1rem; text-align: right;">
                                     <form action="{{ route('admin.preorders.bookShipping', $preorder) }}" method="POST">

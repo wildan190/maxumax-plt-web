@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
 
 // Admin preorder management
 Route::middleware('auth')->prefix('admin')->group(function () {
+        Route::get('/env/shipping', [App\Http\Controllers\ShippingController::class, 'envShippingCheck'])->name('admin.env.shipping');
     Route::get('/preorders', [App\Http\Controllers\PreorderAdminController::class, 'index'])->name('admin.preorders.index');
     Route::get('/preorders/{preorder}', [App\Http\Controllers\PreorderAdminController::class, 'show'])->name('admin.preorders.show');
     Route::post('/preorders/{preorder}/confirm', [App\Http\Controllers\PreorderAdminController::class, 'confirm'])->name('admin.preorders.confirm');
@@ -133,6 +134,7 @@ Route::group(['domain' => env('PREORDER_DOMAIN', null)], function () {
     Route::get('/order/create/{product}', [PreorderController::class, 'create'])->name('order.create');
     Route::post('/order', [PreorderController::class, 'store'])->name('order.store');
     Route::get('/order/thank-you/{uuid}', [PreorderController::class, 'thankyou'])->name('order.thankyou');
+    Route::post('/shipping/rates', [App\Http\Controllers\ShippingController::class, 'checkRates'])->name('shipping.rates');
 });
 
 // Fallback registration if domain not configured (simple routes)

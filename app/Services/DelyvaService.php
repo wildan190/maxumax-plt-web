@@ -9,6 +9,7 @@ class DelyvaService
 {
     protected string $baseUrl;
     protected ?string $apiKey;
+    protected ?string $accessToken;
     protected ?string $companyCode;
     protected ?string $companyId;
     protected ?string $userId;
@@ -18,6 +19,7 @@ class DelyvaService
     {
         $this->baseUrl = rtrim(config('services.delyva.base_url', 'https://api.delyva.app/v1.0'), '/');
         $this->apiKey = config('services.delyva.api_key');
+        $this->accessToken = config('services.delyva.access_token');
         $this->companyCode = config('services.delyva.company_code');
         $this->companyId = config('services.delyva.company_id');
         $this->userId = config('services.delyva.user_id');
@@ -28,11 +30,13 @@ class DelyvaService
     {
         $url = $this->baseUrl . '/' . ltrim($path, '/');
         $headers = [];
-        if (!empty($this->apiKey)) {
-            $headers['Authorization'] = 'Bearer ' . $this->apiKey;
+        // Prefer official access token if provided, fallback to api key
+        $token = $this->accessToken ?: $this->apiKey;
+        if (!empty($token)) {
+            $headers['Authorization'] = 'Bearer ' . $token;
         }
         try {
-            $req = Http::timeout(60)->withHeaders($headers);
+            $req = Http::timeout(12)->withHeaders($headers);
             if (strtoupper($method) === 'GET') {
                 $resp = $req->get($url, $query);
             } else {
@@ -96,6 +100,20 @@ class DelyvaService
             'destination' => $destination,
             'items' => $items,
         ];
-        return $this->request('POST', '/quote', $payload);
+        $candidates = [
+            '/quote',
+            '/order/quote',
+            '/quote/price',
+            '/service/quote',
+            '/orders/quote',
+            '/order/price',
+        ];
+        foreach ($candidates as $path) {
+            $resp = $this->request('POST', $path, $payload, ['companyId' => $this->companyId]);
+            if (isset($resp['data']) || (isset($resp['list']) && is_array($resp['list']))) {
+                return $resp;
+            }
+        }
+        return ['error' => true, 'message' => 'No valid quote endpoint'];
     }
 }

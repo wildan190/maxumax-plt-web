@@ -52,5 +52,13 @@ return [
         'user_id' => env('DELYVA_USER_ID'),
         'customer_id' => env('DELYVA_CUSTOMER_ID'),
         'api_key' => env('DELYVA_API_KEY'),
+        'access_token' => env('DELYVA_ACCESS_TOKEN'),
+    ],
+    'myparcelasia' => [
+        'api_key' => env('MYPA_API_KEY'),
+        'api_secret' => env('MYPA_API_SECRET'),
+        'is_production' => env('MYPA_PRODUCTION', true),
+        'base_url_prod' => 'https://app.myparcelasia.com/apiv2',
+        'base_url_dev' => 'https://demo.myparcelasia.com/apiv2',
     ],
 ];

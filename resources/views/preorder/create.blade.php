@@ -359,7 +359,7 @@
 
                         <div id="shipping-error" style="color: #ef4444; padding: 1rem; background: #fee2e2; border-radius: 0.5rem; display: none; margin-bottom: 1rem;"></div>
 
-                        <div id="shipping-rates-list" class="shipping-options-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+                        <div id="shipping-rates-list" class="shipping-options-grid" style="display: block;">
                             <!-- Populated by JS -->
                         </div>
 
@@ -875,6 +875,7 @@
             // Gather data
             const postcode = document.querySelector('input[name="postal_code"]').value;
             const state = document.querySelector('input[name="province"]').value;
+            const city = document.querySelector('input[name="city"]').value || '';
             const country = 'MY'; // Default to Malaysia for now, or derive from province/input if possible. EasyParcel usually requires country code.
             // Note: If province/country logic is complex, might need mapping. For now assuming MY.
             
@@ -889,7 +890,7 @@
                 if (qtyLS > 0) items.push({ quantity: qtyLS });
             });
 
-            fetch('{{ route("shipping.rates") }}', {
+            fetch('/shipping/rates', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -898,6 +899,7 @@
                 body: JSON.stringify({
                     postcode: postcode,
                     state: state,
+                    city: city,
                     country: country,
                     items: items
                 })
@@ -923,30 +925,58 @@
 
         function renderShippingRates(rates) {
             const list = document.getElementById('shipping-rates-list');
-            rates.forEach(rate => {
+            list.innerHTML = '';
+            
+            function renderCard(rate) {
                 const card = document.createElement('div');
                 card.className = 'shipping-card';
                 card.onclick = () => selectShipping(card, rate);
-                
                 const logoHtml = rate.courier_logo ? `<img src="${rate.courier_logo}" alt="${rate.courier_name}">` : '';
                 const conf = currencies[currentCurrency] || { symbol: 'RM', rate: 1 };
-                const converted = parseFloat(rate.price) * conf.rate;
+                const price = parseFloat(rate.price || 0);
+                const converted = price * conf.rate;
                 const displayAmount = currentCurrency === 'IDR'
                     ? Math.round(converted).toLocaleString('id-ID')
                     : converted.toFixed(2);
-                const priceHtml = `${conf.symbol} ${displayAmount}`;
- 
+                const priceHtml = (rate.source === 'myparcelasia')
+                    ? 'Calculated at booking'
+                    : `${conf.symbol} ${displayAmount}`;
                 card.innerHTML = `
                     ${logoHtml}
                     <div style="font-weight: 600;">${rate.courier_name}</div>
                     <div style="font-size: 0.9rem; color: #64748b;">${rate.service_name}</div>
                     <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.25rem;">Est: ${rate.delivery_period}</div>
-                    <div style="margin-top: 0.5rem; font-weight: 700; color: #111827;">
-                        ${priceHtml}
-                    </div>
+                    <div style="margin-top: 0.5rem; font-weight: 700; color: #111827;">${priceHtml}</div>
                 `;
-                list.appendChild(card);
-            });
+                return card;
+            }
+            
+            function renderGroup(title, items) {
+                if (!items || items.length === 0) return;
+                const heading = document.createElement('div');
+                heading.style.margin = '1rem 0 0.5rem';
+                heading.style.fontWeight = '700';
+                heading.style.color = '#111827';
+                heading.textContent = title;
+                list.appendChild(heading);
+                
+                const grid = document.createElement('div');
+                grid.style.display = 'grid';
+                grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+                grid.style.gap = '1rem';
+                items.forEach(rate => {
+                    grid.appendChild(renderCard(rate));
+                });
+                list.appendChild(grid);
+            }
+            
+            const ep = rates.filter(r => r.source === 'easyparcel');
+            const dl = rates.filter(r => r.source === 'delyva');
+            const mpa = rates.filter(r => r.source === 'myparcelasia');
+            
+            renderGroup('MyParcelAsia', mpa);
+            renderGroup('EasyParcel', ep);
+            renderGroup('Delyva', dl);
         }
 
         function selectShipping(cardElement, rate) {
@@ -962,10 +992,16 @@
             document.getElementById('input_shipping_courier_logo').value = rate.courier_logo || '';
             document.getElementById('input_shipping_service_name').value = rate.service_name;
             document.getElementById('input_shipping_service_id').value = rate.service_id;
-            document.getElementById('input_shipping_cost').value = rate.price;
+            if (rate.source && rate.source === 'myparcelasia') {
+                document.getElementById('input_shipping_cost').value = 0;
+            } else {
+                document.getElementById('input_shipping_cost').value = rate.price;
+            }
 
             // Update cost variable
-            shippingCost = parseFloat(rate.price);
+            if (!(rate.source && rate.source === 'myparcelasia')) {
+                shippingCost = parseFloat(rate.price);
+            }
         }
 
         function submitForm() {
