@@ -28,23 +28,20 @@ class DelyvaService
 
     protected function request(string $method, string $path, array $payload = [], array $query = []): array
     {
-        $url = $this->baseUrl . '/' . ltrim($path, '/');
-        $headers = [];
-        // Prefer official access token if provided, fallback to api key
-        $token = $this->accessToken ?: $this->apiKey;
-        if (!empty($token)) {
-            $headers['Authorization'] = 'Bearer ' . $token;
-        }
+        $url = $this->baseUrl . $path;
         try {
-            $req = Http::timeout(12)->withHeaders($headers);
-            if (strtoupper($method) === 'GET') {
-                $resp = $req->get($url, $query);
-            } else {
-                $resp = $req->withQueryParameters($query)->withHeaders(['Content-Type' => 'application/json'])->send($method, $url, ['json' => $payload]);
+            $req = Http::timeout(12)
+                ->withHeaders([
+                    'Authorization' => $this->accessToken ? "Bearer {$this->accessToken}" : ($this->apiKey ? $this->apiKey : ''),
+                    'Content-Type' => 'application/json',
+                ]);
+            if (!empty($query)) {
+                $req = $req->withQueryParameters($query);
             }
+            $resp = $req->send($method, $url, ['json' => $payload]);
             if ($resp->failed()) {
-                Log::error('Delyva API Request Failed', ['method' => $method, 'path' => $path, 'status' => $resp->status(), 'body' => $resp->body()]);
-                return ['error' => true, 'status' => $resp->status(), 'body' => $resp->json()];
+                Log::error('Delyva API Request Failed', ['path' => $path, 'status' => $resp->status(), 'body' => $resp->body()]);
+                return ['error' => true, 'message' => 'Request failed', 'response' => $resp->json()];
             }
             return $resp->json();
         } catch (\Throwable $e) {
@@ -117,3 +114,4 @@ class DelyvaService
         return ['error' => true, 'message' => 'No valid quote endpoint'];
     }
 }
+

@@ -45,5 +45,70 @@ class MyParcelAsiaService
         ];
         return $this->post('checkout', $params);
     }
+
+    public function user(array $params = []): array
+    {
+        return $this->post('user', $params);
+    }
+
+    public function getPostcodeDetails(array $params): array
+    {
+        return $this->post('get_postcode_details', $params);
+    }
+
+    public function checkPrice(array $params): array
+    {
+        return $this->post('check_price', $params);
+    }
+
+    public function sddPrice(array $params): array
+    {
+        return $this->post('sdd_price', $params);
+    }
+
+    public function getParcelSizes(array $params = []): array
+    {
+        return $this->post('get_parcel_sizes', $params);
+    }
+
+    public function getContentTypes(array $params = []): array
+    {
+        return $this->post('get_content_types', $params);
+    }
+
+    public function createShipment(array $params): array
+    {
+        return $this->post('create_shipment', $params);
+    }
+
+    public function getCartItems(array $params = []): array
+    {
+        return $this->post('get_cart_items', $params);
+    }
+
+    public function getShipmentStatuses(array $params = []): array
+    {
+        return $this->post('get_shipment_statuses', $params);
+    }
+
+    public function getShipmentHistory(array $params = []): array
+    {
+        return $this->post('get_shipment_history', $params);
+    }
+
+    public function checkPriceBulk(array $params): array
+    {
+        return $this->post('check_price_bulk', $params);
+    }
+
+    public function createBulkAwb(array $params): array
+    {
+        return $this->post('create_bulk_awb', $params);
+    }
+
+    public function trace(array $params): array
+    {
+        return $this->post('trace', $params);
+    }
 }
 

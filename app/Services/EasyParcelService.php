@@ -30,7 +30,7 @@ class EasyParcelService
     protected function makeRequest($action, $data = [])
     {
         // Increase execution time to handle slow API responses
-        set_time_limit(120);
+        set_time_limit(60);
 
         $payload = [
             'api' => $this->apiKey,
@@ -44,11 +44,11 @@ class EasyParcelService
         }
 
         try {
-            $response = Http::timeout(12)->asForm()->post($this->baseUrl . $action, $payload);
+            $response = Http::timeout(6)->asForm()->post($this->baseUrl . $action, $payload);
             if ($response->failed()) {
                 Log::error('EasyParcel API Request Failed', ['action' => $action, 'status' => $response->status(), 'body' => $response->body()]);
                 if (!$this->isProduction) {
-                    $fallback = Http::timeout(12)->asForm()->post($this->prodUrl . $action, $payload);
+                    $fallback = Http::timeout(6)->asForm()->post($this->prodUrl . $action, $payload);
                     if (!$fallback->failed()) {
                         return $fallback->json();
                     }
@@ -61,7 +61,7 @@ class EasyParcelService
             Log::error('EasyParcel API Exception: ' . $e->getMessage());
             if (!$this->isProduction) {
                 try {
-                    $fallback = Http::timeout(12)->asForm()->post($this->prodUrl . $action, $payload);
+                    $fallback = Http::timeout(6)->asForm()->post($this->prodUrl . $action, $payload);
                     if (!$fallback->failed()) {
                         return $fallback->json();
                     }

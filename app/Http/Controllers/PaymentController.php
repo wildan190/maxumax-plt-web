@@ -779,55 +779,20 @@ class PaymentController extends Controller
                             'send_country' => $sendCountry,
                             'send_email' => $order->email,
                         ];
-                        $isMyParcelAsia = !empty($order->shipping_courier_name) && stripos($order->shipping_courier_name, 'myparcel') !== false;
-                        if ($isMyParcelAsia) {
-                            $mpa = new \App\Services\MyParcelAsiaService();
-                            $orderObj = [
-                                'customer_name' => $order->name,
-                                'total_amount' => (string) ($order->shipping_cost ?? 0),
-                                'currency_code' => $order->currency,
-                            ];
-                            $shipments = [[
-                                'scope' => 'domestic',
-                                'receiver_name' => $order->name,
-                                'receiver_address' => $orderPayload['send_addr1'],
-                                'receiver_postcode' => $sendCode,
-                                'receiver_state' => $sendState,
-                                'receiver_country' => $sendCountry,
-                                'receiver_phone' => $order->phone ?? '',
-                                'weight' => $weight,
-                                'content' => 'Jersey',
-                            ]];
-                            $result = $mpa->checkout($orderObj, $shipments);
-                            if (!empty($result['status']) && !empty($result['data']['shipments'][0]['tracking_no'])) {
-                                $tn = $result['data']['shipments'][0]['tracking_no'];
-                                $order->tracking_number = $tn;
+                        if (($order->shipping_service_id ?? '') !== 'ep_flat') {
+                            $shipping = new \App\Services\ShippingService();
+                            $res = $shipping->bookShipment($order, $orderPayload);
+                            if ($res['success'] && !empty($res['awb'])) {
+                                $order->tracking_number = $res['awb'];
                                 $order->shipping_status = 'shipped';
                                 $order->save();
                                 PreorderHistory::create([
                                     'preorder_id' => $order->id,
                                     'old_status' => $order->status,
                                     'new_status' => $order->status,
-                                    'note' => 'Booked via MyParcelAsia. Tracking: ' . $tn,
+                                    'note' => 'Booked via EasyParcel. AWB: ' . $res['awb'],
                                 ]);
                             }
-                        } else {
-                            $result = $easyParcel->submitOrder($orderPayload);
-                        if (isset($result['api_status']) && $result['api_status'] === 'Success') {
-                            $shipment = $result['result'][0] ?? [];
-                            $awb = $shipment['awb'] ?? null;
-                            if ($awb) {
-                                $order->tracking_number = $awb;
-                                $order->shipping_status = 'shipped';
-                                $order->save();
-                                PreorderHistory::create([
-                                    'preorder_id' => $order->id,
-                                    'old_status' => $order->status,
-                                    'new_status' => $order->status,
-                                    'note' => 'Booked via EasyParcel. AWB: ' . $awb,
-                                ]);
-                            }
-                        }
                         }
                     }
                 }

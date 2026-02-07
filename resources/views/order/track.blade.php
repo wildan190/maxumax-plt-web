@@ -140,6 +140,25 @@
                                     {{ $preorder->address ?? 'Location data encrypted' }}
                                 </p>
                             </div>
+                            <div class="mt-8 grid grid-cols-1 gap-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 flex-shrink-0">
+                                        <i data-feather="truck" style="width:18px;height:18px;"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-slate-900 font-black">{{ $preorder->shipping_courier_name ?? 'Shipping' }}</p>
+                                        <p class="text-slate-500 font-medium text-xs">{{ $preorder->shipping_service_name ?? 'Standard' }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-slate-400 font-bold text-xs uppercase tracking-widest">Shipping Cost</span>
+                                    @if(($preorder->shipping_cost ?? 0) > 0)
+                                        <span class="text-slate-900 font-black">{{ $preorder->currency ?? 'MYR' }} {{ number_format($preorder->shipping_cost, 2) }}</span>
+                                    @else
+                                        <span class="text-slate-500 font-medium text-xs">Calculated at booking</span>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     </div>
 

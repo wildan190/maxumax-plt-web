@@ -60,5 +60,6 @@ return [
         'is_production' => env('MYPA_PRODUCTION', true),
         'base_url_prod' => 'https://app.myparcelasia.com/apiv2',
         'base_url_dev' => 'https://demo.myparcelasia.com/apiv2',
+        'only' => env('MYPA_ONLY', true),
     ],
 ];

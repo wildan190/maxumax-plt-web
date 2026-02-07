@@ -395,7 +395,28 @@ class PreorderController extends Controller
                 $error = 'Order tidak ditemukan';
             } else {
                 if (!empty($pre->tracking_number)) {
-                    $tracking = $easyParcel->trackParcel($pre->tracking_number);
+                    $isMyParcel = !empty($pre->shipping_courier_name) && stripos($pre->shipping_courier_name, 'myparcel') !== false;
+                    if ($isMyParcel) {
+                        $mpa = new \App\Services\MyParcelAsiaService();
+                        $trace = $mpa->trace(['tracking' => $pre->tracking_number]);
+                        $statusText = null;
+                        if (!empty($trace['status'])) {
+                            $d = $trace['data'] ?? [];
+                            $statusText = is_array($d) ? ($d['status'] ?? ($d['current_status'] ?? null)) : null;
+                        }
+                        if (!$statusText) {
+                            $statResp = $mpa->getShipmentStatuses(['tracking_no' => $pre->tracking_number]);
+                            if (!empty($statResp['status'])) {
+                                $dd = $statResp['data'] ?? [];
+                                $statusText = is_array($dd) ? ($dd['status'] ?? ($dd['current_status'] ?? null)) : null;
+                            }
+                        }
+                        if ($statusText) {
+                            $tracking = ['api_status' => 'Success', 'result' => [['status' => $statusText]]];
+                        }
+                    } else {
+                        $tracking = $easyParcel->trackParcel($pre->tracking_number);
+                    }
                 }
             }
         }
@@ -736,6 +757,9 @@ class PreorderController extends Controller
             foreach ($orders as $order) {
             try {
                 if (!empty($order->shipping_service_id)) {
+                    if ($order->shipping_service_id === 'ep_flat') {
+                        continue;
+                    }
                     $weight = max(1, $order->quantity * 0.5);
                     $sendCode = $data['postal_code'] ?? null;
                     $sendState = $data['province'] ?? null;
@@ -796,6 +820,59 @@ class PreorderController extends Controller
                             }
                         }
                     } else {
+                        $isMyParcelAsia = !empty($order->shipping_courier_name) && stripos($order->shipping_courier_name, 'myparcel') !== false;
+                        if ($isMyParcelAsia) {
+                            $mpa = new \App\Services\MyParcelAsiaService();
+                            $orderObj = [
+                                'customer_name' => $order->name,
+                                'total_amount' => (string) ($order->shipping_cost ?? 0),
+                                'currency_code' => $order->currency,
+                            ];
+                            $shipments = [[
+                                'scope' => 'domestic',
+                                'receiver_name' => $order->name,
+                                'receiver_address' => $data['address_detail'] ?? ($order->address ?? ''),
+                                'receiver_postcode' => $sendCode,
+                                'receiver_state' => $sendState,
+                                'receiver_country' => $sendCountry,
+                                'receiver_phone' => $order->phone ?? '',
+                                'weight' => $weight,
+                                'content' => 'Jersey',
+                            ]];
+                            $result = $mpa->checkout($orderObj, $shipments);
+                            if (!empty($result['status']) && !empty($result['data']['shipments'][0]['tracking_no'])) {
+                                $shipmentData = $result['data']['shipments'][0] ?? [];
+                                $tn = $shipmentData['tracking_no'];
+                                $order->tracking_number = $tn;
+                                $order->shipping_status = 'shipped';
+                                $order->shipping_courier_name = $order->shipping_courier_name ?: 'MyParcelAsia';
+                                $order->shipping_service_name = $order->shipping_service_name ?: 'Standard Delivery';
+                                $costCandidates = [
+                                    $shipmentData['shipment_amount'] ?? null,
+                                    $shipmentData['price'] ?? null,
+                                    $shipmentData['amount'] ?? null,
+                                    $result['data']['total_amount'] ?? null,
+                                    data_get($result, 'data.pricing.total'),
+                                ];
+                                foreach ($costCandidates as $c) {
+                                    if (is_numeric($c)) {
+                                        $order->shipping_cost = (float) $c;
+                                        break;
+                                    }
+                                    if (is_string($c) && is_numeric(str_replace([','], '', $c))) {
+                                        $order->shipping_cost = (float) str_replace([','], '', $c);
+                                        break;
+                                    }
+                                }
+                                $order->save();
+                                PreorderHistory::create([
+                                    'preorder_id' => $order->id,
+                                    'old_status' => $order->status,
+                                    'new_status' => $order->status,
+                                    'note' => 'Booked via MyParcelAsia COD. Tracking: ' . $tn,
+                                ]);
+                            }
+                        } else {
                         $easyParcel = new \App\Services\EasyParcelService();
                         $orderPayload = [
                             'weight' => $weight,
@@ -836,6 +913,7 @@ class PreorderController extends Controller
                                     'note' => 'Booked via EasyParcel COD. AWB: ' . $trackingNo,
                                 ]);
                             }
+                        }
                         }
                     }
                 }
