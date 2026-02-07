@@ -16,7 +16,7 @@ class EasyParcelService
     {
         $this->apiKey = config('services.easyparcel.api_key');
         $this->isProduction = (bool) config('services.easyparcel.is_production');
-        $this->baseUrl = $this->isProduction ? 'https://connect.easyparcel.my/?ac=' : 'http://demo.connect.easyparcel.my/?ac=';
+        $this->baseUrl = $this->isProduction ? 'https://connect.easyparcel.my/?ac=' : 'https://connect.easyparcel.my/?ac=';
         $this->prodUrl = 'https://connect.easyparcel.my/?ac=';
     }
 

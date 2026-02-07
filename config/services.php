@@ -43,8 +43,10 @@ return [
 
     'easyparcel' => [
         'api_key' => env('EASYPARCEL_API_KEY'),
-        'is_production' => env('EASYPARCEL_PRODUCTION', true),
+        'is_production' => env('EASYPARCEL_PRODUCTION', env('easyparcel_production', true)),
+        'fallback_email' => env('EASYPARCEL_FALLBACK_EMAIL', 'no-reply@yourdomain.com'),
     ],
+
     'delyva' => [
         'base_url' => env('DELYVA_BASE_URL', 'https://api.delyva.app/v1.0'),
         'company_code' => env('DELYVA_COMPANY_CODE'),

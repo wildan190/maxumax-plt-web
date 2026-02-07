@@ -93,6 +93,25 @@
 
             <!-- Content Area -->
             <div class="admin-content">
+                <!-- Flash Messages -->
+                @if (session('status'))
+                    <div
+                        style="margin-bottom: 2rem; padding: 1rem; background: #d1fae5; border: 1px solid #10b981; color: #065f46; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                        <span
+                            style="background: #10b981; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">✓</span>
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div
+                        style="margin-bottom: 2rem; padding: 1rem; background: #fee2e2; border: 1px solid #ef4444; color: #991b1b; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                        <span
+                            style="background: #ef4444; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">!</span>
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 <!-- Breadcrumb -->
                 @if (isset($breadcrumbs))
                     @include('layouts.partials.breadcrumb')
