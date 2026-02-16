@@ -1,57 +1,80 @@
 @extends('layouts.public')
 
-@section('title', 'Gallery - Maxumax')
+@section('title', 'Visual Archive - Maxumax')
 
 @section('content')
-    <div class="max-w-7xl mx-auto px-6 py-24">
-        <div class="text-center mb-20">
-            <span class="text-blue-600 font-black uppercase tracking-[0.3em] text-sm mb-4 inline-block">Visual
-                Archive</span>
-            <h1 class="text-4xl md:text-7xl font-black text-slate-900 mb-6 tracking-tighter uppercase italic">Our
-                Collection.</h1>
-            <p class="text-lg text-slate-500 max-w-2xl mx-auto font-medium">A showcase of precision craftsmanship and
-                athletic excellence.</p>
+    <div class="bg-black min-h-screen pt-32 pb-40 px-6 overflow-hidden relative">
+        <!-- Cinematic Background -->
+        <div
+            class="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-blue-600/10 via-transparent to-transparent pointer-events-none">
         </div>
 
-        @if($galleries->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                @foreach($galleries as $gallery)
-                    <div
-                        class="group bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl hover:shadow-blue-600/5 transition-all duration-500">
-                        <div class="relative aspect-[4/5] overflow-hidden bg-slate-50 flex items-center justify-center p-6">
-                            <img src="{{ Storage::url($gallery->image_path) }}" alt="{{ $gallery->title }}"
-                                class="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-105">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <!-- Header Section -->
+            <div class="text-center mb-20 animate-fade-in">
+                <span class="text-blue-500 font-black uppercase tracking-[0.4em] text-[10px] mb-6 inline-block">Visual
+                    Archive</span>
+                <h1 class="text-5xl md:text-8xl font-black text-white tracking-tighter uppercase italic leading-[0.8] mb-8">
+                    Our <span class="text-blue-500">Collection.</span>
+                </h1>
+                <p class="text-white/40 max-w-2xl mx-auto font-black uppercase tracking-widest text-[10px] leading-relaxed">
+                    A clinical showcase of precision craftsmanship and athletic excellence. Every pixel documented for the
+                    record.
+                </p>
+            </div>
 
-                            <div
-                                class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end p-10">
-                                <div>
-                                    <h3 class="text-white font-black text-2xl mb-2">{{ $gallery->title }}</h3>
-                                    @if($gallery->description)
-                                        <p class="text-white/70 text-sm font-medium leading-relaxed">{{ $gallery->description }}</p>
-                                    @endif
+            @if($galleries->count() > 0)
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8">
+                    @foreach($galleries as $gallery)
+                        <div
+                            class="group relative bg-[#111111] border border-white/5 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:border-blue-500/30 hover:shadow-[0_0_50px_rgba(37,99,235,0.1)]">
+                            <!-- Image Container -->
+                            <div class="relative aspect-square md:aspect-[4/5] overflow-hidden bg-black/40 flex items-center justify-center p-3 md:p-8">
+                                <img src="{{ Storage::url($gallery->image_path) }}" alt="{{ $gallery->title }}"
+                                    class="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-110">
+
+                                <!-- Hover Overlay Info -->
+                                <div
+                                    class="absolute inset-0 bg-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
                                 </div>
                             </div>
-                        </div>
-                        <div class="p-8 border-t border-slate-50">
-                            <h3 class="font-black text-slate-900 text-xl">{{ $gallery->title }}</h3>
-                            <p class="text-slate-500 text-sm font-medium mt-1">{{ Str::limit($gallery->description, 60) }}</p>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
 
-            <div class="mt-12">
-                {{ $galleries->links() }}
-            </div>
-        @else
-            <div class="text-center py-20 bg-gray-50 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <p class="text-gray-500 text-lg">No images available in the gallery yet.</p>
-            </div>
-        @endif
+                            <!-- Static Info Section -->
+                            <div class="p-3 md:p-10 border-t border-white/5">
+                                <div class="flex items-center justify-between mb-1.5 md:mb-4">
+                                    <h3 class="font-black text-white text-[10px] md:text-xl uppercase italic tracking-tighter">
+                                        {{ $gallery->title }}</h3>
+                                    <div
+                                        class="w-5 h-5 md:w-8 md:h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-blue-500 group-hover:border-blue-500 transition-all">
+                                        <i data-feather="maximize-2"
+                                            class="text-white/20 group-hover:text-black w-2 h-2 md:w-3 md:h-3 transition-colors"></i>
+                                    </div>
+                                </div>
+                                <p class="text-white/30 text-[7px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                                    {{ Str::limit($gallery->description, 50) }}
+                                </p>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-20">
+                    {{ $galleries->links() }}
+                </div>
+            @else
+                <div class="py-40 text-center border-2 border-dashed border-white/5 rounded-[3rem] animate-pulse">
+                    <i data-feather="image" class="mx-auto text-white/5 mb-8" style="width:64px;height:64px"></i>
+                    <h2 class="text-white/20 font-black uppercase tracking-[0.5em] text-sm italic">Transmission Null. No records
+                        found.</h2>
+                </div>
+            @endif
+        </div>
+
+        <!-- Decorative Footer ID -->
+        <div class="mt-40 text-center">
+            <p class="text-[9px] text-white/10 font-black uppercase tracking-[0.5em]">MAXUMAX VISUAL DATALINK ESTABLISHED //
+                {{ date('Y') }}
+            </p>
+        </div>
     </div>
 @endsection
