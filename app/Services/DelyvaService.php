@@ -9,6 +9,7 @@ class DelyvaService
 {
     protected string $baseUrl;
     protected ?string $apiKey;
+    protected ?string $accessToken;
     protected ?string $companyCode;
     protected ?string $companyId;
     protected ?string $userId;
@@ -18,6 +19,7 @@ class DelyvaService
     {
         $this->baseUrl = rtrim(config('services.delyva.base_url', 'https://api.delyva.app/v1.0'), '/');
         $this->apiKey = config('services.delyva.api_key');
+        $this->accessToken = config('services.delyva.access_token');
         $this->companyCode = config('services.delyva.company_code');
         $this->companyId = config('services.delyva.company_id');
         $this->userId = config('services.delyva.user_id');
@@ -26,21 +28,20 @@ class DelyvaService
 
     protected function request(string $method, string $path, array $payload = [], array $query = []): array
     {
-        $url = $this->baseUrl . '/' . ltrim($path, '/');
-        $headers = [];
-        if (!empty($this->apiKey)) {
-            $headers['Authorization'] = 'Bearer ' . $this->apiKey;
-        }
+        $url = $this->baseUrl . $path;
         try {
-            $req = Http::timeout(60)->withHeaders($headers);
-            if (strtoupper($method) === 'GET') {
-                $resp = $req->get($url, $query);
-            } else {
-                $resp = $req->withQueryParameters($query)->withHeaders(['Content-Type' => 'application/json'])->send($method, $url, ['json' => $payload]);
+            $req = Http::timeout(12)
+                ->withHeaders([
+                    'Authorization' => $this->accessToken ? "Bearer {$this->accessToken}" : ($this->apiKey ? $this->apiKey : ''),
+                    'Content-Type' => 'application/json',
+                ]);
+            if (!empty($query)) {
+                $req = $req->withQueryParameters($query);
             }
+            $resp = $req->send($method, $url, ['json' => $payload]);
             if ($resp->failed()) {
-                Log::error('Delyva API Request Failed', ['method' => $method, 'path' => $path, 'status' => $resp->status(), 'body' => $resp->body()]);
-                return ['error' => true, 'status' => $resp->status(), 'body' => $resp->json()];
+                Log::error('Delyva API Request Failed', ['path' => $path, 'status' => $resp->status(), 'body' => $resp->body()]);
+                return ['error' => true, 'message' => 'Request failed', 'response' => $resp->json()];
             }
             return $resp->json();
         } catch (\Throwable $e) {
@@ -96,6 +97,21 @@ class DelyvaService
             'destination' => $destination,
             'items' => $items,
         ];
-        return $this->request('POST', '/quote', $payload);
+        $candidates = [
+            '/quote',
+            '/order/quote',
+            '/quote/price',
+            '/service/quote',
+            '/orders/quote',
+            '/order/price',
+        ];
+        foreach ($candidates as $path) {
+            $resp = $this->request('POST', $path, $payload, ['companyId' => $this->companyId]);
+            if (isset($resp['data']) || (isset($resp['list']) && is_array($resp['list']))) {
+                return $resp;
+            }
+        }
+        return ['error' => true, 'message' => 'No valid quote endpoint'];
     }
 }
+

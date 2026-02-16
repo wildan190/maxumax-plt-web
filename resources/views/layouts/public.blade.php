@@ -9,14 +9,16 @@
     <title>@yield('title', config('app.name', 'Maxumax')) - Premium Quality Jersey</title>
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="@yield('meta_description', 'Maxumax - Premium quality jerseys for sports and lifestyle. Expertly crafted in Malaysia. Pre-order now for exclusive designs.')">
+    <meta name="description"
+        content="@yield('meta_description', 'Maxumax - Premium quality jerseys for sports and lifestyle. Expertly crafted in Malaysia. Pre-order now for exclusive designs.')">
     <link rel="canonical" href="{{ url()->current() }}">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="@yield('title', config('app.name', 'Maxumax'))">
-    <meta property="og:description" content="@yield('meta_description', 'Maxumax - Premium quality jerseys for sports and lifestyle. Expertly crafted in Malaysia.')">
+    <meta property="og:description"
+        content="@yield('meta_description', 'Maxumax - Premium quality jerseys for sports and lifestyle. Expertly crafted in Malaysia.')">
     <meta property="og:image" content="{{ asset('assets/img/og-image.jpg') }}">
     <meta property="og:site_name" content="Maxumax Malaysia">
 
@@ -24,7 +26,8 @@
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ url()->current() }}">
     <meta property="twitter:title" content="@yield('title', config('app.name', 'Maxumax'))">
-    <meta property="twitter:description" content="@yield('meta_description', 'Maxumax - Premium quality jerseys for sports and lifestyle.')">
+    <meta property="twitter:description"
+        content="@yield('meta_description', 'Maxumax - Premium quality jerseys for sports and lifestyle.')">
     <meta property="twitter:image" content="{{ asset('assets/img/og-image.jpg') }}">
 
     <!-- Schema Markup -->
@@ -80,79 +83,79 @@
     @stack('styles')
 </head>
 
-<body class="public-body">
+<body class="public-body bg-black text-white" x-data="{ 
+    showSplash: !sessionStorage.getItem('splash_dismissed') && window.location.pathname === '/' 
+}" :class="{ 'overflow-hidden': showSplash }">
+
+    <!-- Splash Screen -->
+    <div x-show="showSplash" x-transition:leave="transition ease-in duration-700" x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center">
+
+        <!-- Logo -->
+        <div class="relative mb-12 transform transition-all duration-1000 scale-110">
+            <img src="{{ asset('assets/img/logo.png') }}" alt="MAXUMAX"
+                class="w-[280px] sm:w-[400px] md:w-[500px] invert brightness-0" />
+        </div>
+
+        <!-- Shop Now Button -->
+        <button @click="showSplash = false; sessionStorage.setItem('splash_dismissed', 'true')"
+            class="px-12 py-4 bg-white text-black font-black text-sm tracking-[0.2em] rounded-full uppercase transition-all duration-300 hover:bg-slate-200 hover:scale-105 active:scale-95 shadow-2xl">
+            Shop Now
+        </button>
+    </div>
+
     @php
         $cartCount = is_array(session('cart')) ? count(session('cart')) : 0;
     @endphp
 
     <!-- NAVBAR -->
-    <nav x-data="{ mobileMenuOpen: false }"
-        class="public-navbar sticky top-0 z-50
-           bg-white/80 backdrop-blur-xl
-           border-b border-white/30
-           shadow-lg shadow-black/5">
-        <div class="public-container flex items-center justify-between">
+    <nav x-show="!showSplash" x-data="{ mobileMenuOpen: false }" class="bg-black py-4 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
 
             <!-- BRAND -->
             <a href="/" class="flex items-center">
-                <!-- Mobile Logo -->
-                <img src="{{ asset('assets/img/maxumax-logo2.png') }}" alt="Maxumax Mobile Logo" class="lg:hidden h-8">
-
-                <!-- Desktop Logo -->
-                <img src="{{ asset('assets/img/logo.png') }}" alt="Maxumax Desktop Logo" class="hidden lg:block h-10">
+                <img src="{{ asset('assets/img/logo.png') }}" alt="Maxumax Logo" class="h-5 md:h-7 invert brightness-0">
             </a>
 
             <!-- DESKTOP NAV -->
-            <div class="hidden lg:flex items-center gap-8">
+            <div class="hidden lg:flex items-center gap-10">
+                <a href="/"
+                    class="text-white font-black uppercase tracking-widest text-xs hover:text-slate-400 transition-colors">Home</a>
+                <a href="{{ route('products.index') }}"
+                    class="text-white font-black uppercase tracking-widest text-xs hover:text-slate-400 transition-colors">Products</a>
+                <a href="{{ route('order.track') }}"
+                    class="text-white font-black uppercase tracking-widest text-xs hover:text-slate-400 transition-colors">Track
+                    Order</a>
 
-                <a href="/" class="public-nav-link">Home</a>
-                <a href="{{ route('preorder.landing') }}" class="public-nav-link">Pre-order</a>
-                <a href="{{ route('products.index') }}" class="public-nav-link">Products</a>
-                <a href="{{ route('order.track') }}" class="public-nav-link">Track Order</a>
+                <div class="h-4 w-px bg-white/20 mx-2"></div>
 
                 <!-- Currency Desktop -->
                 <div class="relative" x-data="{ open: false }" @click.away="open=false">
                     <button @click="open=!open"
-                        class="flex items-center gap-2 px-3 py-1.5
-                           bg-white/70 backdrop-blur rounded-lg
-                           text-xs font-black uppercase tracking-widest">
+                        class="flex items-center gap-2 text-white font-black uppercase tracking-widest text-xs">
                         {{ session('currency', 'MYR') }}
                         <i data-feather="chevron-down" style="width:14px;height:14px"></i>
                     </button>
 
                     <div x-show="open" x-cloak x-transition
-                        class="absolute right-0 mt-2 w-32
-                           bg-white/90 backdrop-blur-xl
-                           rounded-xl shadow-xl ring-1 ring-black/5 overflow-hidden">
+                        class="absolute right-0 mt-4 w-32 bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden">
                         @foreach (['MYR', 'BND', 'SGD', 'IDR'] as $curr)
                             <button onclick="setCurrency('{{ $curr }}')"
-                                class="flex w-full items-center justify-between
-                                   px-4 py-2.5 text-sm font-bold
-                                   {{ session('currency', 'MYR') == $curr ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50' }}">
+                                class="flex w-full items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-widest
+                                                   {{ session('currency', 'MYR') == $curr ? 'bg-white text-black' : 'text-white hover:bg-white/10' }}">
                                 {{ $curr }}
-                                @if (session('currency', 'MYR') == $curr)
-                                    <i data-feather="check" style="width:14px;height:14px"></i>
-                                @endif
                             </button>
                         @endforeach
                     </div>
                 </div>
 
                 <!-- Cart Desktop -->
-                <a href="{{ route('cart.show') }}"
-                    class="relative p-2 bg-slate-900 rounded-xl
-                       hover:bg-blue-600 transition-all
-                       hover:scale-110 active:scale-95">
-                    <i data-feather="shopping-cart" style="width:18px;height:18px;color:white"></i>
-
+                <a href="{{ route('cart.show') }}" class="relative text-white hover:text-slate-400 transition-colors">
+                    <i data-feather="shopping-cart" style="width:18px;height:18px;"></i>
                     @if ($cartCount)
                         <span
-                            class="absolute -top-1.5 -right-1.5
-                               bg-white text-blue-600
-                               border-2 border-slate-900
-                               rounded-full h-5 min-w-[20px]
-                               px-1 text-[10px] font-black
-                               flex items-center justify-center">
+                            class="absolute -top-2 -right-2 bg-white text-black text-[9px] font-black h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center">
                             {{ $cartCount }}
                         </span>
                     @endif
@@ -160,26 +163,17 @@
             </div>
 
             <!-- MOBILE RIGHT -->
-            <div class="lg:hidden flex items-center gap-4">
-
-                <!-- Cart Mobile (TETAP ADA) -->
-                <a href="{{ route('cart.show') }}" class="relative">
+            <div class="lg:hidden flex items-center gap-6">
+                <a href="{{ route('cart.show') }}" class="relative text-white">
                     <i data-feather="shopping-cart" style="width:20px;height:20px"></i>
-
                     @if ($cartCount)
                         <span
-                            class="absolute -top-1.5 -right-1.5
-                               bg-red-500 text-white
-                               rounded-md h-4 min-w-[16px]
-                               px-1 text-[10px] font-bold
-                               flex items-center justify-center">
+                            class="absolute -top-2 -right-2 bg-white text-black text-[9px] font-black h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center">
                             {{ $cartCount }}
                         </span>
                     @endif
                 </a>
-
-                <!-- Hamburger -->
-                <button @click="mobileMenuOpen = !mobileMenuOpen">
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-white">
                     <i data-feather="menu" x-show="!mobileMenuOpen"></i>
                     <i data-feather="x" x-show="mobileMenuOpen" style="display:none"></i>
                 </button>
@@ -188,59 +182,42 @@
 
         <!-- MOBILE MENU -->
         <div x-show="mobileMenuOpen" x-transition x-cloak
-            class="lg:hidden bg-white/95 backdrop-blur-xl
-               border-t border-gray-100 shadow-xl">
-            <div class="flex flex-col p-5 space-y-5">
+            class="lg:hidden bg-black border-t border-white/10 shadow-2xl">
+            <div class="flex flex-col p-6 space-y-6">
 
                 <!-- Nav Links -->
-                <a @click="mobileMenuOpen=false" href="/" class="font-medium">Home</a>
-                <a @click="mobileMenuOpen=false" href="{{ route('preorder.landing') }}"
-                    class="font-medium">Pre-order</a>
-                <a @click="mobileMenuOpen=false" href="{{ route('products.index') }}" class="font-medium">Products</a>
-                <a @click="mobileMenuOpen=false" href="{{ route('order.track') }}" class="font-medium">Track
-                    Order</a>
-
-                <!-- Cart in Mobile Menu -->
-                <a @click="mobileMenuOpen=false" href="{{ route('cart.show') }}"
-                    class="flex items-center justify-between
-                       pt-4 border-t font-semibold">
-                    <span>Cart</span>
-                    @if ($cartCount)
-                        <span class="bg-black text-white px-2 py-0.5 rounded text-xs">
-                            {{ $cartCount }}
-                        </span>
-                    @endif
-                </a>
+                <a @click="mobileMenuOpen=false" href="/"
+                    class="text-white font-black uppercase tracking-widest text-sm">Home</a>
+                <a @click="mobileMenuOpen=false" href="{{ route('products.index') }}"
+                    class="text-white font-black uppercase tracking-widest text-sm">Products</a>
+                <a @click="mobileMenuOpen=false" href="{{ route('order.track') }}"
+                    class="text-white font-black uppercase tracking-widest text-sm">Track Order</a>
 
                 <!-- Currency Mobile -->
-                <div class="pt-4 border-t">
-                    <p class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-widest">
-                        Currency
-                    </p>
-
+                <div class="pt-6 border-t border-white/10">
+                    <p class="text-[10px] font-black text-white/40 mb-4 uppercase tracking-[0.2em]">Currency</p>
                     <div class="flex flex-wrap gap-3">
                         @foreach (['MYR', 'BND', 'SGD', 'IDR'] as $curr)
                             <button onclick="setCurrency('{{ $curr }}')"
-                                class="px-4 py-2 rounded-lg text-sm font-bold
-                            {{ session('currency', 'MYR') == $curr ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                                class="px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest
+                                        {{ session('currency', 'MYR') == $curr ? 'bg-white text-black' : 'bg-white/5 text-white hover:bg-white/10' }}">
                                 {{ $curr }}
                             </button>
                         @endforeach
                     </div>
                 </div>
-
             </div>
         </div>
     </nav>
 
 
     <!-- Main Content -->
-    <main class="w-full">
+    <main x-show="!showSplash" class="w-full">
         @yield('content')
     </main>
 
     <!-- Footer -->
-    <footer class="bg-slate-900 border-t border-white/5 pt-24 pb-12 px-6 overflow-hidden">
+    <footer x-show="!showSplash" class="bg-slate-900 border-t border-white/5 pt-24 pb-12 px-6 overflow-hidden">
         <div class="max-w-7xl mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
                 <div class="col-span-1 lg:col-span-1">
@@ -255,9 +232,9 @@
                     <div class="flex gap-4">
                         <a href="https://www.instagram.com/maxumax.my/" target="_blank"
                             class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-instagram">
                                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5">
                                 </rect>
                                 <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
@@ -266,17 +243,17 @@
                         </a>
                         <a href="https://www.facebook.com/maxumax.my/" target="_blank"
                             class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" class="feather feather-facebook">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-facebook">
                                 <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
                             </svg>
                         </a>
                         <a href="https://www.tiktok.com/@maxumax.my" target="_blank"
                             class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" class="feather feather-tiktok">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-tiktok">
                                 <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
                             </svg>
                         </a>
@@ -286,8 +263,7 @@
                 <div>
                     <h4 class="text-white font-black uppercase tracking-widest text-sm mb-8">Navigation</h4>
                     <ul class="space-y-4">
-                        <li><a href="/"
-                                class="text-slate-400 hover:text-white font-medium transition-colors">Home
+                        <li><a href="/" class="text-slate-400 hover:text-white font-medium transition-colors">Home
                                 Archive</a></li>
                         <li><a href="{{ route('preorder.landing') }}"
                                 class="text-slate-400 hover:text-white font-medium transition-colors">Pre-order
@@ -308,13 +284,12 @@
                                 class="text-slate-400 hover:text-white font-medium transition-colors">Track
                                 Shipment</a>
                         </li>
-                        <li><a href="#"
-                                class="text-slate-400 hover:text-white font-medium transition-colors">Size
+                        <li><a href="#" class="text-slate-400 hover:text-white font-medium transition-colors">Size
                                 Guide</a></li>
-                        <li><a href="#"
-                                class="text-slate-400 hover:text-white font-medium transition-colors">Return
-                                Policy</a></li>
-                        <li><a href="#"
+                        <li><a href="{{ route('pages.policies') }}"
+                                class="text-slate-400 hover:text-white font-medium transition-colors">Policies &
+                                Terms</a></li>
+                        <li><a href="{{ route('order.track') }}"
                                 class="text-slate-400 hover:text-white font-medium transition-colors">FAQ</a>
                         </li>
                     </ul>
@@ -349,9 +324,9 @@
                     &copy; 2026 {{ config('app.name', 'Maxumax') }} Pro. All Rights Reserved.
                 </p>
                 <div class="flex gap-8">
-                    <a href="#"
-                        class="text-slate-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Privacy</a>
-                    <a href="#"
+                    <a href="{{ route('pages.policies') }}"
+                        class="text-slate-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Policies</a>
+                    <a href="{{ route('pages.policies') }}"
                         class="text-slate-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Terms</a>
                 </div>
             </div>
@@ -361,15 +336,15 @@
     <script>
         function setCurrency(currency) {
             fetch('{{ route('currency.set') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        currency: currency
-                    })
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    currency: currency
                 })
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -378,13 +353,13 @@
                 });
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             if (typeof feather !== 'undefined') {
                 feather.replace();
             }
 
             // Close currency dropdown when clicking outside
-            document.addEventListener('click', function(event) {
+            document.addEventListener('click', function (event) {
                 var dropdown = document.getElementById('currency-dropdown');
                 var button = document.getElementById('currency-menu-button');
                 if (dropdown && !dropdown.classList.contains('hidden') && !button.contains(event.target) &&
