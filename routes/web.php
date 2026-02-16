@@ -9,13 +9,13 @@ use App\Http\Controllers\ProfileController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    $products = App\Models\Product::where('is_active', true)->where('available_for_preorder', true)->get();
+Route::get('/', function (App\Services\CurrencyService $currencyService) {
+    $products = App\Models\Product::where('available_for_preorder', true)->get();
     $highlightedGallery = App\Models\Gallery::where('is_highlight', true)->latest()->take(6)->get();
 
-    // Get currency from session or default
-    $currency = session('currency', 'MYR');
-    $currencyConfig = config("currencies.{$currency}", config('currencies.MYR'));
+    // Get currency from session or resolve
+    $currency = $currencyService->resolveCurrency(request());
+    $currencyConfig = $currencyService->getCurrencyConfig($currency);
 
     return view('home', compact('products', 'highlightedGallery', 'currency', 'currencyConfig'));
 });
@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
 
 // Admin preorder management
 Route::middleware('auth')->prefix('admin')->group(function () {
+    Route::get('/env/shipping', [App\Http\Controllers\ShippingController::class, 'envShippingCheck'])->name('admin.env.shipping');
     Route::get('/preorders', [App\Http\Controllers\PreorderAdminController::class, 'index'])->name('admin.preorders.index');
     Route::get('/preorders/{preorder}', [App\Http\Controllers\PreorderAdminController::class, 'show'])->name('admin.preorders.show');
     Route::post('/preorders/{preorder}/confirm', [App\Http\Controllers\PreorderAdminController::class, 'confirm'])->name('admin.preorders.confirm');
@@ -40,13 +41,13 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('/preorders/{preorder}/mark-packing', [App\Http\Controllers\PreorderAdminController::class, 'markPacking'])->name('admin.preorders.markPacking');
     Route::post('/preorders/{preorder}/mark-shipped', [App\Http\Controllers\PreorderAdminController::class, 'markShipped'])->name('admin.preorders.markShipped');
     Route::post('/preorders/{preorder}/mark-delivered', [App\Http\Controllers\PreorderAdminController::class, 'markDelivered'])->name('admin.preorders.markDelivered');
-    
+
     // EasyParcel
     Route::get('/preorders/{preorder}/shipping', [App\Http\Controllers\PreorderAdminController::class, 'shipping'])->name('admin.preorders.shipping');
-    
+
     Route::post('/preorders/{preorder}/shipping/rates', [App\Http\Controllers\PreorderAdminController::class, 'checkRates'])->name('admin.preorders.checkRates');
     Route::get('/preorders/{preorder}/shipping/rates', [App\Http\Controllers\PreorderAdminController::class, 'shipping']); // Fallback for 405
-    
+
     Route::post('/preorders/{preorder}/shipping/book', [App\Http\Controllers\PreorderAdminController::class, 'bookShipping'])->name('admin.preorders.bookShipping');
     Route::get('/preorders/{preorder}/shipping/book', [App\Http\Controllers\PreorderAdminController::class, 'shipping']); // Fallback for 405
     Route::post('/preorders/{preorder}/shipping/refresh', [App\Http\Controllers\PreorderAdminController::class, 'refreshTracking'])->name('admin.preorders.refreshTracking');
@@ -75,7 +76,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('/orders/{order}/approve-refund', [App\Http\Controllers\OrderAdminController::class, 'approveRefund'])->name('admin.orders.approveRefund');
     Route::post('/orders/{order}/reject-refund', [App\Http\Controllers\OrderAdminController::class, 'rejectRefund'])->name('admin.orders.rejectRefund');
     Route::delete('/orders/{order}', [App\Http\Controllers\OrderAdminController::class, 'destroy'])->name('admin.orders.destroy');
-    
+
     // Admin order shipping
     Route::get('/orders/{order}/shipping', [App\Http\Controllers\OrderAdminController::class, 'shipping'])->name('admin.orders.shipping');
     Route::post('/orders/{order}/shipping/rates', [App\Http\Controllers\OrderAdminController::class, 'checkRates'])->name('admin.orders.checkRates');
@@ -120,8 +121,9 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     });
 });
 
-// Public Gallery
+// Public Pages
 Route::get('/gallery', [App\Http\Controllers\PageController::class, 'gallery'])->name('gallery.index');
+Route::get('/policies', [App\Http\Controllers\PageController::class, 'policies'])->name('pages.policies');
 
 // Preorder landing (supports optional subdomain via PREORDER_DOMAIN env)
 Route::group(['domain' => env('PREORDER_DOMAIN', null)], function () {
@@ -133,6 +135,7 @@ Route::group(['domain' => env('PREORDER_DOMAIN', null)], function () {
     Route::get('/order/create/{product}', [PreorderController::class, 'create'])->name('order.create');
     Route::post('/order', [PreorderController::class, 'store'])->name('order.store');
     Route::get('/order/thank-you/{uuid}', [PreorderController::class, 'thankyou'])->name('order.thankyou');
+    Route::post('/shipping/rates', [App\Http\Controllers\ShippingController::class, 'checkRates'])->name('shipping.rates');
 });
 
 // Fallback registration if domain not configured (simple routes)

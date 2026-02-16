@@ -9,14 +9,15 @@ class EasyParcelService
 {
     protected $apiKey;
     protected $baseUrl;
+    protected $prodUrl;
+    protected $isProduction;
 
     public function __construct()
     {
         $this->apiKey = config('services.easyparcel.api_key');
-        $isProduction = config('services.easyparcel.is_production');
-        $this->baseUrl = $isProduction 
-            ? 'https://connect.easyparcel.my/?ac=' 
-            : 'http://demo.connect.easyparcel.my/?ac=';
+        $this->isProduction = (bool) config('services.easyparcel.is_production');
+        $this->baseUrl = $this->isProduction ? 'https://connect.easyparcel.my/?ac=' : 'https://connect.easyparcel.my/?ac=';
+        $this->prodUrl = 'https://connect.easyparcel.my/?ac=';
     }
 
     /**
@@ -29,7 +30,7 @@ class EasyParcelService
     protected function makeRequest($action, $data = [])
     {
         // Increase execution time to handle slow API responses
-        set_time_limit(120);
+        set_time_limit(60);
 
         $payload = [
             'api' => $this->apiKey,
@@ -43,20 +44,32 @@ class EasyParcelService
         }
 
         try {
-            $response = Http::timeout(60)->asForm()->post($this->baseUrl . $action, $payload);
-            
+            $response = Http::timeout(6)->asForm()->post($this->baseUrl . $action, $payload);
             if ($response->failed()) {
-                Log::error('EasyParcel API Request Failed', [
-                    'action' => $action,
-                    'status' => $response->status(),
-                    'body' => $response->body()
-                ]);
+                Log::error('EasyParcel API Request Failed', ['action' => $action, 'status' => $response->status(), 'body' => $response->body()]);
+                if (!$this->isProduction) {
+                    $fallback = Http::timeout(6)->asForm()->post($this->prodUrl . $action, $payload);
+                    if (!$fallback->failed()) {
+                        return $fallback->json();
+                    }
+                    Log::error('EasyParcel API Fallback Failed', ['action' => $action, 'status' => $fallback->status(), 'body' => $fallback->body()]);
+                }
                 return ['api_status' => 'Error', 'result' => 'Request failed'];
             }
-
             return $response->json();
         } catch (\Exception $e) {
             Log::error('EasyParcel API Exception: ' . $e->getMessage());
+            if (!$this->isProduction) {
+                try {
+                    $fallback = Http::timeout(6)->asForm()->post($this->prodUrl . $action, $payload);
+                    if (!$fallback->failed()) {
+                        return $fallback->json();
+                    }
+                    Log::error('EasyParcel API Fallback Exception', ['action' => $action, 'error' => $fallback->body()]);
+                } catch (\Exception $e2) {
+                    Log::error('EasyParcel API Fallback Exception: ' . $e2->getMessage());
+                }
+            }
             return ['api_status' => 'Error', 'result' => $e->getMessage()];
         }
     }

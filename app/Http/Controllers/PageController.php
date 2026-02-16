@@ -13,4 +13,9 @@ class PageController extends Controller
         $galleries = Gallery::latest()->paginate(20);
         return view('gallery.index', compact('galleries'));
     }
+
+    public function policies()
+    {
+        return view('pages.policies');
+    }
 }

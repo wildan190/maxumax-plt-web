@@ -92,16 +92,18 @@
                                              </td>
                                          </tr>
                                      @endforeach
-                                    @if($preorder->shipping_cost > 0)
-                                        <tr style="border-bottom: 1px solid #f3f4f6;">
-                                            <td colspan="4" style="padding: 0.75rem 0; text-align: right; color: #6b7280;">
-                                                Shipping ({{ $preorder->shipping_courier_name ?? 'Courier' }} - {{ $preorder->shipping_service_name ?? 'Service' }})
-                                            </td>
-                                            <td style="padding: 0.75rem 0; text-align: right; font-weight: 600;">
+                                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                                        <td colspan="4" style="padding: 0.75rem 0; text-align: right; color: #6b7280;">
+                                            Shipping ({{ $preorder->shipping_courier_name ?? 'Courier' }} - {{ $preorder->shipping_service_name ?? 'Service' }})
+                                        </td>
+                                        <td style="padding: 0.75rem 0; text-align: right; font-weight: 600;">
+                                            @if(($preorder->shipping_cost ?? 0) > 0)
                                                 {{ $preorder->currency }} {{ number_format($preorder->shipping_cost, 2) }}
-                                            </td>
-                                        </tr>
-                                    @endif
+                                            @else
+                                                <span style="color:#64748b;">Calculated at booking</span>
+                                            @endif
+                                        </td>
+                                    </tr>
                                     <tr style="border-top: 2px solid #e5e7eb;">
                                         <td colspan="4" style="padding: 0.75rem 0; font-weight: 700; text-align: right;">Grand Total</td>
                                         <td style="padding: 0.75rem 0; font-weight: 800; text-align: right; color: #111827;">
@@ -264,6 +266,12 @@
                                     <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">Tracking Number</p>
                                     <p style="font-weight: 700; color: #111827; margin: 0;">{{ $preorder->tracking_number }}</p>
                                 </div>
+                                @php $isMpa = \Illuminate\Support\Str::contains(strtolower($preorder->shipping_courier_name ?? ''), 'myparcel'); @endphp
+                                @if($isMpa)
+                                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                                        <span style="padding:0.25rem 0.5rem; border-radius:0.375rem; background:#ebf5ff; color:#1d4ed8; font-weight:700; font-size:0.75rem;">Booked via MyParcelAsia</span>
+                                    </div>
+                                @endif
                                 <form action="{{ route('admin.preorders.refreshTracking', $preorder) }}" method="POST">
                                     @csrf
                                     <button type="submit" style="padding: 0.5rem 1rem; background: #0ea5e9; color: white; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; font-size: 0.875rem;">Refresh Tracking</button>
