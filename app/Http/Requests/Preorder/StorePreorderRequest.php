@@ -39,6 +39,7 @@ class StorePreorderRequest extends FormRequest
             'shipping_service_name' => 'required|string|max:255',
             'shipping_service_id' => 'required|string|max:255',
             'shipping_cost' => 'required|numeric|min:0',
+            'shipping_source' => 'nullable|string|in:myparcelasia,easyparcel,delyva',
         ];
     }
 }

@@ -369,6 +369,7 @@
                         <input type="hidden" name="shipping_service_name" id="input_shipping_service_name">
                         <input type="hidden" name="shipping_service_id" id="input_shipping_service_id">
                         <input type="hidden" name="shipping_cost" id="input_shipping_cost">
+                        <input type="hidden" name="shipping_source" id="input_shipping_source" value="">
 
                         <div class="form-nav">
                             <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
@@ -938,9 +939,7 @@
                 const displayAmount = currentCurrency === 'IDR'
                     ? Math.round(converted).toLocaleString('id-ID')
                     : converted.toFixed(2);
-                const priceHtml = (rate.source === 'myparcelasia')
-                    ? 'Calculated at booking'
-                    : `${conf.symbol} ${displayAmount}`;
+                const priceHtml = `${conf.symbol} ${displayAmount}`;
                 card.innerHTML = `
                     ${logoHtml}
                     <div style="font-weight: 600;">${rate.courier_name}</div>
@@ -992,16 +991,11 @@
             document.getElementById('input_shipping_courier_logo').value = rate.courier_logo || '';
             document.getElementById('input_shipping_service_name').value = rate.service_name;
             document.getElementById('input_shipping_service_id').value = rate.service_id;
-            if (rate.source && rate.source === 'myparcelasia') {
-                document.getElementById('input_shipping_cost').value = 0;
-            } else {
-                document.getElementById('input_shipping_cost').value = rate.price;
-            }
+            document.getElementById('input_shipping_cost').value = rate.price;
+            var srcInput = document.getElementById('input_shipping_source');
+            if (srcInput) srcInput.value = rate.source || '';
 
-            // Update cost variable
-            if (!(rate.source && rate.source === 'myparcelasia')) {
-                shippingCost = parseFloat(rate.price);
-            }
+            shippingCost = parseFloat(rate.price || 0);
         }
 
         function submitForm() {

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Preorder;
 use App\Models\PreorderHistory;
 use App\Models\Product;
+use App\Services\ShippingService;
 use App\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -162,6 +163,20 @@ class OrderService
                 'note' => $data['history_note'] ?? 'Order created',
             ]);
 
+            // Auto-create MyParcel shipment when MyParcel shipping selected → adds to Cart & Checkout
+            if (($data['shipping_source'] ?? '') === 'myparcelasia') {
+                try {
+                    $shipping = new ShippingService();
+                    $shipmentKey = $shipping->createShipmentForPreorder($pre, $data);
+                    if ($shipmentKey) {
+                        $pre->myparcel_shipment_key = $shipmentKey;
+                        $pre->save();
+                    }
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('MyParcel auto-create shipment failed: ' . $e->getMessage());
+                }
+            }
+
             return $pre;
         });
     }
@@ -251,6 +266,7 @@ class OrderService
                         'shipping_cost' => $checkoutData['shipping_data']['shipping_cost'] ?? 0,
                         'shipping_courier_name' => $checkoutData['shipping_data']['shipping_courier_name'] ?? null,
                         'shipping_service_id' => $checkoutData['shipping_data']['shipping_service_id'] ?? null,
+                        'shipping_source' => $checkoutData['shipping_data']['shipping_source'] ?? $checkoutData['order_data']['shipping_source'] ?? null,
                     ]),
                     $product,
                     $itemsData,

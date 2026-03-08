@@ -180,6 +180,7 @@ class PaymentController extends Controller
                     'shipping_cost' => $shippingCost,
                     'shipping_courier_name' => $data['shipping_courier_name'] ?? null,
                     'shipping_service_id' => $data['shipping_service_id'] ?? null,
+                    'shipping_source' => $data['shipping_source'] ?? null,
                 ],
             ]);
 

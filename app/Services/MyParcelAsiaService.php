@@ -25,7 +25,12 @@ class MyParcelAsiaService
         $url = $this->baseUrl . '/' . ltrim($endpoint, '/');
         $payload = ['api_key' => $this->apiKey] + $params;
         try {
-            $resp = Http::timeout(12)->asForm()->post($url, $payload);
+            // MyParcel endpoints are often documented with JSON bodies.
+            // To be resilient, try JSON first, then fallback to form-encoded.
+            $resp = Http::timeout(12)->asJson()->post($url, $payload);
+            if ($resp->failed() || $this->looksLikeAuthMissing($resp->json())) {
+                $resp = Http::timeout(12)->asForm()->post($url, $payload);
+            }
             if ($resp->failed()) {
                 Log::error('MyParcelAsia API Request Failed', ['endpoint' => $endpoint, 'status' => $resp->status(), 'body' => $resp->body()]);
                 return ['status' => false, 'message' => 'Request failed', 'error' => $resp->json()];
@@ -37,6 +42,13 @@ class MyParcelAsiaService
         }
     }
 
+    protected function looksLikeAuthMissing($json): bool
+    {
+        if (!is_array($json)) return false;
+        $msg = strtolower((string) ($json['message'] ?? ''));
+        return str_contains($msg, 'no auth key') || str_contains($msg, 'please include');
+    }
+
     public function checkout(array $order, array $shipments): array
     {
         $params = [
@@ -44,6 +56,15 @@ class MyParcelAsiaService
             'shipments' => $shipments,
         ];
         return $this->post('checkout', $params);
+    }
+
+    /**
+     * Checkout cart by shipment keys (from get_cart_items).
+     * Body: shipment_keys (array of key strings).
+     */
+    public function checkoutByShipmentKeys(array $shipmentKeys): array
+    {
+        return $this->post('checkout', ['shipment_keys' => $shipmentKeys]);
     }
 
     public function user(array $params = []): array

@@ -34,6 +34,14 @@ Route::middleware('auth')->group(function () {
 // Admin preorder management
 Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/env/shipping', [App\Http\Controllers\ShippingController::class, 'envShippingCheck'])->name('admin.env.shipping');
+    Route::get('/shipping/myparcel', [App\Http\Controllers\ShippingController::class, 'myparcelDashboard'])->name('admin.shipping.myparcel.index');
+    Route::get('/shipping/myparcel/parcel-sizes', [App\Http\Controllers\ShippingController::class, 'myparcelParcelSizes'])->name('admin.shipping.myparcel.parcelSizes');
+    Route::get('/shipping/myparcel/content-types', [App\Http\Controllers\ShippingController::class, 'myparcelContentTypes'])->name('admin.shipping.myparcel.contentTypes');
+    Route::post('/shipping/myparcel/sdd-price', [App\Http\Controllers\ShippingController::class, 'myparcelSddPrice'])->name('admin.shipping.myparcel.sddPrice');
+    Route::get('/shipping/myparcel/cart-items', [App\Http\Controllers\ShippingController::class, 'myparcelCartItems'])->name('admin.shipping.myparcel.cartItems');
+    Route::post('/shipping/myparcel/checkout', [App\Http\Controllers\ShippingController::class, 'myparcelCheckout'])->name('admin.shipping.myparcel.checkout');
+    Route::post('/shipping/myparcel/create-shipment', [App\Http\Controllers\ShippingController::class, 'myparcelCreateShipment'])->name('admin.shipping.myparcel.createShipment');
+    Route::get('/shipping/myparcel/shipment-statuses', [App\Http\Controllers\ShippingController::class, 'myparcelShipmentStatuses'])->name('admin.shipping.myparcel.shipmentStatuses');
     Route::get('/preorders', [App\Http\Controllers\PreorderAdminController::class, 'index'])->name('admin.preorders.index');
     Route::get('/preorders/{preorder}', [App\Http\Controllers\PreorderAdminController::class, 'show'])->name('admin.preorders.show');
     Route::post('/preorders/{preorder}/confirm', [App\Http\Controllers\PreorderAdminController::class, 'confirm'])->name('admin.preorders.confirm');

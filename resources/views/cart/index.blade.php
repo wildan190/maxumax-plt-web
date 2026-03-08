@@ -249,6 +249,7 @@
                                         <input type="hidden" name="shipping_service_name" id="input_shipping_service_name">
                                         <input type="hidden" name="shipping_service_id" id="input_shipping_service_id">
                                         <input type="hidden" name="shipping_cost" id="input_shipping_cost">
+                                        <input type="hidden" name="shipping_source" id="input_shipping_source" value="">
                                     </div>
 
                                     <!-- Payment Module -->
@@ -421,6 +422,8 @@
                             document.getElementById('input_shipping_service_name').value = rate.service_name;
                             document.getElementById('input_shipping_service_id').value = rate.service_id;
                             document.getElementById('input_shipping_cost').value = rate.price;
+                            var srcEl = document.getElementById('input_shipping_source');
+                            if (srcEl) srcEl.value = rate.source || '';
 
                             Array.from(list.children).forEach(c => {
                                 c.classList.remove('border-black', 'bg-black', 'text-white');
