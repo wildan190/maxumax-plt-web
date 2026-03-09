@@ -173,7 +173,7 @@ class OrderService
                         $pre->save();
                     }
                 } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning('MyParcel auto-create shipment failed: ' . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::warning('MyParcel auto-create shipment failed: ' . $e->getMessage(), ['order' => $pre->order_number, 'trace' => $e->getTraceAsString()]);
                 }
             }
 
@@ -263,9 +263,11 @@ class OrderService
                         'stripe_payment_intent_id' => $paymentIntentId,
                         'stripe_session_id' => $sessionId,
                         'history_note' => 'Order via Stripe payment - automatically paid',
-                        'shipping_cost' => $checkoutData['shipping_data']['shipping_cost'] ?? 0,
-                        'shipping_courier_name' => $checkoutData['shipping_data']['shipping_courier_name'] ?? null,
-                        'shipping_service_id' => $checkoutData['shipping_data']['shipping_service_id'] ?? null,
+                        'shipping_cost' => $checkoutData['shipping_data']['shipping_cost'] ?? $checkoutData['order_data']['shipping_cost'] ?? 0,
+                        'shipping_courier_name' => $checkoutData['shipping_data']['shipping_courier_name'] ?? $checkoutData['order_data']['shipping_courier_name'] ?? null,
+                        'shipping_courier_logo' => $checkoutData['shipping_data']['shipping_courier_logo'] ?? $checkoutData['order_data']['shipping_courier_logo'] ?? null,
+                        'shipping_service_name' => $checkoutData['shipping_data']['shipping_service_name'] ?? $checkoutData['order_data']['shipping_service_name'] ?? null,
+                        'shipping_service_id' => $checkoutData['shipping_data']['shipping_service_id'] ?? $checkoutData['order_data']['shipping_service_id'] ?? null,
                         'shipping_source' => $checkoutData['shipping_data']['shipping_source'] ?? $checkoutData['order_data']['shipping_source'] ?? null,
                     ]),
                     $product,

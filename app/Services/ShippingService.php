@@ -265,21 +265,45 @@ class ShippingService
     {
         $conf = config('services.myparcelasia', []);
         if (empty($conf['api_key'])) {
+            \Illuminate\Support\Facades\Log::info('MyParcel auto-create skipped: no api_key');
+            return null;
+        }
+
+        $serviceId = (string) ($preorder->shipping_service_id ?? $data['shipping_service_id'] ?? '');
+        if ($serviceId === '') {
+            \Illuminate\Support\Facades\Log::warning('MyParcel auto-create skipped: empty shipping_service_id', ['order' => $preorder->order_number]);
             return null;
         }
 
         $weight = max(0.1, (float) ($data['weight'] ?? max(1, (int) $preorder->quantity)));
-        $payload = $this->buildCreateShipmentPayload($preorder, array_merge($data, ['weight' => $weight, 'service_id' => $preorder->shipping_service_id]));
+        $payload = $this->buildCreateShipmentPayload($preorder, array_merge($data, ['weight' => $weight, 'service_id' => $serviceId]));
         if (!$payload) {
+            \Illuminate\Support\Facades\Log::warning('MyParcel auto-create skipped: buildCreateShipmentPayload returned null', ['order' => $preorder->order_number]);
             return null;
         }
 
+        \Illuminate\Support\Facades\Log::info('MyParcel auto-create attempt', ['order' => $preorder->order_number, 'provider_code' => $payload['provider_code'] ?? '']);
+
         $resp = $this->myParcel->createShipment($payload);
-        if (!empty($resp['status']) && $resp['status'] === true) {
-            $d = $resp['data'] ?? [];
-            return $d['shipment_key'] ?? $d['tracking_number'] ?? null;
+
+        $ok = !empty($resp['status']) && ($resp['status'] === true || $resp['status'] === 'success');
+        if (!$ok && !empty($resp['success'])) {
+            $ok = $resp['success'] === true || $resp['success'] === 'true';
         }
-        \Illuminate\Support\Facades\Log::warning('MyParcel create_shipment failed on order create', ['order' => $preorder->order_number, 'message' => $resp['message'] ?? 'Unknown']);
+        if ($ok) {
+            $d = $resp['data'] ?? $resp;
+            $shipmentKey = $d['shipment_key'] ?? $d['key'] ?? $d['tracking_number'] ?? $d['awb_no'] ?? null;
+            if ($shipmentKey) {
+                \Illuminate\Support\Facades\Log::info('MyParcel auto-create success', ['order' => $preorder->order_number, 'shipment_key' => $shipmentKey]);
+                return (string) $shipmentKey;
+            }
+        }
+
+        \Illuminate\Support\Facades\Log::warning('MyParcel create_shipment failed on order create', [
+            'order' => $preorder->order_number,
+            'message' => $resp['message'] ?? 'Unknown',
+            'response' => $resp,
+        ]);
         return null;
     }
 
@@ -301,8 +325,8 @@ class ShippingService
                 $unitPrice = (float) ($it['unit_price'] ?? ($it['price'] ?? 0));
                 $subTotal = $unitPrice * $qty;
                 $lineItem[] = [
-                    'product_id' => (int) ($it['product_id'] ?? $idx + 1),
-                    'name' => (string) ($it['name'] ?? 'Item ' . ($idx + 1)),
+                    'product_id' => (int) ($it['product_id'] ?? $order->product_id ?? $idx + 1),
+                    'name' => (string) ($it['variant_name'] ?? $it['name'] ?? 'Item ' . ($idx + 1)),
                     'sku' => (string) ($it['sku'] ?? ''),
                     'hscode' => '334221',
                     'duty_percent' => 0,

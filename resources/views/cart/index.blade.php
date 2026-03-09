@@ -8,15 +8,15 @@
             <!-- Header section -->
             <div class="flex flex-col md:flex-row items-end justify-between mb-16 gap-8 animate-fade-in">
                 <div>
-                    <span class="text-white/40 font-black uppercase tracking-[0.3em] text-[10px] mb-4 inline-block">Order
+                    <span class="text-white/70 font-black uppercase tracking-[0.3em] text-[10px] mb-4 inline-block">Order
                         Configuration</span>
                     <h1 class="text-4xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-[0.9]">
-                        Review <span class="text-white/40">Inventory.</span>
+                        Review <span class="text-white/70">Inventory.</span>
                     </h1>
                 </div>
                 @if(count($items))
                     <div class="flex items-center gap-4 border-l border-white/5 pl-6 pb-2">
-                        <span class="text-white/40 font-black text-[10px] uppercase tracking-widest">Active Batch</span>
+                        <span class="text-white/70 font-black text-[10px] uppercase tracking-widest">Active Batch</span>
                         <span class="text-white font-black text-xl italic">{{ count($items) }} Units</span>
                     </div>
                 @endif
@@ -89,7 +89,7 @@
                                 <div class="flex-grow text-center md:text-left space-y-6">
                                     <div>
                                         <span
-                                            class="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] block mb-2">{{ $it['jersey_type'] ?? 'ELITE PERFORMANCE' }}</span>
+                                            class="text-[10px] font-black text-white/60 uppercase tracking-[0.3em] block mb-2">{{ $it['jersey_type'] ?? 'ELITE PERFORMANCE' }}</span>
                                         <h3
                                             class="text-2xl font-black text-white italic uppercase tracking-tighter truncate max-w-sm">
                                             {{ $it['name'] }}
@@ -98,12 +98,12 @@
 
                                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-3">
                                         <div
-                                            class="px-4 py-2 bg-white/5 rounded-full text-[9px] font-black text-white/40 uppercase tracking-widest border border-white/5">
+                                            class="px-4 py-2 bg-white/10 rounded-full text-[9px] font-black text-white/70 uppercase tracking-widest border border-white/10">
                                             Size {{ $it['size'] ?? 'VLD' }}
                                         </div>
                                         @if(!empty($it['variant_sku']))
                                             <div
-                                                class="px-4 py-2 bg-white/5 rounded-full text-[9px] font-black text-white/40 uppercase tracking-widest border border-white/5">
+                                                class="px-4 py-2 bg-white/10 rounded-full text-[9px] font-black text-white/70 uppercase tracking-widest border border-white/10">
                                                 ID {{ $it['variant_sku'] }}
                                             </div>
                                         @endif
@@ -116,7 +116,7 @@
                                     </div>
 
                                     <div class="flex items-baseline justify-center md:justify-start gap-2">
-                                        <span class="text-[10px] font-black text-white/20 uppercase">{{ $it['currency'] }} UNIT
+                                        <span class="text-[10px] font-black text-white/60 uppercase">{{ $it['currency'] }} UNIT
                                             PRICE</span>
                                         <span
                                             class="text-2xl font-black text-white tracking-tight">{{ number_format($it['line_total'], 2) }}</span>
@@ -144,7 +144,7 @@
                                         <input type="hidden" name="key" value="{{ $it['key'] ?? $it['product_id'] }}">
                                         <button type="submit"
                                             class="w-full px-6 py-4 bg-red-500/5 border border-red-500/10 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all">
-                                            Purge Unit
+                                            Remove
                                         </button>
                                     </form>
                                 </div>
@@ -160,29 +160,30 @@
                             <!-- Totals -->
                             <div class="space-y-8 mb-12">
                                 <div class="flex justify-between items-center">
-                                    <span class="text-[10px] font-black text-black/40 uppercase tracking-[0.2em]">Batch
-                                        Subtotal</span>
-                                    <span class="text-lg font-black">{{ $currency }} {{ number_format($total, 2) }}</span>
+                                    <span class="text-xs font-bold text-black/70 uppercase tracking-wide">Subtotal</span>
+                                    <span id="display-subtotal" class="text-lg font-black">{{ $currency }} {{ number_format($total, 2) }}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-[10px] font-black text-black/40 uppercase tracking-[0.2em]">Delivery
-                                        Matrix</span>
-                                    <span
-                                        class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Calculated</span>
+                                    <span class="text-xs font-bold text-black/70 uppercase tracking-wide">Shipping</span>
+                                    <span id="display-shipping" class="text-lg font-black text-black/50">—</span>
                                 </div>
                                 <div class="pt-10 border-t border-black/5 flex justify-between items-end">
                                     <span
                                         class="font-black text-3xl uppercase italic tracking-tighter leading-none">Total</span>
                                     <div class="text-right">
-                                        <div class="text-[10px] font-black text-black/40 uppercase tracking-widest mb-1">
+                                        <div class="text-xs font-bold text-black/60 uppercase tracking-wide mb-1">
                                             {{ $currency }}
                                         </div>
-                                        <div class="text-5xl font-black leading-[0.8] tracking-tighter italic">
+                                        <div id="display-total" class="text-5xl font-black leading-[0.8] tracking-tighter italic">
                                             {{ number_format($total, 2) }}
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <script>
+                                window.cartSubtotal = {{ $total }};
+                                window.cartCurrency = "{{ $currency }}";
+                            </script>
 
                             <!-- Checkout Form -->
                             <form method="POST" action="{{ route('checkout.cod') }}" class="space-y-10" id="cartCheckoutForm">
@@ -192,54 +193,50 @@
                                 <input type="hidden" id="selected_action_stripe" value="{{ route('checkout.stripe') }}">
 
                                 <div class="space-y-6">
-                                    <h3 class="text-[10px] font-black text-black/40 uppercase tracking-[0.3em]">Deployment Intel
-                                    </h3>
+                                    <h3 class="text-sm font-black text-black uppercase tracking-wide">Delivery Details</h3>
 
                                     <div class="space-y-4">
-                                        <input type="text" name="name" placeholder="Full Legal Name" required
-                                            class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/20 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
-                                        <input type="email" name="email" placeholder="Communication Email"
-                                            class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/20 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
-                                        <input type="text" name="phone" placeholder="Contact Terminal (WA)" required
-                                            class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/20 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
+                                        <input type="text" name="name" placeholder="Full name" required
+                                            class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/50 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
+                                        <input type="email" name="email" placeholder="Email"
+                                            class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/50 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
+                                        <input type="text" name="phone" placeholder="Phone / WhatsApp" required
+                                            class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/50 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
 
                                         <div class="grid grid-cols-2 gap-4">
                                             <input type="text" name="region" placeholder="Region" required
-                                                class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/20 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
-                                            <input type="text" name="province" placeholder="State/Prov" required
-                                                class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/20 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
+                                                class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/50 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
+                                            <input type="text" name="province" placeholder="State / Province" required
+                                                class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/50 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
                                             <input type="text" name="city" placeholder="City" required
-                                                class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/20 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
-                                            <input type="text" name="postal_code" placeholder="Postal Code" required
-                                                class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/20 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
+                                                class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/50 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
+                                            <input type="text" name="postal_code" placeholder="Postal code" required
+                                                class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/50 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs">
                                         </div>
 
-                                        <textarea name="address_detail" placeholder="Full Deployment Address" required rows="3"
-                                            class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/20 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs resize-none"></textarea>
+                                        <textarea name="address_detail" placeholder="Full delivery address" required rows="3"
+                                            class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/50 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs resize-none"></textarea>
 
-                                        <textarea name="notes" placeholder="Logistic Notes (Optional)" rows="2"
-                                            class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/20 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs resize-none"></textarea>
+                                        <textarea name="notes" placeholder="Order notes (optional)" rows="2"
+                                            class="w-full bg-black/5 border border-black/10 rounded-2xl px-6 py-5 text-black font-black placeholder-black/50 focus:outline-none focus:border-black transition-all uppercase tracking-widest text-xs resize-none"></textarea>
                                     </div>
 
                                     <!-- Shipping Module -->
-                                    <div class="space-y-6 pt-6 border-t border-black/5">
-                                        <h3 class="text-[10px] font-black text-black/40 uppercase tracking-[0.3em]">Logistic
-                                            Provider</h3>
-                                        <div class="bg-black/5 border border-black/10 rounded-3xl p-8">
-                                            <div id="shipping-loader" class="text-center hidden py-4">
-                                                <div
-                                                    class="mx-auto mb-4 w-12 h-12 border-4 border-black/5 border-t-black rounded-full animate-spin">
-                                                </div>
-                                                <div class="text-black/40 font-black text-[9px] uppercase tracking-widest">
-                                                    Querying Matrix...</div>
+                                    <div class="space-y-6 pt-6 border-t-2 border-black/10">
+                                        <h3 class="text-sm font-black text-black uppercase tracking-wider">Select Courier & Shipping</h3>
+                                        <p class="text-xs text-black/60 -mt-2">Fill in <strong>Postal code</strong> and <strong>State / Province</strong> above, then click the button below to see rates.</p>
+                                        <div class="bg-black/[0.06] border border-black/10 rounded-2xl p-6">
+                                            <div id="shipping-loader" class="text-center hidden py-8">
+                                                <div class="mx-auto mb-4 w-10 h-10 border-2 border-black/10 border-t-black rounded-full animate-spin"></div>
+                                                <div class="text-black/70 text-sm font-semibold">Loading rates…</div>
                                             </div>
                                             <div id="shipping-error"
-                                                class="hidden p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest text-center">
+                                                class="hidden p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-semibold text-center">
                                             </div>
-                                            <div id="shipping-rates-list" class="grid grid-cols-1 gap-4"></div>
-                                            <div class="mt-6">
+                                            <div id="shipping-rates-list" class="grid grid-cols-1 gap-3 mt-2"></div>
+                                            <div class="mt-5">
                                                 <button type="button" id="btnFetchRates"
-                                                    class="w-full px-8 py-5 bg-black text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-zinc-800 transition-all active:scale-95 shadow-lg">
+                                                    class="w-full px-6 py-4 bg-black text-white rounded-xl font-bold text-sm hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-md">
                                                     Check Shipping Rates
                                                 </button>
                                             </div>
@@ -254,8 +251,7 @@
 
                                     <!-- Payment Module -->
                                     <div class="space-y-6 pt-6 border-t border-black/5">
-                                        <h3 class="text-[10px] font-black text-black/40 uppercase tracking-[0.3em]">Payment
-                                            Protocol</h3>
+                                        <h3 class="text-sm font-black text-black uppercase tracking-wide">Payment Method</h3>
                                         <div class="grid grid-cols-1 gap-4">
                                             <label
                                                 class="group relative flex items-center gap-6 bg-black/5 border border-black/10 rounded-3xl px-8 py-6 cursor-pointer hover:border-black transition-all has-[:checked]:bg-black has-[:checked]:border-black">
@@ -394,50 +390,66 @@
             }
 
             function renderRates(rates) {
-    list.innerHTML = '';
-                    rates.forEach(rate => {
-                        const card = document.createElement('button');
-                        card.type = 'button';
-                        card.className = 'w-full text-left p-6 bg-black/[0.03] border border-black/5 rounded-2xl hover:border-black transition-all flex items-center justify-between group active:scale-[0.98]';
+                list.innerHTML = '';
+                list.classList.remove('hidden');
+                rates.forEach(rate => {
+                    const card = document.createElement('button');
+                    card.type = 'button';
+                    card.className = 'rate-card w-full text-left p-5 bg-white border-2 border-black/10 rounded-xl hover:border-black/30 transition-all flex items-center justify-between group active:scale-[0.99]';
 
-                        const logo = rate.courier_logo ? `<img src="${rate.courier_logo}" alt="${rate.courier_name}" class="w-10 h-10 object-contain mr-4 filter grayscale group-hover:grayscale-0 transition-all">` : '';
+                    const logo = rate.courier_logo ? `<img src="${rate.courier_logo}" alt="${rate.courier_name}" class="w-10 h-10 object-contain mr-3 flex-shrink-0">` : '';
 
-                        card.innerHTML = `
-                            <div class="flex items-center">
-                                ${logo}
-                                <div>
-                                    <div class="font-black text-black text-[10px] uppercase tracking-widest mb-1 leading-none">${rate.courier_name}</div>
-                                    <div class="text-black/40 text-[9px] font-black uppercase tracking-widest leading-none">${rate.service_name}</div>
-                                </div>
+                    card.innerHTML = `
+                        <div class="flex items-center min-w-0">
+                            ${logo}
+                            <div class="min-w-0">
+                                <div class="font-bold text-black text-sm truncate">${rate.courier_name}</div>
+                                <div class="text-black/60 text-xs truncate">${rate.service_name}</div>
                             </div>
-                            <div class="text-right">
-                                <div class="text-[9px] font-black text-black/40 uppercase tracking-widest mb-1 leading-none">RM</div>
-                                <div class="text-2xl font-black text-black tracking-tighter italic leading-none">${parseFloat(rate.price).toFixed(2)}</div>
-                            </div>
-                        `;
+                        </div>
+                        <div class="text-right flex-shrink-0 ml-3">
+                            <div class="text-xs text-black/50 font-semibold">RM</div>
+                            <div class="text-xl font-black text-black leading-none">${parseFloat(rate.price).toFixed(2)}</div>
+                        </div>
+                    `;
 
-                        card.addEventListener('click', function () {
-                            document.getElementById('input_shipping_courier_name').value = rate.courier_name;
-                            document.getElementById('input_shipping_courier_logo').value = rate.courier_logo || '';
-                            document.getElementById('input_shipping_service_name').value = rate.service_name;
-                            document.getElementById('input_shipping_service_id').value = rate.service_id;
-                            document.getElementById('input_shipping_cost').value = rate.price;
-                            var srcEl = document.getElementById('input_shipping_source');
-                            if (srcEl) srcEl.value = rate.source || '';
+                    card.addEventListener('click', function () {
+                        document.getElementById('input_shipping_courier_name').value = rate.courier_name;
+                        document.getElementById('input_shipping_courier_logo').value = rate.courier_logo || '';
+                        document.getElementById('input_shipping_service_name').value = rate.service_name;
+                        document.getElementById('input_shipping_service_id').value = rate.service_id;
+                        document.getElementById('input_shipping_cost').value = rate.price;
+                        var srcEl = document.getElementById('input_shipping_source');
+                        if (srcEl) srcEl.value = rate.source || '';
 
-                            Array.from(list.children).forEach(c => {
-                                c.classList.remove('border-black', 'bg-black', 'text-white');
-                                c.querySelector('.text-2xl')?.classList.remove('text-white');
-                                c.querySelector('.text-black')?.classList.remove('text-white');
-                            });
-
-                            card.classList.add('border-black', 'bg-black');
-                            card.querySelectorAll('div').forEach(d => d.style.color = 'white');
-                            card.style.color = 'white';
+                        list.querySelectorAll('.rate-card').forEach(c => {
+                            c.classList.remove('border-black', 'bg-black', '!text-white');
+                            c.style.background = '';
+                            c.style.color = '';
+                            c.querySelectorAll('div').forEach(d => { d.style.color = ''; });
                         });
-                        list.appendChild(card);
+
+                        card.classList.add('border-black', 'bg-black', '!text-white');
+                        card.style.background = '#000';
+                        card.style.color = 'white';
+                        card.querySelectorAll('div').forEach(d => { d.style.color = 'white'; });
+
+                        // Update displayed shipping and total
+                        var shipEl = document.getElementById('display-shipping');
+                        var totalEl = document.getElementById('display-total');
+                        var subtotal = typeof window.cartSubtotal === 'number' ? window.cartSubtotal : 0;
+                        var currency = typeof window.cartCurrency === 'string' ? window.cartCurrency : 'MYR';
+                        var shippingCost = parseFloat(rate.price) || 0;
+                        if (shipEl) shipEl.textContent = 'RM ' + shippingCost.toFixed(2);
+                        if (shipEl) shipEl.classList.remove('text-black/50');
+                        if (totalEl) {
+                            var grandTotal = subtotal + shippingCost;
+                            totalEl.textContent = grandTotal.toFixed(2);
+                        }
                     });
-                }
+                    list.appendChild(card);
+                });
+            }
 
                 if (btnFetch) {
                     btnFetch.addEventListener('click', fetchRates);

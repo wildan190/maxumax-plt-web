@@ -4,6 +4,7 @@
 
 @section('content')
     <style>
+        .hidden { display: none !important; }
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
             .header-container {
@@ -119,15 +120,33 @@
         }
     </style>
 
-    <div class="header-container" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+    <div class="header-container" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
         <div>
             <p style="color: #6b7280; margin: 0.5rem 0 0 0; font-size: 0.95rem;">Manage and organize your preorder products</p>
         </div>
-        <a href="{{ route('admin.products.create') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #000; color: #fff; padding: 0.625rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s;">+ Add Product</a>
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="{{ route('admin.products.template') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #f3f4f6; color: #111827; padding: 0.625rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s; border: 1px solid #e5e7eb;">↓ Download Template</a>
+            <button type="button" onclick="document.getElementById('import-form').classList.toggle('hidden'); document.getElementById('import-toggle').classList.toggle('hidden');" id="import-toggle" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #e0e7ff; color: #3730a3; padding: 0.625rem 1.25rem; border-radius: 0.5rem; border: 1px solid #c7d2fe; font-weight: 600; cursor: pointer;">↑ Import CSV / Excel</button>
+            <a href="{{ route('admin.products.create') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #000; color: #fff; padding: 0.625rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s;">+ Add Product</a>
+        </div>
+    </div>
+
+    <div id="import-form" class="hidden" style="margin-bottom: 1.5rem; padding: 1.5rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.75rem;">
+        <h3 style="margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 700; color: #111827;">Import produk dari CSV / Excel</h3>
+        <p style="margin: 0 0 1rem 0; font-size: 0.875rem; color: #6b7280;">Unduh template di atas, isi data, simpan sebagai CSV (UTF-8). Jika pakai Excel, simpan sebagai "CSV UTF-8 (Comma delimited)". Lalu unggah file di sini.</p>
+        <form action="{{ route('admin.products.import') }}" method="POST" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            @csrf
+            <input type="file" name="file" accept=".csv,.txt" required style="padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem;">
+            <button type="submit" style="background: #2563eb; color: #fff; padding: 0.625rem 1.25rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer;">Import</button>
+            <button type="button" onclick="document.getElementById('import-form').classList.add('hidden'); document.getElementById('import-toggle').classList.remove('hidden');" style="background: #e5e7eb; color: #374151; padding: 0.625rem 1.25rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer;">Batal</button>
+        </form>
     </div>
 
     @if(session('success'))
         <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 500;">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 500;">{{ session('error') }}</div>
     @endif
 
     <!-- Desktop Table -->
