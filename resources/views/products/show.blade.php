@@ -104,14 +104,14 @@
                     <div class="mb-10">
                         <div class="flex items-center gap-4 mb-6">
                             @if($product->jersey_type)
-                                <span class="text-white/40 font-black uppercase tracking-[0.3em] text-[10px] px-4 py-1.5 border border-white/5 rounded-full">{{ $product->jersey_type }}</span>
+                                <span class="text-white/70 font-black uppercase tracking-[0.3em] text-[10px] px-4 py-1.5 border border-white/10 rounded-full">{{ $product->jersey_type }}</span>
                             @endif
                             <div class="flex items-center gap-1">
                                 @php $rounded = (int) round($feedbackAvg ?? 0); @endphp
                                 @for ($i = 1; $i <= 5; $i++)
                                     <i data-feather="star" style="width:12px;height:12px" class="{{ $i <= $rounded ? 'fill-yellow-500 text-yellow-500' : 'text-white/10' }}"></i>
                                 @endfor
-                                <span class="text-[10px] font-bold text-white/40 ml-2">({{ $feedbackCount ?? 0 }})</span>
+                                <span class="text-[10px] font-bold text-white/70 ml-2">({{ $feedbackCount ?? 0 }})</span>
                             </div>
                         </div>
 
@@ -119,14 +119,60 @@
                             {{ $product->name }}
                         </h1>
 
-                        <p class="text-white/40 text-lg leading-relaxed mb-10 max-w-xl">
+                        <p class="text-white/70 text-lg leading-relaxed mb-10 max-w-xl">
                             {{ $product->description ?: 'Precision-engineered performance apparel. Designed for the elite who demand absolute excellence on and off the field.' }}
                         </p>
+
+                        <!-- Product Specifications -->
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+                            @if($product->category)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Category</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">{{ $product->category }}</span>
+                                </div>
+                            @endif
+                            @if($product->collections || $product->collection)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Collection</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">
+                                        @if($product->collections)
+                                            {{ implode(', ', $product->collections) }}
+                                        @else
+                                            {{ $product->collection }}
+                                        @endif
+                                    </span>
+                                </div>
+                            @endif
+                            @if($product->material)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Material</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">{{ $product->material }}</span>
+                                </div>
+                            @endif
+                            @if($product->gender)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Gender</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">{{ $product->gender }}</span>
+                                </div>
+                            @endif
+                            @if($product->fit)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Fit</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">{{ $product->fit }}</span>
+                                </div>
+                            @endif
+                            @if($product->color)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Color</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">{{ $product->color }}</span>
+                                </div>
+                            @endif
+                        </div>
 
                         <!-- Price Section -->
                         <div class="bg-[#111111] rounded-3xl p-8 border border-white/5 mb-12 flex items-center justify-between">
                             <div>
-                                <span class="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2" id="currencyLabel">{{ $currency }} INVESTMENT</span>
+                                <span class="text-[10px] font-black text-white/70 uppercase tracking-widest block mb-2" id="currencyLabel">{{ $currency }} INVESTMENT</span>
                                 <div class="flex items-baseline gap-2">
                                     <span id="priceDisplay" class="text-5xl font-black text-white tracking-tight">
                                         {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
@@ -177,8 +223,8 @@
                                 <!-- Size Selection -->
                                 <div class="space-y-5">
                                     <div class="flex justify-between items-end">
-                                        <label class="text-[10px] font-black text-white/40 uppercase tracking-widest">Select Deployment Size</label>
-                                        <button type="button" class="text-[10px] font-black text-white/20 uppercase tracking-widest hover:text-white transition-colors">Size Guide</button>
+                                        <label class="text-[10px] font-black text-white/70 uppercase tracking-widest">Select Deployment Size</label>
+                                        <button type="button" class="text-[10px] font-black text-white/60 uppercase tracking-widest hover:text-white transition-colors">Size Guide</button>
                                     </div>
                                     
                                     @if($product->hasVariants())
@@ -188,7 +234,7 @@
                                             @foreach($product->variants as $variant)
                                                 <button type="button" 
                                                     class="size-btn-product group relative py-4 rounded-xl border font-black text-xs uppercase tracking-widest transition-all
-                                                    {{ $variant->hasStock() ? 'border-white/10 text-white/40 hover:border-white/40 hover:text-white' : 'border-red-500/10 text-red-500/20 cursor-not-allowed opacity-50' }}"
+                                                    {{ $variant->hasStock() ? 'border-white/20 text-white/70 hover:border-white/50 hover:text-white' : 'border-red-500/20 text-red-400/80 cursor-not-allowed opacity-60' }}"
                                                     data-variant-id="{{ $variant->id }}" 
                                                     data-variant-name="{{ $variant->name }}"
                                                     {{ $variant->hasStock() ? '' : 'disabled' }}>
@@ -203,11 +249,11 @@
                                         </div>
                                     @else
                                         <div class="relative">
-                                            <i data-feather="layers" class="absolute left-6 top-1/2 -translate-y-1/2 text-white/20" style="width:18px;height:18px"></i>
-                                            <select id="sizeSelect" name="size" required class="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-8 py-5 text-white font-black uppercase tracking-widest focus:outline-none focus:border-white transition-all appearance-none">
-                                                <option value="" class="bg-zinc-900">Select Frame</option>
+                                            <i data-feather="layers" class="absolute left-6 top-1/2 -translate-y-1/2 text-white/50" style="width:18px;height:18px"></i>
+                                            <select id="sizeSelect" name="size" required class="w-full bg-white/10 border border-white/20 rounded-2xl pl-16 pr-8 py-5 text-white font-black uppercase tracking-widest focus:outline-none focus:border-white transition-all appearance-none">
+                                                <option value="" class="bg-zinc-900 text-white">Select Frame</option>
                                                 @foreach(['S', 'M', 'L', 'XL', 'XXL'] as $s)
-                                                    <option value="{{ $s }}" class="bg-zinc-900">{{ $s }}</option>
+                                                    <option value="{{ $s }}" class="bg-zinc-900 text-white">{{ $s }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -217,15 +263,15 @@
                                 <!-- Quantity and Addon -->
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="space-y-4">
-                                        <label class="text-[10px] font-black text-white/40 uppercase tracking-widest">Quantity</label>
+                                        <label class="text-[10px] font-black text-white/70 uppercase tracking-widest">Quantity</label>
                                         <div class="relative">
                                             <input type="number" id="qtyInput" name="quantity" value="1" min="1" required 
-                                                   class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-white font-black focus:outline-none focus:border-white transition-all">
+                                                   class="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-5 text-white font-black focus:outline-none focus:border-white transition-all">
                                         </div>
                                     </div>
                                     <div class="space-y-4">
-                                        <label class="text-[10px] font-black text-white/40 uppercase tracking-widest">Specifications</label>
-                                        <label class="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-6 py-5 cursor-pointer hover:bg-white/10 transition-all">
+                                        <label class="text-[10px] font-black text-white/70 uppercase tracking-widest">Specifications</label>
+                                        <label class="flex items-center gap-4 bg-white/10 border border-white/20 rounded-2xl px-6 py-5 cursor-pointer hover:bg-white/15 transition-all">
                                             <input type="checkbox" id="longSleeveCheckbox" name="long_sleeve" value="1" class="w-5 h-5 rounded-md bg-black border-white/10 checked:bg-white checked:border-white transition-all appearance-none cursor-pointer border-2 relative checked:after:content-['✓'] checked:after:absolute checked:after:left-1/2 checked:after:top-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2 checked:after:text-black checked:after:font-black checked:after:text-[10px]">
                                             <span class="text-white font-black text-xs uppercase tracking-widest">Extended Sleeve</span>
                                         </label>
@@ -247,8 +293,8 @@
                 <!-- Feedback Form -->
                 <div class="lg:col-span-1">
                     <div class="sticky top-32">
-                        <span class="text-white/40 font-black uppercase tracking-[0.3em] text-[10px] mb-4 block text-center lg:text-left">Performance Review</span>
-                        <h2 class="text-4xl font-black text-white tracking-tighter uppercase italic mb-10 text-center lg:text-left">Submit <span class="text-white/40">Feedback.</span></h2>
+                        <span class="text-white/70 font-black uppercase tracking-[0.3em] text-[10px] mb-4 block text-center lg:text-left">Performance Review</span>
+                        <h2 class="text-4xl font-black text-white tracking-tighter uppercase italic mb-10 text-center lg:text-left">Submit <span class="text-white/70">Feedback.</span></h2>
                         
                         <div class="bg-[#111111] border border-white/5 rounded-[2.5rem] p-10 shadow-3xl">
                             <form method="POST" action="{{ route('feedback.store') }}" enctype="multipart/form-data" class="space-y-8">
@@ -259,28 +305,28 @@
                                     <div class="flex justify-center mb-4">
                                         <div class="flex items-center gap-2" id="ratingStars">
                                             @for ($r = 1; $r <= 5; $r++)
-                                                <button type="button" class="star-btn text-3xl text-white/5 hover:text-yellow-500 transition-colors cursor-pointer" data-rating="{{ $r }}">★</button>
+                                                <button type="button" class="star-btn text-3xl text-white/30 hover:text-yellow-500 transition-colors cursor-pointer" data-rating="{{ $r }}">★</button>
                                             @endfor
                                         </div>
                                         <input type="hidden" name="rating" id="ratingInput" value="" required />
                                     </div>
 
                                     <div class="space-y-4">
-                                        <input type="text" name="name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-white transition-all uppercase tracking-widest font-black" placeholder="Identifier (Optional)" />
-                                        <textarea name="comment" rows="4" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-white transition-all" placeholder="Strategic feedback details..."></textarea>
+                                        <input type="text" name="name" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white text-sm placeholder-white/50 focus:outline-none focus:border-white transition-all uppercase tracking-widest font-black" placeholder="Identifier (Optional)" />
+                                        <textarea name="comment" rows="4" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white text-sm placeholder-white/50 focus:outline-none focus:border-white transition-all" placeholder="Strategic feedback details..."></textarea>
                                     </div>
 
                                     <div class="space-y-4">
-                                        <label class="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2 block">Upload Intel (Max 2)</label>
+                                        <label class="text-[10px] font-black text-white/70 uppercase tracking-widest mb-2 block">Upload Intel (Max 2)</label>
                                         <input type="file" name="images[]" id="feedbackImages" accept="image/*" multiple class="hidden" />
-                                        <button type="button" onclick="document.getElementById('feedbackImages').click()" class="w-full border-2 border-dashed border-white/5 rounded-2xl py-8 flex flex-col items-center gap-3 text-white/20 hover:text-white hover:border-white/20 transition-all">
+                                        <button type="button" onclick="document.getElementById('feedbackImages').click()" class="w-full border-2 border-dashed border-white/20 rounded-2xl py-8 flex flex-col items-center gap-3 text-white/60 hover:text-white hover:border-white/40 transition-all">
                                             <i data-feather="upload-cloud" style="width:24px;height:24px"></i>
                                             <span class="text-[10px] font-black uppercase tracking-widest">Select Image Assets</span>
                                         </button>
                                         <div id="imagePreview" class="flex gap-4 flex-wrap"></div>
                                     </div>
 
-                                    <button type="submit" class="w-full bg-white/5 border border-white/10 text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-white hover:text-black transition-all">Transmitting Review</button>
+                                    <button type="submit" class="w-full bg-white/10 border border-white/20 text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-white hover:text-black transition-all">Transmitting Review</button>
                                 </div>
                             </form>
                         </div>
@@ -292,7 +338,7 @@
                     <div class="flex items-center justify-between mb-12">
                         <h3 class="text-2xl font-black text-white tracking-widest uppercase">Field Reports</h3>
                         <div class="h-px bg-white/5 flex-grow mx-8"></div>
-                        <span class="text-white/40 font-black text-xs uppercase tracking-widest">{{ $feedbackCount ?? 0 }} Reports</span>
+                        <span class="text-white/70 font-black text-xs uppercase tracking-widest">{{ $feedbackCount ?? 0 }} Reports</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -305,7 +351,7 @@
                                 <div class="flex items-center justify-between mb-6">
                                     <div class="pointer-events-none">
                                         <span class="text-white font-black text-xs uppercase tracking-widest block mb-1">{{ ($fb instanceof \App\Models\Feedback) ? $fb->name : 'ANONYMOUS OPERATIVE' }}</span>
-                                        <span class="text-white/20 text-[9px] font-black uppercase tracking-widest">{{ ($fb instanceof \App\Models\Feedback && $fb->created_at) ? $fb->created_at->diffForHumans() : 'RECENTLY' }}</span>
+                                        <span class="text-white/50 text-[9px] font-black uppercase tracking-widest">{{ ($fb instanceof \App\Models\Feedback && $fb->created_at) ? $fb->created_at->diffForHumans() : 'RECENTLY' }}</span>
                                     </div>
                                     <div class="flex items-center gap-1">
                                         @for ($i = 1; $i <= 5; $i++)
@@ -313,7 +359,7 @@
                                         @endfor
                                     </div>
                                 </div>
-                                <p class="text-white/60 text-sm leading-relaxed mb-6 italic">"{{ ($fb instanceof \App\Models\Feedback) ? ($fb->comment ?? 'No additional logistics notes provided.') : 'LOGISTICS NOTE ENCRYPTED.' }}"</p>
+                                <p class="text-white/80 text-sm leading-relaxed mb-6 italic">"{{ ($fb instanceof \App\Models\Feedback) ? ($fb->comment ?? 'No additional logistics notes provided.') : 'LOGISTICS NOTE ENCRYPTED.' }}"</p>
                                 
                                 @if($fb instanceof \App\Models\Feedback && $fb->images && is_array($fb->images) && count($fb->images))
                                     <div class="flex gap-3">
@@ -326,10 +372,10 @@
                                 @endif
                             </div>
                         @empty
-                            <div class="col-span-full py-24 text-center border-2 border-dashed border-white/5 rounded-[2.5rem]">
-                                <i data-feather="inbox" class="mx-auto text-white/10 mb-6" style="width:48px;height:48px"></i>
+                            <div class="col-span-full py-24 text-center border-2 border-dashed border-white/20 rounded-[2.5rem]">
+                                <i data-feather="inbox" class="mx-auto text-white/30 mb-6" style="width:48px;height:48px"></i>
                                 <h4 class="text-white font-black uppercase tracking-widest mb-2">No Reports Filed</h4>
-                                <p class="text-white/20 text-sm font-medium">This product awaits its first evaluation.</p>
+                                <p class="text-white/60 text-sm font-medium">This product awaits its first evaluation.</p>
                             </div>
                         @endforelse
                     </div>
@@ -392,9 +438,9 @@
                     const starRating = index + 1;
                     if (starRating <= rating) {
                         star.classList.add('text-yellow-500');
-                        star.classList.remove('text-white/5');
+                        star.classList.remove('text-white/30');
                     } else {
-                        star.classList.add('text-white/5');
+                        star.classList.add('text-white/30');
                         star.classList.remove('text-yellow-500');
                     }
                 });
@@ -486,25 +532,28 @@
             const variantInput = document.getElementById('selectedVariantId');
             const sizeStringInput = document.getElementById('selectedSize');
 
+            function setSelected(btn) {
+                sizeBtns.forEach(b => {
+                    if (b.disabled) return;
+                    b.classList.remove('bg-white', 'text-black', 'border-white');
+                    b.classList.add('border-white/20', 'text-white/70');
+                });
+                if (btn && !btn.disabled) {
+                    btn.classList.remove('border-white/20', 'text-white/70');
+                    btn.classList.add('bg-white', 'text-black', 'border-white');
+                }
+            }
+
             sizeBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
                     if (this.disabled) return;
-                    sizeBtns.forEach(b => {
-                        if(!b.disabled) {
-                            b.classList.remove('bg-white', 'text-black', 'border-white');
-                            b.classList.add('border-white/10', 'text-white/40');
-                        }
-                    });
-                    this.classList.remove('border-white/10', 'text-white/40');
-                    this.classList.add('bg-white', 'text-black', 'border-white');
-                    
+                    setSelected(this);
                     if(variantInput) variantInput.value = this.getAttribute('data-variant-id');
                     if(sizeStringInput) sizeStringInput.value = this.getAttribute('data-variant-name');
                 });
             });
         })();
     </script>
-@endsection
     <script>
         (function(){
             const form = document.getElementById('activeAddToCartForm');
@@ -714,7 +763,7 @@
         // Initial display
         updateCurrencyDisplay();
 
-        // Size button selection functionality for product page
+        // Size button selection: selected = white background
         const sizeButtonsProduct = document.querySelectorAll('.size-btn-product');
         const selectedVariantIdInput = document.getElementById('selectedVariantId');
         const selectedSizeInput = document.getElementById('selectedSize');
@@ -723,17 +772,22 @@
             btn.addEventListener('click', function() {
                 if (this.disabled) return;
 
-                // Remove selection from all buttons
                 sizeButtonsProduct.forEach(b => {
-                    b.style.borderColor = b.disabled ? '#fca5a5' : '#e2e8f0';
-                    b.style.background = b.disabled ? '#fee2e2' : 'white';
+                    if (b.disabled) {
+                        b.style.borderColor = 'rgba(248,113,113,0.3)';
+                        b.style.background = 'transparent';
+                        b.style.color = '';
+                    } else {
+                        b.style.borderColor = 'rgba(255,255,255,0.2)';
+                        b.style.background = 'transparent';
+                        b.style.color = 'rgba(255,255,255,0.7)';
+                    }
                 });
 
-                // Mark this button as selected
-                this.style.borderColor = '#111827';
-                this.style.background = '#f3f4f6';
+                this.style.borderColor = '#fff';
+                this.style.background = '#fff';
+                this.style.color = '#000';
 
-                // Update hidden inputs
                 const variantId = this.getAttribute('data-variant-id');
                 const variantName = this.getAttribute('data-variant-name');
                 if (selectedVariantIdInput) selectedVariantIdInput.value = variantId;

@@ -195,10 +195,52 @@ class PreorderController extends Controller
      */
     public function showProducts(Request $request)
     {
-        $products = Product::where('is_active', true)
-            ->where('available_for_preorder', false)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Product::where('is_active', true)
+            ->where('available_for_preorder', false);
+
+        // Apply filters
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->filled('sport')) {
+            $query->where(function($q) use ($request) {
+                $q->where('collection', $request->sport)
+                  ->orWhereJsonContains('collections', $request->sport);
+            });
+        }
+
+        if ($request->filled('material')) {
+            $query->where('material', $request->material);
+        }
+
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->gender);
+        }
+
+        if ($request->filled('fit')) {
+            $query->where('fit', $request->fit);
+        }
+
+        if ($request->filled('filter')) {
+            if ($request->filter === 'new-arrivals') {
+                $query->latest();
+            }
+            if ($request->filter === 'sale') {
+                // Assuming sale logic, maybe a flag or price reduction
+                // For now just a placeholder
+            }
+        } elseif ($request->filled('sort')) {
+            if ($request->sort === 'price_low') {
+                $query->orderBy('price', 'asc');
+            } elseif ($request->sort === 'price_high') {
+                $query->orderBy('price', 'desc');
+            }
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $products = $query->get();
 
         $currency = $this->currencyService->resolveCurrency($request);
         $currencyConfig = $this->currencyService->getCurrencyConfig($currency);

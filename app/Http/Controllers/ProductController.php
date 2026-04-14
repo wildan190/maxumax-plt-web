@@ -6,7 +6,10 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProductController extends Controller
 {
@@ -35,7 +38,14 @@ class ProductController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'jersey_type' => 'required|string|max:100',
+            'category' => 'required|string|max:100',
+            'collection' => 'nullable|string|max:100', // Legacy field
+            'collections' => 'nullable|array', // New multi-collections
+            'material' => 'nullable|string|max:100',
+            'gender' => 'nullable|string|max:100',
+            'fit' => 'nullable|string|max:100',
+            'color' => 'nullable|string|max:100',
+            'jersey_type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
             'sku' => 'nullable|string|max:100',
             'stock' => 'sometimes|integer|min:0',
@@ -81,6 +91,8 @@ class ProductController extends Controller
         $data['available_for_preorder'] = $request->boolean('available_for_preorder');
         $data['stock'] = $request->input('stock', 0);
         $data['sku'] = $request->input('sku');
+        $data['collections'] = $request->input('collections', []); // New
+        $data['collections'] = $request->input('collections', []); // New
 
         $product = Product::create($data);
         if (!empty($gallery)) {
@@ -126,7 +138,14 @@ class ProductController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'jersey_type' => 'required|string|max:100',
+            'category' => 'required|string|max:100',
+            'collection' => 'nullable|string|max:100', // Legacy field
+            'collections' => 'nullable|array', // New multi-collections
+            'material' => 'nullable|string|max:100',
+            'gender' => 'nullable|string|max:100',
+            'fit' => 'nullable|string|max:100',
+            'color' => 'nullable|string|max:100',
+            'jersey_type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
             'sku' => 'nullable|string|max:100',
             'stock' => 'sometimes|integer|min:0',
@@ -166,6 +185,7 @@ class ProductController extends Controller
         $data['available_for_preorder'] = $request->boolean('available_for_preorder');
         $data['stock'] = $request->input('stock', 0);
         $data['sku'] = $request->input('sku');
+        $data['collections'] = $request->input('collections', []);
 
         // update slug if name changed
         if ($product->name !== $data['name']) {
@@ -215,5 +235,231 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()->route('admin.products.index')->with('success', 'Product deleted');
+    }
+
+    /**
+     * Download product import template (CSV with headers + dummy data).
+     */
+    public function downloadTemplate(): StreamedResponse
+    {
+        $filename = 'product_import_template_' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        return new StreamedResponse(function () {
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM for Excel
+            fputcsv($out, [
+                'name',
+                'description',
+                'jersey_type',
+                'price',
+                'sku',
+                'stock',
+                'is_active',
+                'available_for_preorder',
+                'variants',
+                'images',
+            ]);
+            // Dummy data rows
+            $dummy = [
+                ['Player Home Jersey', 'Premium home jersey for league', 'Player Home', '199.00', 'JER-HOME-01', '50', '1', '1', 'S:10:SKU-S;M:20:SKU-M;L:15:SKU-L', 'https://placehold.co/600x400;https://placehold.co/600x400'],
+                ['Player Away Jersey', 'Away kit jersey', 'Player Away', '199.00', 'JER-AWAY-01', '30', '1', '1', 'S:5:;M:10:;L:10:', 'https://placehold.co/600x400'],
+                ['GK Home', 'Goalkeeper home jersey', 'GK Home', '219.00', 'JER-GK-01', '15', '1', '0', 'M:5:;L:10:', ''],
+            ];
+            foreach ($dummy as $row) {
+                fputcsv($out, $row);
+            }
+            fclose($out);
+        }, 200, $headers);
+    }
+
+    /**
+     * Export products to CSV.
+     */
+    public function export(): StreamedResponse
+    {
+        $filename = 'products_export_' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        return new StreamedResponse(function () {
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM for Excel
+            fputcsv($out, [
+                'name',
+                'description',
+                'jersey_type',
+                'price',
+                'sku',
+                'stock',
+                'is_active',
+                'available_for_preorder',
+                'variants',
+                'images',
+            ]);
+
+            Product::with(['variants', 'images'])->chunk(100, function ($products) use ($out) {
+                foreach ($products as $p) {
+                    $variants = $p->variants->map(function ($v) {
+                        return "{$v->name}:{$v->stock}:{$v->sku}";
+                    })->implode(';');
+
+                    $images = $p->images->map(function ($img) {
+                        return asset('storage/' . $img->path);
+                    })->implode(';');
+
+                    fputcsv($out, [
+                        $p->name,
+                        $p->description,
+                        $p->jersey_type,
+                        $p->price,
+                        $p->sku,
+                        $p->stock,
+                        $p->is_active ? '1' : '0',
+                        $p->available_for_preorder ? '1' : '0',
+                        $variants,
+                        $images,
+                    ]);
+                }
+            });
+            fclose($out);
+        }, 200, $headers);
+    }
+
+    /**
+     * Import products from CSV (Excel can save as CSV UTF-8).
+     * Columns: name, description, jersey_type, price, sku, stock, is_active, available_for_preorder, variants
+     * Variants format: "Name:stock:sku;Name2:stock2:sku2" (sku optional)
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        $file = $request->file('file');
+        $path = $file->getRealPath();
+        $rows = [];
+        $handle = fopen($path, 'r');
+        if (!$handle) {
+            return redirect()->route('admin.products.index')->with('error', 'Could not read file.');
+        }
+        $bom = fread($handle, 3);
+        if ($bom !== chr(0xEF) . chr(0xBB) . chr(0xBF)) {
+            rewind($handle);
+        }
+        $header = fgetcsv($handle);
+        if (!$header || strtolower(trim($header[0] ?? '')) !== 'name') {
+            fclose($handle);
+            return redirect()->route('admin.products.index')->with('error', 'Invalid template. First column must be "name". Use the downloaded template.');
+        }
+        while (($row = fgetcsv($handle)) !== false) {
+            if (count($row) < 4) continue;
+            $name = trim($row[0] ?? '');
+            if ($name === '') continue;
+            $rows[] = [
+                'name' => $name,
+                'description' => trim($row[1] ?? ''),
+                'jersey_type' => trim($row[2] ?? 'General'),
+                'price' => (float) preg_replace('/[^0-9.]/', '', $row[3] ?? '0'),
+                'sku' => trim($row[4] ?? ''),
+                'stock' => (int) ($row[5] ?? 0),
+                'is_active' => in_array(strtolower(trim($row[6] ?? '1')), ['1', 'yes', 'true', 'active'], true),
+                'available_for_preorder' => in_array(strtolower(trim($row[7] ?? '0')), ['1', 'yes', 'true'], true),
+                'variants' => trim($row[8] ?? ''),
+                'images' => trim($row[9] ?? ''),
+            ];
+        }
+        fclose($handle);
+
+        if (empty($rows)) {
+            return redirect()->route('admin.products.index')->with('error', 'No valid rows to import.');
+        }
+
+        $created = 0;
+        $errors = [];
+        foreach ($rows as $idx => $row) {
+            try {
+                $slug = Str::slug($row['name']) . '-' . Str::random(6);
+                $product = Product::create([
+                    'name' => $row['name'],
+                    'slug' => $slug,
+                    'uuid' => (string) Str::uuid(),
+                    'description' => $row['description'] ?: null,
+                    'jersey_type' => $row['jersey_type'] ?: 'General',
+                    'price' => $row['price'],
+                    'sku' => $row['sku'] ?: null,
+                    'stock' => $row['stock'],
+                    'is_active' => $row['is_active'],
+                    'available_for_preorder' => $row['available_for_preorder'],
+                ]);
+                if (!empty($row['variants'])) {
+                    foreach (array_filter(explode(';', $row['variants'])) as $v) {
+                        $parts = explode(':', $v, 3);
+                        $vName = trim($parts[0] ?? '');
+                        if ($vName === '') continue;
+                        $vStock = (int) ($parts[1] ?? 0);
+                        $vSku = isset($parts[2]) ? trim($parts[2]) : null;
+                        ProductVariant::create([
+                            'product_id' => $product->id,
+                            'name' => $vName,
+                            'stock' => $vStock,
+                            'sku' => $vSku ?: null,
+                            'is_available' => true,
+                        ]);
+                    }
+                }
+
+                // Handle images
+                if (!empty($row['images'])) {
+                    $imageUrls = array_filter(explode(';', $row['images']));
+                    foreach ($imageUrls as $idx => $url) {
+                        try {
+                            $url = trim($url);
+                            if (filter_var($url, FILTER_VALIDATE_URL)) {
+                                $response = Http::get($url);
+                                if ($response->successful()) {
+                                    $extension = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
+                                    $imageName = 'products/' . Str::random(40) . '.' . $extension;
+                                    Storage::disk('public')->put($imageName, $response->body());
+
+                                    ProductImage::create([
+                                        'product_id' => $product->id,
+                                        'path' => $imageName,
+                                        'position' => $idx,
+                                    ]);
+
+                                    // Set as main image if it's the first one
+                                    if ($idx === 0) {
+                                        $product->update(['image_path' => $imageName]);
+                                    }
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            // Continue with other images if one fails
+                        }
+                    }
+                }
+
+                $created++;
+            } catch (\Throwable $e) {
+                $errors[] = 'Row ' . ($idx + 2) . ' (' . $row['name'] . '): ' . $e->getMessage();
+            }
+        }
+
+        $msg = $created . ' product(s) imported.';
+        if (!empty($errors)) {
+            $msg .= ' Errors: ' . implode('; ', array_slice($errors, 0, 5));
+            if (count($errors) > 5) $msg .= ' (+' . (count($errors) - 5) . ' more)';
+        }
+        return redirect()->route('admin.products.index')->with(
+            $created > 0 ? 'success' : 'error',
+            $msg
+        );
     }
 }

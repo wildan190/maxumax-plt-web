@@ -35,6 +35,7 @@ class Preorder extends Model
         'stripe_refund_id',
         'refund_reason',
         'tracking_number',
+        'myparcel_shipment_key',
         'shipping_status',
         'shipping_courier_name',
         'shipping_courier_logo',

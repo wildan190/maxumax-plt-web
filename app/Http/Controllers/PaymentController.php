@@ -41,6 +41,19 @@ class PaymentController extends Controller
 
         [$lineItems, $orderItems, $totalAmount] = $this->stripeService->prepareCartLineItems($cart, $currency, $config);
 
+        $shippingCost = (float) ($data['shipping_cost'] ?? 0);
+        if ($shippingCost > 0) {
+            $totalAmount += $shippingCost;
+            $lineItems[] = [
+                'price_data' => [
+                    'currency' => strtolower($currency),
+                    'product_data' => ['name' => 'Shipping - ' . ($data['shipping_courier_name'] ?? 'Courier')],
+                    'unit_amount' => $this->currencyService->convertToCents($shippingCost, $currency),
+                ],
+                'quantity' => 1,
+            ];
+        }
+
         if (empty($lineItems)) {
             return back()->withErrors(['cart' => 'Tidak ada produk valid di cart']);
         }
@@ -60,6 +73,14 @@ class PaymentController extends Controller
                 'order_items' => $orderItems,
                 'currency' => $currency,
                 'total_amount' => $totalAmount,
+                'shipping_data' => [
+                    'shipping_cost' => $shippingCost,
+                    'shipping_courier_name' => $data['shipping_courier_name'] ?? null,
+                    'shipping_courier_logo' => $data['shipping_courier_logo'] ?? null,
+                    'shipping_service_name' => $data['shipping_service_name'] ?? null,
+                    'shipping_service_id' => $data['shipping_service_id'] ?? null,
+                    'shipping_source' => $data['shipping_source'] ?? null,
+                ],
             ]);
 
             return redirect($checkoutSession->url);
@@ -180,6 +201,7 @@ class PaymentController extends Controller
                     'shipping_cost' => $shippingCost,
                     'shipping_courier_name' => $data['shipping_courier_name'] ?? null,
                     'shipping_service_id' => $data['shipping_service_id'] ?? null,
+                    'shipping_source' => $data['shipping_source'] ?? null,
                 ],
             ]);
 

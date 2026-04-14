@@ -45,7 +45,7 @@
 
         /* Admin Content */
         .admin-content {
-            padding: 2rem;
+            padding: 1.5rem;
         }
 
         /* Page Header */
@@ -118,12 +118,14 @@
                 @endif
 
                 <!-- Page Header -->
-                <div class="admin-page-header">
-                    <h1 class="admin-page-title">@yield('page-title', 'Dashboard')</h1>
-                    @if (View::hasSection('page-subtitle'))
-                        <p class="admin-page-desc">@yield('page-subtitle')</p>
-                    @endif
-                </div>
+                @unless (View::hasSection('hide-page-header'))
+                    <div class="admin-page-header">
+                        <h1 class="admin-page-title">@yield('page-title', 'Dashboard')</h1>
+                        @if (View::hasSection('page-subtitle'))
+                            <p class="admin-page-desc">@yield('page-subtitle')</p>
+                        @endif
+                    </div>
+                @endunless
 
                 <!-- Main Content -->
                 @yield('content')
