@@ -123,6 +123,52 @@
                             {{ $product->description ?: 'Precision-engineered performance apparel. Designed for the elite who demand absolute excellence on and off the field.' }}
                         </p>
 
+                        <!-- Product Specifications -->
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+                            @if($product->category)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Category</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">{{ $product->category }}</span>
+                                </div>
+                            @endif
+                            @if($product->collections || $product->collection)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Collection</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">
+                                        @if($product->collections)
+                                            {{ implode(', ', $product->collections) }}
+                                        @else
+                                            {{ $product->collection }}
+                                        @endif
+                                    </span>
+                                </div>
+                            @endif
+                            @if($product->material)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Material</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">{{ $product->material }}</span>
+                                </div>
+                            @endif
+                            @if($product->gender)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Gender</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">{{ $product->gender }}</span>
+                                </div>
+                            @endif
+                            @if($product->fit)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Fit</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">{{ $product->fit }}</span>
+                                </div>
+                            @endif
+                            @if($product->color)
+                                <div class="space-y-1">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Color</span>
+                                    <span class="block text-xs font-black text-white uppercase tracking-widest">{{ $product->color }}</span>
+                                </div>
+                            @endif
+                        </div>
+
                         <!-- Price Section -->
                         <div class="bg-[#111111] rounded-3xl p-8 border border-white/5 mb-12 flex items-center justify-between">
                             <div>

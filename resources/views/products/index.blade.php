@@ -24,72 +24,139 @@
     </section>
 
     <!-- Product Showcase Section -->
-    <section class="bg-black py-24 px-6 relative" x-data="{ filterCategory: '', filterCollection: '' }">
+    <section class="bg-black py-24 px-6 relative" x-data="{ 
+        filterCategory: '{{ request('category', '') }}', 
+        filterSport: '{{ request('sport', '') }}',
+        filterMaterial: '{{ request('material', '') }}',
+        filterGender: '{{ request('gender', '') }}',
+        filterFit: '{{ request('fit', '') }}'
+    }">
         <div class="max-w-7xl mx-auto">
-            @php
-                $categories = isset($products) ? $products->pluck('category')->filter()->unique()->sort()->values() : collect();
-                $collections = isset($products) ? $products->pluck('collection')->filter()->unique()->sort()->values() : collect();
-            @endphp
-
-            <div class="flex flex-col md:flex-row gap-4 justify-center items-center mb-16 max-w-3xl mx-auto relative z-20">
-                <!-- Custom Category Dropdown -->
-                <div class="relative w-full md:w-64" x-data="{ open: false }">
+            <!-- Filter Bar -->
+            <div class="flex flex-wrap gap-4 justify-center items-center mb-16 relative z-20">
+                
+                <!-- Category Filter -->
+                <div class="relative w-full md:w-48" x-data="{ open: false }">
                     <button @click="open = !open" @click.away="open = false" 
-                        class="flex items-center justify-between w-full bg-[#111111] text-white border border-white/20 rounded-xl px-4 md:px-5 py-3.5 font-black text-[10px] md:text-xs uppercase tracking-widest transition-all hover:bg-white/5 hover:border-white/30 group shadow-xl">
-                        <span class="truncate pr-2" x-text="filterCategory ? filterCategory : 'All Categories'"></span>
-                        <svg class="w-3.5 h-3.5 text-white/50 flex-shrink-0 group-hover:text-white transition-transform duration-300" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
+                        class="flex items-center justify-between w-full bg-[#111111] text-white border border-white/20 rounded-xl px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/5 group shadow-xl">
+                        <span class="truncate pr-2" x-text="filterCategory ? filterCategory : 'Category'"></span>
+                        <i data-feather="chevron-down" class="w-3 h-3 text-white/50 group-hover:text-white transition-transform" :class="{'rotate-180': open}"></i>
                     </button>
-                    <div x-show="open" x-transition.opacity.duration.200ms x-cloak
-                        class="absolute z-50 w-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl divide-y divide-white/5">
-                        <button @click="filterCategory = ''; filterCollection = ''; open = false" 
-                            class="w-full text-left px-5 py-3.5 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10"
-                            :class="filterCategory === '' ? 'text-white bg-white/5' : 'text-white/40'">
-                            All Categories
-                        </button>
-                        @foreach($categories as $cat)
-                            <button @click="filterCategory = '{{ $cat }}'; filterCollection = ''; open = false" 
-                                class="w-full text-left px-5 py-3.5 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10"
-                                :class="filterCategory === '{{ $cat }}' ? 'text-white bg-white/5' : 'text-white/40'">
-                                {{ $cat }}
-                            </button>
-                        @endforeach
-                    </div>
-                </div>
-
-                <!-- Custom Collection Dropdown -->
-                <div class="relative w-full md:w-64" x-data="{ open: false }" x-show="filterCategory !== ''" x-transition x-cloak>
-                    <button @click="open = !open" @click.away="open = false" 
-                        class="flex items-center justify-between w-full bg-[#111111] text-white border border-white/20 rounded-xl px-4 md:px-5 py-3.5 font-black text-[10px] md:text-xs uppercase tracking-widest transition-all hover:bg-white/5 hover:border-white/30 group shadow-xl">
-                        <span class="truncate pr-2" x-text="filterCollection ? filterCollection : 'All Collections'"></span>
-                        <svg class="w-3.5 h-3.5 text-white/50 flex-shrink-0 group-hover:text-white transition-transform duration-300" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </button>
-                    <div x-show="open" x-transition.opacity.duration.200ms x-cloak
+                    <div x-show="open" x-transition x-cloak
                         class="absolute z-50 w-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl divide-y divide-white/5 max-h-60 overflow-y-auto">
-                        <button @click="filterCollection = ''; open = false" 
-                            class="w-full text-left px-5 py-3.5 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10"
-                            :class="filterCollection === '' ? 'text-white bg-white/5' : 'text-white/40'">
-                            All Collections
-                        </button>
-                        @foreach($collections as $col)
-                            <button @click="filterCollection = '{{ $col }}'; open = false" 
-                                class="w-full text-left px-5 py-3.5 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10"
-                                :class="filterCollection === '{{ $col }}' ? 'text-white bg-white/5' : 'text-white/40'">
-                                {{ $col }}
-                            </button>
+                        <a href="{{ route('products.index', array_merge(request()->all(), ['category' => ''])) }}" 
+                            class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('category') == '' ? 'text-white bg-white/5' : 'text-white/40' }}">
+                            All Categories
+                        </a>
+                        @foreach(['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories'] as $cat)
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['category' => $cat])) }}" 
+                                class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('category') == $cat ? 'text-white bg-white/5' : 'text-white/40' }}">
+                                {{ $cat }}
+                            </a>
                         @endforeach
                     </div>
                 </div>
+
+                <!-- Sport Filter -->
+                <div class="relative w-full md:w-48" x-data="{ open: false }">
+                    <button @click="open = !open" @click.away="open = false" 
+                        class="flex items-center justify-between w-full bg-[#111111] text-white border border-white/20 rounded-xl px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/5 group shadow-xl">
+                        <span class="truncate pr-2" x-text="filterSport ? filterSport : 'Sport'"></span>
+                        <i data-feather="chevron-down" class="w-3 h-3 text-white/50 group-hover:text-white transition-transform" :class="{'rotate-180': open}"></i>
+                    </button>
+                    <div x-show="open" x-transition x-cloak
+                        class="absolute z-50 w-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl divide-y divide-white/5 max-h-60 overflow-y-auto">
+                        <a href="{{ route('products.index', array_merge(request()->all(), ['sport' => ''])) }}" 
+                            class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('sport') == '' ? 'text-white bg-white/5' : 'text-white/40' }}">
+                            All Sports
+                        </a>
+                        @foreach(['Football Series', 'Golf Series', 'Fishing Series', 'Basketball Series', 'Outdoor Series', 'Run & Training Series', 'Casual / Lifestyle'] as $sport)
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['sport' => $sport])) }}" 
+                                class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('sport') == $sport ? 'text-white bg-white/5' : 'text-white/40' }}">
+                                {{ $sport }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Material Filter -->
+                <div class="relative w-full md:w-48" x-data="{ open: false }">
+                    <button @click="open = !open" @click.away="open = false" 
+                        class="flex items-center justify-between w-full bg-[#111111] text-white border border-white/20 rounded-xl px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/5 group shadow-xl">
+                        <span class="truncate pr-2" x-text="filterMaterial ? filterMaterial : 'Material'"></span>
+                        <i data-feather="chevron-down" class="w-3 h-3 text-white/50 group-hover:text-white transition-transform" :class="{'rotate-180': open}"></i>
+                    </button>
+                    <div x-show="open" x-transition x-cloak
+                        class="absolute z-50 w-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl divide-y divide-white/5">
+                        <a href="{{ route('products.index', array_merge(request()->all(), ['material' => ''])) }}" 
+                            class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('material') == '' ? 'text-white bg-white/5' : 'text-white/40' }}">
+                            All Materials
+                        </a>
+                        @foreach(['Polyester', 'Cotton', 'Dry-fit', 'Compression'] as $mat)
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['material' => $mat])) }}" 
+                                class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('material') == $mat ? 'text-white bg-white/5' : 'text-white/40' }}">
+                                {{ $mat }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Gender Filter -->
+                <div class="relative w-full md:w-48" x-data="{ open: false }">
+                    <button @click="open = !open" @click.away="open = false" 
+                        class="flex items-center justify-between w-full bg-[#111111] text-white border border-white/20 rounded-xl px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/5 group shadow-xl">
+                        <span class="truncate pr-2" x-text="filterGender ? filterGender : 'Gender'"></span>
+                        <i data-feather="chevron-down" class="w-3 h-3 text-white/50 group-hover:text-white transition-transform" :class="{'rotate-180': open}"></i>
+                    </button>
+                    <div x-show="open" x-transition x-cloak
+                        class="absolute z-50 w-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl divide-y divide-white/5">
+                        <a href="{{ route('products.index', array_merge(request()->all(), ['gender' => ''])) }}" 
+                            class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('gender') == '' ? 'text-white bg-white/5' : 'text-white/40' }}">
+                            All Genders
+                        </a>
+                        @foreach(['Men', 'Women', 'Unisex'] as $gen)
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['gender' => $gen])) }}" 
+                                class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('gender') == $gen ? 'text-white bg-white/5' : 'text-white/40' }}">
+                                {{ $gen }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Price Filter -->
+                <div class="relative w-full md:w-48" x-data="{ open: false }">
+                    <button @click="open = !open" @click.away="open = false" 
+                        class="flex items-center justify-between w-full bg-[#111111] text-white border border-white/20 rounded-xl px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/5 group shadow-xl">
+                        <span class="truncate pr-2" x-text="'Price Range'"></span>
+                        <i data-feather="chevron-down" class="w-3 h-3 text-white/50 group-hover:text-white transition-transform" :class="{'rotate-180': open}"></i>
+                    </button>
+                    <div x-show="open" x-transition x-cloak
+                        class="absolute z-50 w-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl divide-y divide-white/5">
+                        <a href="{{ route('products.index', array_merge(request()->all(), ['sort' => 'price_low'])) }}" 
+                            class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('sort') == 'price_low' ? 'text-white bg-white/5' : 'text-white/40' }}">
+                            Lowest Price
+                        </a>
+                        <a href="{{ route('products.index', array_merge(request()->all(), ['sort' => 'price_high'])) }}" 
+                            class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('sort') == 'price_high' ? 'text-white bg-white/5' : 'text-white/40' }}">
+                            Highest Price
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Clear Filters -->
+                @if(request()->anyFilled(['category', 'sport', 'material', 'gender', 'fit', 'filter']))
+                    <a href="{{ route('products.index') }}" 
+                        class="text-white/40 hover:text-white font-black text-[10px] uppercase tracking-widest transition-colors flex items-center gap-2">
+                        <i data-feather="x" class="w-3 h-3"></i>
+                        Clear All
+                    </a>
+                @endif
             </div>
 
             <div id="products-grid" class="grid gap-3 md:gap-8 grid-cols-2 lg:grid-cols-4">
                 @if(isset($products) && $products->count())
                     @foreach($products as $product)
-                        <div x-show="(filterCategory === '' || '{{ $product->category }}' === filterCategory) && (filterCollection === '' || '{{ $product->collection }}' === filterCollection)"
-                             class="flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group">
+                        <div class="flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group">
                             <!-- Product Image -->
                             <div class="aspect-square md:aspect-[4/5] relative flex items-center justify-center p-3 md:p-8 bg-gradient-to-b from-[#1a1a1a] to-[#111111]">
                                 @if ($product->image_path)

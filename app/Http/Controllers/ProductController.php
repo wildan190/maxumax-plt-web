@@ -39,7 +39,12 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
-            'collection' => 'nullable|string|max:100',
+            'collection' => 'nullable|string|max:100', // Legacy field
+            'collections' => 'nullable|array', // New multi-collections
+            'material' => 'nullable|string|max:100',
+            'gender' => 'nullable|string|max:100',
+            'fit' => 'nullable|string|max:100',
+            'color' => 'nullable|string|max:100',
             'jersey_type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
             'sku' => 'nullable|string|max:100',
@@ -86,6 +91,8 @@ class ProductController extends Controller
         $data['available_for_preorder'] = $request->boolean('available_for_preorder');
         $data['stock'] = $request->input('stock', 0);
         $data['sku'] = $request->input('sku');
+        $data['collections'] = $request->input('collections', []); // New
+        $data['collections'] = $request->input('collections', []); // New
 
         $product = Product::create($data);
         if (!empty($gallery)) {
@@ -132,7 +139,12 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
-            'collection' => 'nullable|string|max:100',
+            'collection' => 'nullable|string|max:100', // Legacy field
+            'collections' => 'nullable|array', // New multi-collections
+            'material' => 'nullable|string|max:100',
+            'gender' => 'nullable|string|max:100',
+            'fit' => 'nullable|string|max:100',
+            'color' => 'nullable|string|max:100',
             'jersey_type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
             'sku' => 'nullable|string|max:100',
@@ -173,6 +185,7 @@ class ProductController extends Controller
         $data['available_for_preorder'] = $request->boolean('available_for_preorder');
         $data['stock'] = $request->input('stock', 0);
         $data['sku'] = $request->input('sku');
+        $data['collections'] = $request->input('collections', []);
 
         // update slug if name changed
         if ($product->name !== $data['name']) {

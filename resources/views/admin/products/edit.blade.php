@@ -1,9 +1,10 @@
 @extends('layouts.app')
 
 @section('page-title', 'Edit Product')
+@section('hide-page-header', true)
 
 @section('content')
-    <div style="max-width: 1200px; margin: 0 auto;">
+    <div style="width: 100%;">
         <div style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <a href="{{ route('admin.products.index') }}"
@@ -11,11 +12,6 @@
                     title="Back">
                     <i data-feather="arrow-left" style="width: 18px; height: 18px;"></i>
                 </a>
-                <div>
-                    <h1 style="font-size: 1.5rem; font-weight: 800; color: #111827; margin: 0; letter-spacing: -0.025em;">
-                        EDIT PRODUCT</h1>
-                    <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">Update gear details and management</p>
-                </div>
             </div>
             <div
                 style="display: flex; align-items: center; gap: 0.75rem; background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 700; color: #374151;">
@@ -74,30 +70,62 @@
                                 <select name="category" id="categorySelect" required
                                         style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
                                     <option value="">-- Select Category --</option>
-                                    <option value="Jerseys" {{ old('category', $product->category) == 'Jerseys' ? 'selected' : '' }}>Jerseys</option>
-                                    <option value="Casualwear" {{ old('category', $product->category) == 'Casualwear' ? 'selected' : '' }}>Casualwear</option>
-                                    <option value="Outerwear" {{ old('category', $product->category) == 'Outerwear' ? 'selected' : '' }}>Outerwear</option>
-                                    <option value="Tracksuits" {{ old('category', $product->category) == 'Tracksuits' ? 'selected' : '' }}>Tracksuits</option>
-                                    <option value="Pants" {{ old('category', $product->category) == 'Pants' ? 'selected' : '' }}>Pants</option>
-                                    <option value="Base Layer" {{ old('category', $product->category) == 'Base Layer' ? 'selected' : '' }}>Base Layer</option>
-                                    <option value="Accessories" {{ old('category', $product->category) == 'Accessories' ? 'selected' : '' }}>Accessories</option>
+                                    @foreach(['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories'] as $cat)
+                                        <option value="{{ $cat }}" {{ old('category', $product->category) == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                                    @endforeach
                                 </select>
                             </div>
 
-                            <div style="margin-bottom: 1.5rem;" id="collectionContainer">
-                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Collection / Series</label>
-                                <select name="collection" id="collectionSelect"
-                                        style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
-                                    <option value="">-- Select Collection --</option>
-                                    <option value="Pro Jersey" {{ old('collection', $product->collection) == 'Pro Jersey' ? 'selected' : '' }}>Pro Jersey</option>
-                                    <option value="Special Jersey" {{ old('collection', $product->collection) == 'Special Jersey' ? 'selected' : '' }}>Special Jersey</option>
-                                    <option value="Football Series" {{ old('collection', $product->collection) == 'Football Series' ? 'selected' : '' }}>Football Series</option>
-                                    <option value="Golf Series" {{ old('collection', $product->collection) == 'Golf Series' ? 'selected' : '' }}>Golf Series</option>
-                                    <option value="Fishing Series" {{ old('collection', $product->collection) == 'Fishing Series' ? 'selected' : '' }}>Fishing Series</option>
-                                    <option value="Outdoor Series" {{ old('collection', $product->collection) == 'Outdoor Series' ? 'selected' : '' }}>Outdoor Series</option>
-                                    <option value="Run & Training Series" {{ old('collection', $product->collection) == 'Run & Training Series' ? 'selected' : '' }}>Run & Training Series</option>
-                                    <option value="Cotton Series" {{ old('collection', $product->collection) == 'Cotton Series' ? 'selected' : '' }}>Cotton Series</option>
-                                </select>
+                            <div style="margin-bottom: 1.5rem;" id="collectionsContainer">
+                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Sport / Collections (Select one or more)</label>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; background: #f9fafb; padding: 1rem; border-radius: 0.75rem; border: 1px solid #e5e7eb;">
+                                    @foreach(['Football Series', 'Golf Series', 'Fishing Series', 'Basketball Series', 'Outdoor Series', 'Run & Training Series', 'Casual / Lifestyle'] as $sport)
+                                        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: #374151; cursor: pointer;">
+                                            <input type="checkbox" name="collections[]" value="{{ $sport }}" 
+                                                {{ (is_array(old('collections', $product->collections)) && in_array($sport, old('collections', $product->collections))) || $product->collection == $sport ? 'checked' : '' }}
+                                                style="width: 1rem; height: 1rem; border-radius: 0.25rem;">
+                                            {{ $sport }}
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Material</label>
+                                    <select name="material" style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; color: #111827; font-weight: 500; background: #f9fafb;">
+                                        <option value="">-- Select Material --</option>
+                                        @foreach(['Polyester', 'Cotton', 'Dry-fit', 'Compression'] as $mat)
+                                            <option value="{{ $mat }}" {{ old('material', $product->material) == $mat ? 'selected' : '' }}>{{ $mat }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Gender</label>
+                                    <select name="gender" style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; color: #111827; font-weight: 500; background: #f9fafb;">
+                                        <option value="">-- Select Gender --</option>
+                                        @foreach(['Men', 'Women', 'Unisex'] as $gen)
+                                            <option value="{{ $gen }}" {{ old('gender', $product->gender) == $gen ? 'selected' : '' }}>{{ $gen }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Fit</label>
+                                    <select name="fit" style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; color: #111827; font-weight: 500; background: #f9fafb;">
+                                        <option value="">-- Select Fit --</option>
+                                        @foreach(['Regular Fit', 'Slim Fit', 'Oversized', 'Compression'] as $fit)
+                                            <option value="{{ $fit }}" {{ old('fit', $product->fit) == $fit ? 'selected' : '' }}>{{ $fit }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Color</label>
+                                    <input type="text" name="color" value="{{ old('color', $product->color) }}" placeholder="e.g. Black, Navy"
+                                           style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; color: #111827; font-weight: 500;">
+                                </div>
                             </div>
 
                             <div style="margin-bottom: 1.5rem;">
