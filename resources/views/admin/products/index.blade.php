@@ -127,6 +127,7 @@
         <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
             <a href="{{ route('admin.products.template') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #f3f4f6; color: #111827; padding: 0.625rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s; border: 1px solid #e5e7eb;">↓ Download Template</a>
             <button type="button" onclick="document.getElementById('import-form').classList.toggle('hidden'); document.getElementById('import-toggle').classList.toggle('hidden');" id="import-toggle" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #e0e7ff; color: #3730a3; padding: 0.625rem 1.25rem; border-radius: 0.5rem; border: 1px solid #c7d2fe; font-weight: 600; cursor: pointer;">↑ Import CSV / Excel</button>
+            <a href="{{ route('admin.products.export') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #fef3c7; color: #92400e; padding: 0.625rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s; border: 1px solid #fde68a;">↑ Export Products</a>
             <a href="{{ route('admin.products.create') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #000; color: #fff; padding: 0.625rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s;">+ Add Product</a>
         </div>
     </div>

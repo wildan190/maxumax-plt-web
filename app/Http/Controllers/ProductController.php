@@ -6,6 +6,8 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -242,16 +244,72 @@ class ProductController extends Controller
                 'is_active',
                 'available_for_preorder',
                 'variants',
+                'images',
             ]);
             // Dummy data rows
             $dummy = [
-                ['Player Home Jersey', 'Premium home jersey for league', 'Player Home', '199.00', 'JER-HOME-01', '50', '1', '1', 'S:10:SKU-S;M:20:SKU-M;L:15:SKU-L'],
-                ['Player Away Jersey', 'Away kit jersey', 'Player Away', '199.00', 'JER-AWAY-01', '30', '1', '1', 'S:5:;M:10:;L:10:'],
-                ['GK Home', 'Goalkeeper home jersey', 'GK Home', '219.00', 'JER-GK-01', '15', '1', '0', 'M:5:;L:10:'],
+                ['Player Home Jersey', 'Premium home jersey for league', 'Player Home', '199.00', 'JER-HOME-01', '50', '1', '1', 'S:10:SKU-S;M:20:SKU-M;L:15:SKU-L', 'https://placehold.co/600x400;https://placehold.co/600x400'],
+                ['Player Away Jersey', 'Away kit jersey', 'Player Away', '199.00', 'JER-AWAY-01', '30', '1', '1', 'S:5:;M:10:;L:10:', 'https://placehold.co/600x400'],
+                ['GK Home', 'Goalkeeper home jersey', 'GK Home', '219.00', 'JER-GK-01', '15', '1', '0', 'M:5:;L:10:', ''],
             ];
             foreach ($dummy as $row) {
                 fputcsv($out, $row);
             }
+            fclose($out);
+        }, 200, $headers);
+    }
+
+    /**
+     * Export products to CSV.
+     */
+    public function export(): StreamedResponse
+    {
+        $filename = 'products_export_' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        return new StreamedResponse(function () {
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM for Excel
+            fputcsv($out, [
+                'name',
+                'description',
+                'jersey_type',
+                'price',
+                'sku',
+                'stock',
+                'is_active',
+                'available_for_preorder',
+                'variants',
+                'images',
+            ]);
+
+            Product::with(['variants', 'images'])->chunk(100, function ($products) use ($out) {
+                foreach ($products as $p) {
+                    $variants = $p->variants->map(function ($v) {
+                        return "{$v->name}:{$v->stock}:{$v->sku}";
+                    })->implode(';');
+
+                    $images = $p->images->map(function ($img) {
+                        return asset('storage/' . $img->path);
+                    })->implode(';');
+
+                    fputcsv($out, [
+                        $p->name,
+                        $p->description,
+                        $p->jersey_type,
+                        $p->price,
+                        $p->sku,
+                        $p->stock,
+                        $p->is_active ? '1' : '0',
+                        $p->available_for_preorder ? '1' : '0',
+                        $variants,
+                        $images,
+                    ]);
+                }
+            });
             fclose($out);
         }, 200, $headers);
     }
@@ -297,6 +355,7 @@ class ProductController extends Controller
                 'is_active' => in_array(strtolower(trim($row[6] ?? '1')), ['1', 'yes', 'true', 'active'], true),
                 'available_for_preorder' => in_array(strtolower(trim($row[7] ?? '0')), ['1', 'yes', 'true'], true),
                 'variants' => trim($row[8] ?? ''),
+                'images' => trim($row[9] ?? ''),
             ];
         }
         fclose($handle);
@@ -338,6 +397,38 @@ class ProductController extends Controller
                         ]);
                     }
                 }
+
+                // Handle images
+                if (!empty($row['images'])) {
+                    $imageUrls = array_filter(explode(';', $row['images']));
+                    foreach ($imageUrls as $idx => $url) {
+                        try {
+                            $url = trim($url);
+                            if (filter_var($url, FILTER_VALIDATE_URL)) {
+                                $response = Http::get($url);
+                                if ($response->successful()) {
+                                    $extension = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
+                                    $imageName = 'products/' . Str::random(40) . '.' . $extension;
+                                    Storage::disk('public')->put($imageName, $response->body());
+
+                                    ProductImage::create([
+                                        'product_id' => $product->id,
+                                        'path' => $imageName,
+                                        'position' => $idx,
+                                    ]);
+
+                                    // Set as main image if it's the first one
+                                    if ($idx === 0) {
+                                        $product->update(['image_path' => $imageName]);
+                                    }
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            // Continue with other images if one fails
+                        }
+                    }
+                }
+
                 $created++;
             } catch (\Throwable $e) {
                 $errors[] = 'Row ' . ($idx + 2) . ' (' . $row['name'] . '): ' . $e->getMessage();

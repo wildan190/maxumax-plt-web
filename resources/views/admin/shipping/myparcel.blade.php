@@ -15,6 +15,9 @@
             <button type="button" class="myparcel-tab" data-panel="parcel-sizes">Parcel Sizes</button>
             <button type="button" class="myparcel-tab" data-panel="content-types">Content Types</button>
             <button type="button" class="myparcel-tab" data-panel="statuses">Shipment Statuses</button>
+            <button type="button" class="myparcel-tab" data-panel="trace">Trace</button>
+            <button type="button" class="myparcel-tab" data-panel="shipment-history">Shipment History</button>
+            <button type="button" class="myparcel-tab" data-panel="consignment-note">Consignment Note</button>
         </div>
 
         <div class="myparcel-content">
@@ -211,6 +214,87 @@
                     </div>
                     <div id="statuses-loading" class="myparcel-loading" style="display:none;"><span class="myparcel-spinner"></span> Loading…</div>
                     <div id="statuses-content" class="myparcel-ref-grid" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- Trace -->
+            <div id="panel-trace" class="myparcel-panel">
+                <div class="myparcel-panel-inner">
+                    <h2 class="myparcel-panel-title">Trace Shipment</h2>
+                    <p class="myparcel-panel-desc">Look up shipment status by tracking number. Only shipments that belong to your account can be traced.</p>
+                    <form id="form-trace" class="myparcel-form" style="max-width: 480px;">
+                        <div class="myparcel-field">
+                            <label class="myparcel-label" for="trace_tracking_no">Tracking number *</label>
+                            <input type="text" id="trace_tracking_no" name="tracking_no" class="myparcel-input" required placeholder="e.g. ERA2918222323MY">
+                        </div>
+                        <div class="myparcel-actions">
+                            <button type="submit" class="myparcel-btn myparcel-btn-primary" id="btn-trace">Trace</button>
+                        </div>
+                    </form>
+                    <div id="trace-loading" class="myparcel-loading" style="display:none;"><span class="myparcel-spinner"></span> Tracing…</div>
+                    <div id="trace-error" class="myparcel-alert myparcel-alert-error" style="display:none;"></div>
+                    <div id="trace-result" class="myparcel-trace-result" style="display:none;">
+                        <h3 class="myparcel-trace-result-title">Result</h3>
+                        <dl class="myparcel-trace-dl">
+                            <dt>Tracking no</dt>
+                            <dd id="trace-result-tracking"></dd>
+                            <dt>Status</dt>
+                            <dd id="trace-result-status"></dd>
+                            <dt>Updated at</dt>
+                            <dd id="trace-result-updated"></dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipment History -->
+            <div id="panel-shipment-history" class="myparcel-panel">
+                <div class="myparcel-panel-inner">
+                    <h2 class="myparcel-panel-title">Shipment History</h2>
+                    <p class="myparcel-panel-desc">List of past shipments from your account with pagination.</p>
+                    <div class="myparcel-actions">
+                        <button type="button" class="myparcel-btn myparcel-btn-primary" id="btn-load-history">Load Shipment History</button>
+                    </div>
+                    <div id="history-loading" class="myparcel-loading" style="display:none;"><span class="myparcel-spinner"></span> Loading…</div>
+                    <div id="history-error" class="myparcel-alert myparcel-alert-error" style="display:none;"></div>
+                    <div id="history-pagination" class="myparcel-pagination" style="display:none; margin-top: 0.75rem; font-size: 0.875rem; color: #6b7280;"></div>
+                    <div id="history-table-wrap" class="myparcel-table-wrap" style="display:none; margin-top: 0.5rem;">
+                        <div class="myparcel-table-scroll">
+                            <table class="myparcel-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Key</th>
+                                        <th>Tracking no</th>
+                                        <th>Created</th>
+                                        <th>Modified</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consignment Note -->
+            <div id="panel-consignment-note" class="myparcel-panel">
+                <div class="myparcel-panel-inner">
+                    <h2 class="myparcel-panel-title">Consignment Note</h2>
+                    <p class="myparcel-panel-desc">Get consignment note (e.g. label/PDF) for one or more tracking numbers. Enter one per line or comma-separated.</p>
+                    <form id="form-consignment-note" class="myparcel-form" style="max-width: 560px;">
+                        <div class="myparcel-field">
+                            <label class="myparcel-label" for="consignment_tracking">Tracking numbers *</label>
+                            <textarea id="consignment_tracking" name="tracking_no" class="myparcel-input" rows="4" required placeholder="ERA311010700MY&#10;ERA311010695MY"></textarea>
+                            <span class="myparcel-hint">One per line or comma-separated</span>
+                        </div>
+                        <div class="myparcel-actions">
+                            <button type="submit" class="myparcel-btn myparcel-btn-primary" id="btn-consignment-note">Get Consignment Note</button>
+                        </div>
+                    </form>
+                    <div id="consignment-loading" class="myparcel-loading" style="display:none;"><span class="myparcel-spinner"></span> Loading…</div>
+                    <div id="consignment-error" class="myparcel-alert myparcel-alert-error" style="display:none;"></div>
+                    <div id="consignment-result" class="myparcel-consignment-result" style="display:none; margin-top: 1rem;"></div>
                 </div>
             </div>
         </div>
@@ -569,10 +653,58 @@
             color: #991b1b;
         }
 
+        .myparcel-trace-result {
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+        }
+
+        .myparcel-trace-result-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #065f46;
+            margin: 0 0 0.75rem 0;
+        }
+
+        .myparcel-trace-dl {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+
+        .myparcel-trace-dl dt {
+            font-weight: 600;
+            color: #4b5563;
+            margin-top: 0.5rem;
+        }
+
+        .myparcel-trace-dl dt:first-child { margin-top: 0; }
+
+        .myparcel-trace-dl dd {
+            margin: 0.25rem 0 0 0;
+            color: #111827;
+        }
+
         .myparcel-create-result .price {
             font-size: 1.25rem;
             font-weight: 700;
             margin: 0.25rem 0;
+        }
+
+        .myparcel-hint {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        .myparcel-consignment-result {
+            padding: 1rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            word-break: break-all;
         }
     </style>
 
@@ -747,6 +879,140 @@
                 err.textContent = 'Network error.';
                 err.style.display = 'block';
                 btn.disabled = false;
+            });
+    });
+
+    document.getElementById('form-trace').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var trackingNo = (document.getElementById('trace_tracking_no').value || '').trim();
+        if (!trackingNo) return;
+        var loading = document.getElementById('trace-loading');
+        var errEl = document.getElementById('trace-error');
+        var resultEl = document.getElementById('trace-result');
+        var btn = document.getElementById('btn-trace');
+        errEl.style.display = 'none';
+        resultEl.style.display = 'none';
+        loading.style.display = 'flex';
+        btn.disabled = true;
+
+        var formData = new FormData();
+        formData.append('tracking_no', trackingNo);
+        formData.append('_token', csrf);
+
+        fetch(base + '/trace', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            body: formData
+        })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                loading.style.display = 'none';
+                btn.disabled = false;
+                if (res.success && res.data) {
+                    document.getElementById('trace-result-tracking').textContent = res.data.tracking_no || trackingNo;
+                    document.getElementById('trace-result-status').textContent = res.data.status || '-';
+                    document.getElementById('trace-result-updated').textContent = res.data.updated_at || '-';
+                    resultEl.style.display = 'block';
+                } else {
+                    errEl.textContent = res.message || 'Trace failed.';
+                    errEl.style.display = 'block';
+                }
+            })
+            .catch(function() {
+                loading.style.display = 'none';
+                btn.disabled = false;
+                errEl.textContent = 'Network error.';
+                errEl.style.display = 'block';
+            });
+    });
+
+    document.getElementById('btn-load-history').addEventListener('click', function() {
+        var loading = document.getElementById('history-loading');
+        var errEl = document.getElementById('history-error');
+        var wrap = document.getElementById('history-table-wrap');
+        var tbody = document.getElementById('history-tbody');
+        var paginationEl = document.getElementById('history-pagination');
+        errEl.style.display = 'none';
+        loading.style.display = 'flex';
+        wrap.style.display = 'none';
+        paginationEl.style.display = 'none';
+
+        fetch(base + '/shipment-history', { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                loading.style.display = 'none';
+                if (res.success && res.data) {
+                    var shipments = res.data.shipments || [];
+                    var pagination = res.data.pagination || {};
+                    tbody.innerHTML = shipments.length === 0
+                        ? '<tr><td colspan="5" style="padding:2rem;text-align:center;color:#6b7280">No shipments found.</td></tr>'
+                        : shipments.map(function(s) {
+                            return '<tr><td>' + escapeHtml(s.id || '') + '</td><td><code>' + escapeHtml(s.key || '') + '</code></td><td>' + escapeHtml(s.tracking_no || '') + '</td><td>' + escapeHtml(s.created_at || '') + '</td><td>' + escapeHtml(s.modified_at || '') + '</td></tr>';
+                        }).join('');
+                    wrap.style.display = 'block';
+                    if (pagination.total_page != null) {
+                        paginationEl.innerHTML = 'Page ' + (pagination.current_page || 1) + ' of ' + (pagination.total_page || 1) + ' &middot; ' + (pagination.total_item || 0) + ' items';
+                        paginationEl.style.display = 'block';
+                    }
+                } else {
+                    errEl.textContent = res.message || 'Failed to load shipment history';
+                    errEl.style.display = 'block';
+                }
+            })
+            .catch(function() {
+                loading.style.display = 'none';
+                errEl.textContent = 'Network error.';
+                errEl.style.display = 'block';
+            });
+    });
+
+    document.getElementById('form-consignment-note').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var raw = (document.getElementById('consignment_tracking').value || '').trim();
+        var trackingNos = raw.split(/[\n,]+/).map(function(s) { return s.trim(); }).filter(Boolean);
+        if (trackingNos.length === 0) return;
+        var loading = document.getElementById('consignment-loading');
+        var errEl = document.getElementById('consignment-error');
+        var resultEl = document.getElementById('consignment-result');
+        var btn = document.getElementById('btn-consignment-note');
+        errEl.style.display = 'none';
+        resultEl.style.display = 'none';
+        loading.style.display = 'flex';
+        btn.disabled = true;
+
+        var formData = new FormData();
+        formData.append('_token', csrf);
+        trackingNos.forEach(function(t) { formData.append('tracking_no[]', t); });
+
+        fetch(base + '/consignment-note', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            body: formData
+        })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                loading.style.display = 'none';
+                btn.disabled = false;
+                if (res.success) {
+                    var data = res.data || {};
+                    if (data.url) {
+                        resultEl.innerHTML = '<a href="' + escapeHtml(data.url) + '" target="_blank" rel="noopener" class="myparcel-btn myparcel-btn-primary">Download Consignment Note</a>';
+                    } else if (data.pdf_base64 || data.file) {
+                        resultEl.innerHTML = '<p>Consignment note received. <a href="data:application/pdf;base64,' + (data.pdf_base64 || data.file) + '" target="_blank" download="consignment-note.pdf">Download PDF</a></p>';
+                    } else {
+                        resultEl.textContent = JSON.stringify(data);
+                    }
+                    resultEl.style.display = 'block';
+                } else {
+                    errEl.textContent = res.message || 'Failed to get consignment note';
+                    errEl.style.display = 'block';
+                }
+            })
+            .catch(function() {
+                loading.style.display = 'none';
+                btn.disabled = false;
+                errEl.textContent = 'Network error.';
+                errEl.style.display = 'block';
             });
     });
 

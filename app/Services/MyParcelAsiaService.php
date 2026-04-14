@@ -112,9 +112,29 @@ class MyParcelAsiaService
         return $this->post('get_shipment_statuses', $params);
     }
 
+    /**
+     * Get shipment history (list of past shipments with optional pagination).
+     * ENDPOINT: POST /get_shipment_history
+     * Request: api_key (optional: page, item_per_page)
+     * Response: { "status": true, "message": "success", "data": { "shipments": [...], "pagination": { "current_page", "total_item", "item_per_page", "total_page", "next_page", "prev_page" } } }
+     */
     public function getShipmentHistory(array $params = []): array
     {
         return $this->post('get_shipment_history', $params);
+    }
+
+    /**
+     * Get consignment note (e.g. PDF or labels) for given tracking numbers.
+     * ENDPOINT: POST /get_consignment_note
+     * Request: api_key, tracking_no (array of strings, e.g. ["ERA311010700MY","ERA311010695MY"])
+     */
+    public function getConsignmentNote(array $params): array
+    {
+        $trackingNos = $params['tracking_no'] ?? $params['tracking_nos'] ?? [];
+        if (!is_array($trackingNos)) {
+            $trackingNos = array_filter([$trackingNos]);
+        }
+        return $this->post('get_consignment_note', ['tracking_no' => array_values($trackingNos)]);
     }
 
     public function checkPriceBulk(array $params): array
@@ -127,9 +147,20 @@ class MyParcelAsiaService
         return $this->post('create_bulk_awb', $params);
     }
 
+    /**
+     * Trace a shipment by tracking number.
+     * ENDPOINT: POST /trace
+     * Request: api_key, tracking_no
+     * Success: { "status": true, "message": "success", "data": { "tracking_no", "status", "updated_at" } }
+     * Failed: { "status": false, "message": "...", "data": [] }
+     */
     public function trace(array $params): array
     {
-        return $this->post('trace', $params);
+        $trackingNo = (string) ($params['tracking_no'] ?? $params['tracking'] ?? '');
+        if ($trackingNo === '') {
+            return ['status' => false, 'message' => 'tracking_no is required', 'data' => []];
+        }
+        return $this->post('trace', ['tracking_no' => $trackingNo]);
     }
 }
 

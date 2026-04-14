@@ -151,6 +151,96 @@ class ShippingController extends Controller
     }
 
     /**
+     * MyParcel Asia: trace shipment by tracking number.
+     * POST /admin/shipping/myparcel/trace
+     * Body: tracking_no (required)
+     * Success: { "status": true, "data": { "tracking_no", "status", "updated_at" } }
+     * Failed: { "status": false, "message": "..." }
+     */
+    public function myparcelTrace(Request $request)
+    {
+        $request->validate([
+            'tracking_no' => 'required|string|max:100',
+        ]);
+        $resp = $this->myParcel->trace(['tracking_no' => $request->input('tracking_no')]);
+        $ok = !empty($resp['status']) && ($resp['status'] === true || $resp['status'] === 'success');
+        if ($ok) {
+            return response()->json([
+                'success' => true,
+                'message' => $resp['message'] ?? 'success',
+                'data' => $resp['data'] ?? [],
+            ]);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => $resp['message'] ?? 'Trace failed',
+            'data' => $resp['data'] ?? [],
+        ], 422);
+    }
+
+    /**
+     * MyParcel Asia: get shipment history (list of past shipments with pagination).
+     * GET /admin/shipping/myparcel/shipment-history?page=1
+     * Response: { "success": true, "data": { "shipments": [...], "pagination": {...} } }
+     */
+    public function myparcelShipmentHistory(Request $request)
+    {
+        $params = [];
+        if ($request->filled('page')) {
+            $params['page'] = (int) $request->input('page');
+        }
+        if ($request->filled('item_per_page')) {
+            $params['item_per_page'] = (int) $request->input('item_per_page');
+        }
+        $resp = $this->myParcel->getShipmentHistory($params);
+        $ok = !empty($resp['status']) && ($resp['status'] === true || $resp['status'] === 'success');
+        if ($ok) {
+            return response()->json([
+                'success' => true,
+                'message' => $resp['message'] ?? 'success',
+                'data' => $resp['data'] ?? ['shipments' => [], 'pagination' => []],
+            ]);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => $resp['message'] ?? 'Failed to fetch shipment history',
+            'data' => $resp['data'] ?? [],
+        ], 422);
+    }
+
+    /**
+     * MyParcel Asia: get consignment note for given tracking numbers.
+     * POST /admin/shipping/myparcel/consignment-note
+     * Body: tracking_no (array of strings) e.g. ["ERA311010700MY","ERA311010695MY"]
+     * Returns API response (may include PDF URL or base64; structure depends on MyParcel).
+     */
+    public function myparcelConsignmentNote(Request $request)
+    {
+        $request->validate([
+            'tracking_no' => 'required|array',
+            'tracking_no.*' => 'string|max:50',
+        ]);
+        $trackingNos = array_values(array_filter($request->input('tracking_no', [])));
+        if (empty($trackingNos)) {
+            return response()->json(['success' => false, 'message' => 'At least one tracking_no is required'], 422);
+        }
+        $resp = $this->myParcel->getConsignmentNote(['tracking_no' => $trackingNos]);
+        $ok = !empty($resp['status']) && ($resp['status'] === true || $resp['status'] === 'success');
+        if ($ok) {
+            return response()->json([
+                'success' => true,
+                'message' => $resp['message'] ?? 'success',
+                'data' => $resp['data'] ?? $resp,
+            ]);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => $resp['message'] ?? 'Failed to get consignment note',
+            'data' => $resp['data'] ?? [],
+        ], 422);
+    }
+
+    /**
      * MyParcel Asia: create a standalone shipment (create order).
      * POST /admin/shipping/myparcel/create-shipment
      * Returns success, total_price, awb, data, message.
