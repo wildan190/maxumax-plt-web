@@ -160,7 +160,7 @@
                                         <span class="text-white font-black">{{ $preorder->currency ?? 'MYR' }}
                                             {{ number_format($preorder->shipping_cost, 2) }}</span>
                                     @else
-                                        <span class="text-white/20 font-medium text-xs">Calculated at booking</span>
+                                        <span class="text-white/40 font-medium text-xs">—</span>
                                     @endif
                                 </div>
                             </div>

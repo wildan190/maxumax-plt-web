@@ -24,6 +24,12 @@ class CreateCheckoutSessionRequest extends FormRequest
             'address_detail' => 'required|string',
             'currency' => 'nullable|string|in:MYR,BND,IDR,SGD',
             'notes' => 'nullable|string',
+            'shipping_courier_name' => 'nullable|string|max:255',
+            'shipping_courier_logo' => 'nullable|string|max:500',
+            'shipping_service_name' => 'nullable|string|max:255',
+            'shipping_service_id' => 'nullable|string|max:255',
+            'shipping_cost' => 'nullable|numeric|min:0',
+            'shipping_source' => 'nullable|string|in:myparcelasia,easyparcel,delyva',
         ];
     }
 }

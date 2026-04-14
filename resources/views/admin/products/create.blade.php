@@ -1,9 +1,10 @@
 @extends('layouts.app')
 
 @section('page-title', 'Create Product')
+@section('hide-page-header', true)
 
 @section('content')
-    <div style="max-width: 1200px; margin: 0 auto;">
+    <div style="width: 100%;">
         <div style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <a href="{{ route('admin.products.index') }}" 
@@ -11,10 +12,6 @@
                    title="Back">
                     <i data-feather="arrow-left" style="width: 18px; height: 18px;"></i>
                 </a>
-                <div>
-                    <h1 style="font-size: 1.5rem; font-weight: 800; color: #111827; margin: 0; letter-spacing: -0.025em;">CREATE NEW PRODUCT</h1>
-                    <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">Add a new gear to the Maxumax inventory</p>
-                </div>
             </div>
         </div>
 
@@ -55,8 +52,71 @@
                             </div>
 
                             <div style="margin-bottom: 1.5rem;">
-                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Jersey Type *</label>
-                                <select name="jersey_type" required 
+                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Main Category *</label>
+                                <select name="category" id="categorySelect" required
+                                        style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
+                                    <option value="">-- Select Category --</option>
+                                    @foreach(['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories'] as $cat)
+                                        <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;" id="collectionsContainer">
+                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Sport / Collections (Select one or more)</label>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; background: #f9fafb; padding: 1rem; border-radius: 0.75rem; border: 1px solid #e5e7eb;">
+                                    @foreach(['Football Series', 'Golf Series', 'Fishing Series', 'Basketball Series', 'Outdoor Series', 'Run & Training Series', 'Casual / Lifestyle'] as $sport)
+                                        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: #374151; cursor: pointer;">
+                                            <input type="checkbox" name="collections[]" value="{{ $sport }}" 
+                                                {{ is_array(old('collections')) && in_array($sport, old('collections')) ? 'checked' : '' }}
+                                                style="width: 1rem; height: 1rem; border-radius: 0.25rem;">
+                                            {{ $sport }}
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Material</label>
+                                    <select name="material" style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; color: #111827; font-weight: 500; background: #f9fafb;">
+                                        <option value="">-- Select Material --</option>
+                                        @foreach(['Polyester', 'Cotton', 'Dry-fit', 'Compression'] as $mat)
+                                            <option value="{{ $mat }}" {{ old('material') == $mat ? 'selected' : '' }}>{{ $mat }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Gender</label>
+                                    <select name="gender" style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; color: #111827; font-weight: 500; background: #f9fafb;">
+                                        <option value="">-- Select Gender --</option>
+                                        @foreach(['Men', 'Women', 'Unisex'] as $gen)
+                                            <option value="{{ $gen }}" {{ old('gender') == $gen ? 'selected' : '' }}>{{ $gen }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Fit</label>
+                                    <select name="fit" style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; color: #111827; font-weight: 500; background: #f9fafb;">
+                                        <option value="">-- Select Fit --</option>
+                                        @foreach(['Regular Fit', 'Slim Fit', 'Oversized', 'Compression'] as $fit)
+                                            <option value="{{ $fit }}" {{ old('fit') == $fit ? 'selected' : '' }}>{{ $fit }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Color</label>
+                                    <input type="text" name="color" value="{{ old('color') }}" placeholder="e.g. Black, Navy"
+                                           style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; color: #111827; font-weight: 500;">
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Jersey Type (Optional)</label>
+                                <select name="jersey_type" 
                                         style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
                                     <option value="">-- Select Type --</option>
                                     <option value="Player Home" {{ old('jersey_type') == 'Player Home' ? 'selected' : '' }}>Player Home</option>
@@ -466,6 +526,22 @@
             
             // Initial check
             togglePreorderMode();
+
+            // Toggle Collection dropdown based on Category selection
+            const categorySelect = document.getElementById('categorySelect');
+            const collectionContainer = document.getElementById('collectionContainer');
+            const collectionSelect = document.getElementById('collectionSelect');
+            
+            function toggleCollection() {
+                if (categorySelect.value !== '') {
+                    collectionContainer.style.display = 'block';
+                } else {
+                    collectionContainer.style.display = 'none';
+                    collectionSelect.value = ''; // Reset when hidden
+                }
+            }
+            categorySelect.addEventListener('change', toggleCollection);
+            toggleCollection(); // Run on init
         })();
     </script>
 @endsection

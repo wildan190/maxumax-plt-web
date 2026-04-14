@@ -14,6 +14,13 @@ class Product extends Model
         'uuid',
         'slug',
         'sku',
+        'category',
+        'collection',
+        'collections',
+        'material',
+        'gender',
+        'fit',
+        'color',
         'description',
         'jersey_type',
         'price',
@@ -28,6 +35,7 @@ class Product extends Model
         'is_active' => 'boolean',
         'available_for_preorder' => 'boolean',
         'stock' => 'integer',
+        'collections' => 'array',
     ];
 
     public function getRouteKeyName()

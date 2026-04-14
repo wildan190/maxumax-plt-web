@@ -100,7 +100,7 @@
                                             @if(($preorder->shipping_cost ?? 0) > 0)
                                                 {{ $preorder->currency }} {{ number_format($preorder->shipping_cost, 2) }}
                                             @else
-                                                <span style="color:#64748b;">Calculated at booking</span>
+                                                <span style="color:#94a3b8;">—</span>
                                             @endif
                                         </td>
                                     </tr>

@@ -655,9 +655,29 @@ class PreorderAdminController extends Controller
             'send_name' => 'required',
             'send_contact' => 'required',
             'send_addr1' => 'required',
-            'courier_source' => 'nullable|string|in:easyparcel,delyva',
+            'courier_source' => 'nullable|string|in:easyparcel,delyva,myparcelasia',
         ]);
- 
+
+        $courierSource = $request->input('courier_source', 'easyparcel');
+        if ($courierSource === 'myparcelasia') {
+            $shipping = new \App\Services\ShippingService();
+            $res = $shipping->bookShipmentMyParcel($preorder, $request->all());
+            if ($res['success']) {
+                if (!empty($res['awb'])) {
+                    $preorder->tracking_number = $res['awb'];
+                    $preorder->shipping_status = 'shipped';
+                    $preorder->save();
+                    PreorderHistory::create([
+                        'preorder_id' => $preorder->id,
+                        'old_status' => $preorder->status,
+                        'new_status' => $preorder->status,
+                        'note' => 'Booked via MyParcel Asia. Ref: ' . $res['awb'],
+                    ]);
+                }
+                return redirect()->route('admin.preorders.show', $preorder)->with('status', $res['message']);
+            }
+            return back()->with('error', $res['message']);
+        }
 
         $orderData = [
              'weight' => $request->weight,

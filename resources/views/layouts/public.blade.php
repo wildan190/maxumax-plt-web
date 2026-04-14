@@ -120,13 +120,48 @@
 
             <!-- DESKTOP NAV -->
             <div class="hidden lg:flex items-center gap-10">
-                <a href="/"
-                    class="text-white font-black uppercase tracking-widest text-xs hover:text-slate-400 transition-colors">Home</a>
-                <a href="{{ route('products.index') }}"
-                    class="text-white font-black uppercase tracking-widest text-xs hover:text-slate-400 transition-colors">Products</a>
-                <a href="{{ route('order.track') }}"
-                    class="text-white font-black uppercase tracking-widest text-xs hover:text-slate-400 transition-colors">Track
-                    Order</a>
+                <a href="{{ route('products.index', ['filter' => 'new-arrivals']) }}"
+                    class="text-white font-black uppercase tracking-widest text-xs hover:text-slate-400 transition-colors">New Arrivals</a>
+
+                <!-- Shop by Sport Dropdown -->
+                <div class="relative group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button class="text-white font-black uppercase tracking-widest text-xs hover:text-slate-400 transition-colors flex items-center gap-1">
+                        Sport
+                        <i data-feather="chevron-down" style="width:12px;height:12px"></i>
+                    </button>
+                    <div x-show="open" x-cloak x-transition
+                        class="absolute left-0 mt-0 w-64 bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[60]">
+                        @foreach (['Football Series', 'Golf Series', 'Fishing Series', 'Basketball Series', 'Outdoor Series', 'Run & Training Series', 'Casual / Lifestyle'] as $sport)
+                            <a href="{{ route('products.index', ['sport' => $sport]) }}"
+                                class="block px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-colors">
+                                {{ $sport }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Shop by Product Dropdown -->
+                <div class="relative group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button class="text-white font-black uppercase tracking-widest text-xs hover:text-slate-400 transition-colors flex items-center gap-1">
+                        Product
+                        <i data-feather="chevron-down" style="width:12px;height:12px"></i>
+                    </button>
+                    <div x-show="open" x-cloak x-transition
+                        class="absolute left-0 mt-0 w-64 bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[60]">
+                        @foreach (['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories'] as $cat)
+                            <a href="{{ route('products.index', ['category' => $cat]) }}"
+                                class="block px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-colors">
+                                {{ $cat }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <a href="{{ route('preorder.landing') }}"
+                    class="text-white font-black uppercase tracking-widest text-xs hover:text-slate-400 transition-colors">Custom</a>
+
+                <a href="{{ route('products.index', ['filter' => 'sale']) }}"
+                    class="text-white font-black uppercase tracking-widest text-xs hover:text-amber-500 transition-colors">Sale</a>
 
                 <div class="h-4 w-px bg-white/20 mx-2"></div>
 
@@ -150,16 +185,24 @@
                     </div>
                 </div>
 
-                <!-- Cart Desktop -->
-                <a href="{{ route('cart.show') }}" class="relative text-white hover:text-slate-400 transition-colors">
-                    <i data-feather="shopping-cart" style="width:18px;height:18px;"></i>
-                    @if ($cartCount)
-                        <span
-                            class="absolute -top-2 -right-2 bg-white text-black text-[9px] font-black h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center">
-                            {{ $cartCount }}
-                        </span>
-                    @endif
-                </a>
+                <!-- Action Icons -->
+                <div class="flex items-center gap-6">
+                    <!-- Track Order Desktop -->
+                    <a href="{{ route('order.track') }}" class="text-white hover:text-slate-400 transition-colors" title="Track Order">
+                        <i data-feather="package" style="width:18px;height:18px;"></i>
+                    </a>
+
+                    <!-- Cart Desktop -->
+                    <a href="{{ route('cart.show') }}" class="relative text-white hover:text-slate-400 transition-colors">
+                        <i data-feather="shopping-cart" style="width:18px;height:18px;"></i>
+                        @if ($cartCount)
+                            <span
+                                class="absolute -top-2 -right-2 bg-white text-black text-[9px] font-black h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center">
+                                {{ $cartCount }}
+                            </span>
+                        @endif
+                    </a>
+                </div>
             </div>
 
             <!-- MOBILE RIGHT -->
@@ -182,14 +225,57 @@
 
         <!-- MOBILE MENU -->
         <div x-show="mobileMenuOpen" x-transition x-cloak
-            class="lg:hidden bg-black border-t border-white/10 shadow-2xl">
+            class="lg:hidden bg-black border-t border-white/10 shadow-2xl overflow-y-auto max-h-[80vh]">
             <div class="flex flex-col p-6 space-y-6">
 
                 <!-- Nav Links -->
                 <a @click="mobileMenuOpen=false" href="/"
                     class="text-white font-black uppercase tracking-widest text-sm">Home</a>
-                <a @click="mobileMenuOpen=false" href="{{ route('products.index') }}"
-                    class="text-white font-black uppercase tracking-widest text-sm">Products</a>
+                
+                <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['filter' => 'new-arrivals']) }}"
+                    class="text-white font-black uppercase tracking-widest text-sm">New Arrivals</a>
+
+                <!-- Shop by Sport Mobile -->
+                <div x-data="{ open: false }">
+                    <button @click="open = !open" class="flex items-center justify-between w-full text-white font-black uppercase tracking-widest text-sm">
+                        Shop by Sport
+                        <i data-feather="chevron-down" :class="{'rotate-180': open}" class="transition-transform" style="width:16px;height:16px"></i>
+                    </button>
+                    <div x-show="open" x-cloak class="mt-4 ml-4 flex flex-col space-y-4 border-l border-white/10 pl-4">
+                        @foreach (['Football Series', 'Golf Series', 'Fishing Series', 'Basketball Series', 'Outdoor Series', 'Run & Training Series', 'Casual / Lifestyle'] as $sport)
+                            <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['sport' => $sport]) }}"
+                                class="text-white/60 font-black uppercase tracking-widest text-xs">
+                                {{ $sport }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Shop by Product Mobile -->
+                <div x-data="{ open: false }">
+                    <button @click="open = !open" class="flex items-center justify-between w-full text-white font-black uppercase tracking-widest text-sm">
+                        Shop by Product
+                        <i data-feather="chevron-down" :class="{'rotate-180': open}" class="transition-transform" style="width:16px;height:16px"></i>
+                    </button>
+                    <div x-show="open" x-cloak class="mt-4 ml-4 flex flex-col space-y-4 border-l border-white/10 pl-4">
+                        @foreach (['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories'] as $cat)
+                            <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['category' => $cat]) }}"
+                                class="text-white/60 font-black uppercase tracking-widest text-xs">
+                                {{ $cat }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['category' => 'Accessories']) }}"
+                    class="text-white font-black uppercase tracking-widest text-sm">Accessories</a>
+
+                <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['filter' => 'sale']) }}"
+                    class="text-white font-black uppercase tracking-widest text-sm">Sale</a>
+
+                <a @click="mobileMenuOpen=false" href="{{ route('preorder.landing') }}"
+                    class="text-white font-black uppercase tracking-widest text-sm">Custom Teamwear</a>
+
                 <a @click="mobileMenuOpen=false" href="{{ route('order.track') }}"
                     class="text-white font-black uppercase tracking-widest text-sm">Track Order</a>
 
