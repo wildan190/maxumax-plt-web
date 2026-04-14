@@ -14,6 +14,8 @@ class Product extends Model
         'uuid',
         'slug',
         'sku',
+        'category',
+        'collection',
         'description',
         'jersey_type',
         'price',

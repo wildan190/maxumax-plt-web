@@ -55,8 +55,39 @@
                             </div>
 
                             <div style="margin-bottom: 1.5rem;">
-                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Jersey Type *</label>
-                                <select name="jersey_type" required 
+                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Main Category *</label>
+                                <select name="category" id="categorySelect" required
+                                        style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
+                                    <option value="">-- Select Category --</option>
+                                    <option value="Jerseys" {{ old('category') == 'Jerseys' ? 'selected' : '' }}>Jerseys</option>
+                                    <option value="Casualwear" {{ old('category') == 'Casualwear' ? 'selected' : '' }}>Casualwear</option>
+                                    <option value="Outerwear" {{ old('category') == 'Outerwear' ? 'selected' : '' }}>Outerwear</option>
+                                    <option value="Tracksuits" {{ old('category') == 'Tracksuits' ? 'selected' : '' }}>Tracksuits</option>
+                                    <option value="Pants" {{ old('category') == 'Pants' ? 'selected' : '' }}>Pants</option>
+                                    <option value="Base Layer" {{ old('category') == 'Base Layer' ? 'selected' : '' }}>Base Layer</option>
+                                    <option value="Accessories" {{ old('category') == 'Accessories' ? 'selected' : '' }}>Accessories</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;" id="collectionContainer">
+                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Collection / Series</label>
+                                <select name="collection" id="collectionSelect"
+                                        style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
+                                    <option value="">-- Select Collection --</option>
+                                    <option value="Pro Jersey" {{ old('collection') == 'Pro Jersey' ? 'selected' : '' }}>Pro Jersey</option>
+                                    <option value="Special Jersey" {{ old('collection') == 'Special Jersey' ? 'selected' : '' }}>Special Jersey</option>
+                                    <option value="Football Series" {{ old('collection') == 'Football Series' ? 'selected' : '' }}>Football Series</option>
+                                    <option value="Golf Series" {{ old('collection') == 'Golf Series' ? 'selected' : '' }}>Golf Series</option>
+                                    <option value="Fishing Series" {{ old('collection') == 'Fishing Series' ? 'selected' : '' }}>Fishing Series</option>
+                                    <option value="Outdoor Series" {{ old('collection') == 'Outdoor Series' ? 'selected' : '' }}>Outdoor Series</option>
+                                    <option value="Run & Training Series" {{ old('collection') == 'Run & Training Series' ? 'selected' : '' }}>Run & Training Series</option>
+                                    <option value="Cotton Series" {{ old('collection') == 'Cotton Series' ? 'selected' : '' }}>Cotton Series</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Jersey Type (Optional)</label>
+                                <select name="jersey_type" 
                                         style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
                                     <option value="">-- Select Type --</option>
                                     <option value="Player Home" {{ old('jersey_type') == 'Player Home' ? 'selected' : '' }}>Player Home</option>
@@ -466,6 +497,22 @@
             
             // Initial check
             togglePreorderMode();
+
+            // Toggle Collection dropdown based on Category selection
+            const categorySelect = document.getElementById('categorySelect');
+            const collectionContainer = document.getElementById('collectionContainer');
+            const collectionSelect = document.getElementById('collectionSelect');
+            
+            function toggleCollection() {
+                if (categorySelect.value !== '') {
+                    collectionContainer.style.display = 'block';
+                } else {
+                    collectionContainer.style.display = 'none';
+                    collectionSelect.value = ''; // Reset when hidden
+                }
+            }
+            categorySelect.addEventListener('change', toggleCollection);
+            toggleCollection(); // Run on init
         })();
     </script>
 @endsection

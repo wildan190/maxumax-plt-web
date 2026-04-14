@@ -38,7 +38,9 @@ class ProductController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'jersey_type' => 'required|string|max:100',
+            'category' => 'required|string|max:100',
+            'collection' => 'nullable|string|max:100',
+            'jersey_type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
             'sku' => 'nullable|string|max:100',
             'stock' => 'sometimes|integer|min:0',
@@ -129,7 +131,9 @@ class ProductController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'jersey_type' => 'required|string|max:100',
+            'category' => 'required|string|max:100',
+            'collection' => 'nullable|string|max:100',
+            'jersey_type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
             'sku' => 'nullable|string|max:100',
             'stock' => 'sometimes|integer|min:0',

@@ -24,53 +24,72 @@
     </section>
 
     <!-- Product Showcase Section -->
-    <section class="bg-black py-24 px-6 relative" x-data="{ 
-                activeCategory: '',
-                applyFilter(cat) {
-                    this.activeCategory = cat;
-                    const grid = document.getElementById('products-grid');
-                    if (!grid) return;
-                    const val = cat.toLowerCase();
-                    grid.querySelectorAll('[data-category]').forEach(card => {
-                        const cardCat = (card.getAttribute('data-category') || '').toLowerCase();
-                        if (!val || cardCat === val) {
-                           card.style.display = '';
-                        } else {
-                           card.style.display = 'none';
-                        }
-                    });
-                }
-            }">
+    <section class="bg-black py-24 px-6 relative" x-data="{ filterCategory: '', filterCollection: '' }">
         <div class="max-w-7xl mx-auto">
             @php
-                $categories = isset($products) ? $products->pluck('jersey_type')->filter()->unique()->sort()->values() : collect();
+                $categories = isset($products) ? $products->pluck('category')->filter()->unique()->sort()->values() : collect();
+                $collections = isset($products) ? $products->pluck('collection')->filter()->unique()->sort()->values() : collect();
             @endphp
 
-            <div class="flex flex-col md:flex-row items-center justify-between mb-20 gap-8">
-                <div class="inline-flex flex-wrap gap-3 bg-white/5 p-2 rounded-2xl border border-white/10">
-                    <button @click="applyFilter('')"
-                        class="px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all"
-                        :class="activeCategory === '' ? 'bg-white text-black shadow-xl' : 'text-white/40 hover:bg-white/10'">
-                        All Editions
+            <div class="flex flex-col md:flex-row gap-4 justify-center items-center mb-16 max-w-3xl mx-auto relative z-20">
+                <!-- Custom Category Dropdown -->
+                <div class="relative w-full md:w-64" x-data="{ open: false }">
+                    <button @click="open = !open" @click.away="open = false" 
+                        class="flex items-center justify-between w-full bg-[#111111] text-white border border-white/20 rounded-xl px-4 md:px-5 py-3.5 font-black text-[10px] md:text-xs uppercase tracking-widest transition-all hover:bg-white/5 hover:border-white/30 group shadow-xl">
+                        <span class="truncate pr-2" x-text="filterCategory ? filterCategory : 'All Categories'"></span>
+                        <svg class="w-3.5 h-3.5 text-white/50 flex-shrink-0 group-hover:text-white transition-transform duration-300" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
                     </button>
-                    @foreach($categories as $cat)
-                        <button @click="applyFilter('{{ $cat }}')"
-                            class="px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all"
-                            :class="activeCategory === '{{ $cat }}' ? 'bg-white text-black shadow-xl' : 'text-white/40 hover:bg-white/10'">
-                            {{ $cat }}
+                    <div x-show="open" x-transition.opacity.duration.200ms x-cloak
+                        class="absolute z-50 w-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl divide-y divide-white/5">
+                        <button @click="filterCategory = ''; filterCollection = ''; open = false" 
+                            class="w-full text-left px-5 py-3.5 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10"
+                            :class="filterCategory === '' ? 'text-white bg-white/5' : 'text-white/40'">
+                            All Categories
                         </button>
-                    @endforeach
+                        @foreach($categories as $cat)
+                            <button @click="filterCategory = '{{ $cat }}'; filterCollection = ''; open = false" 
+                                class="w-full text-left px-5 py-3.5 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10"
+                                :class="filterCategory === '{{ $cat }}' ? 'text-white bg-white/5' : 'text-white/40'">
+                                {{ $cat }}
+                            </button>
+                        @endforeach
+                    </div>
                 </div>
-                <div class="text-white/20 font-black text-xs uppercase tracking-widest">
-                    {{ $products->count() }} Items Available
+
+                <!-- Custom Collection Dropdown -->
+                <div class="relative w-full md:w-64" x-data="{ open: false }" x-show="filterCategory !== ''" x-transition x-cloak>
+                    <button @click="open = !open" @click.away="open = false" 
+                        class="flex items-center justify-between w-full bg-[#111111] text-white border border-white/20 rounded-xl px-4 md:px-5 py-3.5 font-black text-[10px] md:text-xs uppercase tracking-widest transition-all hover:bg-white/5 hover:border-white/30 group shadow-xl">
+                        <span class="truncate pr-2" x-text="filterCollection ? filterCollection : 'All Collections'"></span>
+                        <svg class="w-3.5 h-3.5 text-white/50 flex-shrink-0 group-hover:text-white transition-transform duration-300" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="open" x-transition.opacity.duration.200ms x-cloak
+                        class="absolute z-50 w-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl divide-y divide-white/5 max-h-60 overflow-y-auto">
+                        <button @click="filterCollection = ''; open = false" 
+                            class="w-full text-left px-5 py-3.5 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10"
+                            :class="filterCollection === '' ? 'text-white bg-white/5' : 'text-white/40'">
+                            All Collections
+                        </button>
+                        @foreach($collections as $col)
+                            <button @click="filterCollection = '{{ $col }}'; open = false" 
+                                class="w-full text-left px-5 py-3.5 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10"
+                                :class="filterCollection === '{{ $col }}' ? 'text-white bg-white/5' : 'text-white/40'">
+                                {{ $col }}
+                            </button>
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
             <div id="products-grid" class="grid gap-3 md:gap-8 grid-cols-2 lg:grid-cols-4">
                 @if(isset($products) && $products->count())
                     @foreach($products as $product)
-                        <div class="flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                            data-category="{{ strtolower($product->jersey_type ?? '') }}">
+                        <div x-show="(filterCategory === '' || '{{ $product->category }}' === filterCategory) && (filterCollection === '' || '{{ $product->collection }}' === filterCollection)"
+                             class="flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group">
                             <!-- Product Image -->
                             <div class="aspect-square md:aspect-[4/5] relative flex items-center justify-center p-3 md:p-8 bg-gradient-to-b from-[#1a1a1a] to-[#111111]">
                                 @if ($product->image_path)
@@ -88,9 +107,9 @@
                                 
                                 <!-- Badges -->
                                 <div class="flex flex-wrap justify-center gap-1 mb-3 md:mb-8">
-                                    @if($product->jersey_type)
+                                    @if($product->category)
                                         <span class="px-1.5 md:px-4 py-0.5 md:py-1.5 rounded-full border border-white/10 text-[7px] md:text-[9px] font-black text-white uppercase tracking-widest">
-                                            {{ $product->jersey_type }}
+                                            {{ $product->category }}
                                         </span>
                                      @endif
                                 </div>
