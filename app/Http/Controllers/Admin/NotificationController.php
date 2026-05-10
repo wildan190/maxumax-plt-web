@@ -3,50 +3,34 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Services\Admin\AdminNotificationService;
 
 class NotificationController extends Controller
 {
-    /**
-     * Display a listing of notifications.
-     */
-    public function index()
+    public function index(AdminNotificationService $notifications)
     {
-        $user = Auth::user();
-        $notifications = $user->notifications()->paginate(20);
+        $notificationsList = $notifications->paginatedForAuthenticatedUser();
 
-        return view('admin.notifications.index', compact('notifications'));
+        return view('admin.notifications.index', ['notifications' => $notificationsList]);
     }
 
-    /**
-     * Mark a specific notification as read.
-     */
-    public function markAsRead($id)
+    public function markAsRead(string $id, AdminNotificationService $notifications)
     {
-        $notification = Auth::user()->notifications()->findOrFail($id);
-        $notification->markAsRead();
+        $notifications->markSingleRead($id);
 
         return back()->with('success', 'Notification marked as read.');
     }
 
-    /**
-     * Mark all notifications as read.
-     */
-    public function markAllAsRead()
+    public function markAllAsRead(AdminNotificationService $notifications)
     {
-        Auth::user()->unreadNotifications->markAsRead();
+        $notifications->markAllRead();
 
         return back()->with('success', 'All notifications marked as read.');
     }
 
-    /**
-     * Delete a notification.
-     */
-    public function destroy($id)
+    public function destroy(string $id, AdminNotificationService $notifications)
     {
-        $notification = Auth::user()->notifications()->findOrFail($id);
-        $notification->delete();
+        $notifications->deleteOne($id);
 
         return back()->with('success', 'Notification deleted.');
     }
