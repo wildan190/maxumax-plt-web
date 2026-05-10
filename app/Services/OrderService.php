@@ -60,6 +60,7 @@ class OrderService
             $allCustomFields = [];
 
             foreach ($itemsData as $variantId => $itemData) {
+                $realVariantId = is_numeric($variantId) ? (int) $variantId : null;
                 $types = [
                     'ss' => ['qty' => (int) ($itemData['quantity_ss'] ?? 0), 'ls' => false, 'namesets' => $itemData['namesets_ss'] ?? []],
                     'ls' => ['qty' => (int) ($itemData['quantity_ls'] ?? 0), 'ls' => true, 'namesets' => $itemData['namesets_ls'] ?? []]
@@ -68,7 +69,7 @@ class OrderService
                 $variantTotalQty = $types['ss']['qty'] + $types['ls']['qty'];
 
                 if (!$product->available_for_preorder) {
-                    $variant = ProductVariant::lockForUpdate()->find($variantId);
+                    $variant = $realVariantId ? ProductVariant::lockForUpdate()->find($realVariantId) : null;
                     if ($variant && $variant->product_id == $product->id) {
                         if ($variant->stock < $variantTotalQty) {
                             throw new \RuntimeException("Not enough stock for variant {$variant->name}");
@@ -77,11 +78,11 @@ class OrderService
                         $variant->save();
                     }
                 } else {
-                    $variant = ProductVariant::find($variantId);
+                    $variant = $realVariantId ? ProductVariant::find($realVariantId) : null;
                 }
 
                 if (!$firstVariantId) {
-                    $firstVariantId = $variantId;
+                    $firstVariantId = $realVariantId;
                     $firstVariantName = $variant ? $variant->name : null;
                 }
 

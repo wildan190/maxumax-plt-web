@@ -154,6 +154,16 @@ class PreorderStorefrontFlowService
         $query = Product::where('is_active', true)
             ->where('available_for_preorder', false);
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('category', 'like', "%{$search}%")
+                  ->orWhere('collection', 'like', "%{$search}%");
+            });
+        }
+
         if ($request->filled('category')) {
             $query->where('category', $request->category);
         }
@@ -404,12 +414,14 @@ class PreorderStorefrontFlowService
                 continue;
             }
 
+            $variantKey = $it['product_variant_id'] ?? null;
             $itemsData = [
-                $it['product_variant_id'] ?? 'legacy' => [
+                ($variantKey ?? 'no_variant') => [
                     'quantity_ss' => $it['long_sleeve'] ? 0 : $it['quantity'],
                     'quantity_ls' => $it['long_sleeve'] ? $it['quantity'] : 0,
                     'namesets_ss' => [],
                     'namesets_ls' => [],
+                    '_variant_id_override' => $variantKey,
                 ],
             ];
 
