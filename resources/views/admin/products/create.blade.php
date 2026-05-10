@@ -190,7 +190,7 @@
                             </div>
                             <input type="file" name="images[]" accept="image/*" id="imageInput" multiple style="display:none;" />
                             
-                            <div id="imagePreviewGrid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:0.75rem; margin-top:1.25rem;"></div>
+                            <div id="imagePreviewGrid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:0.75rem; margin-top:1.25rem;" data-draggable-group="create-images"></div>
                             
                             <div id="imageStatusText" style="margin-top:0.75rem; padding: 0.75rem; background: #fef2f2; border: 1px solid #fee2e2; color: #ef4444; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; display: none;">
                                 Maximum 4 images reached.
@@ -202,6 +202,7 @@
                                     Clear All
                                 </button>
                             </div>
+                            <p style=\"font-size: 0.7rem; color: #9ca3af; margin: 1rem 0 0 0; text-align: center; font-style: italic;\">💡 Tip: Drag images to reorder</p>
                         </div>
                     </div>
 
@@ -300,6 +301,17 @@
                         removeBtn.style.cssText = 'position: absolute; top: 0.5rem; right: 0.5rem; width: 1.5rem; height: 1.5rem; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);';
                         removeBtn.onclick = () => removeFile(i);
                         
+                        // Add drag attributes for reordering
+                        container.draggable = true;
+                        container.dataset.fileIndex = i;
+                        container.style.cursor = 'grab';
+                        container.addEventListener('dragstart', handleDragStart);
+                        container.addEventListener('dragend', handleDragEnd);
+                        container.addEventListener('dragover', handleDragOver);
+                        container.addEventListener('drop', handleDrop);
+                        container.addEventListener('dragenter', handleDragEnter);
+                        container.addEventListener('dragleave', handleDragLeave);
+                        
                         container.appendChild(img);
                         container.appendChild(removeBtn);
                         grid.appendChild(container);
@@ -339,6 +351,60 @@
             dz.ondrop = (e) => { e.preventDefault(); addFiles(e.dataTransfer.files); };
             input.onchange = (e) => addFiles(e.target.files);
             clearBtn.onclick = () => { currentFiles = []; updateInputFiles([]); render([]); };
+            
+            // Drag and Drop Reordering
+            let draggedIndex = null;
+            let draggedOverIndex = null;
+            
+            function handleDragStart(e) {
+                draggedIndex = parseInt(this.dataset.fileIndex);
+                this.style.opacity = '0.5';
+                e.dataTransfer.effectAllowed = 'move';
+            }
+            
+            function handleDragEnd(e) {
+                document.querySelectorAll('#imagePreviewGrid > div').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.borderColor = '#e5e7eb';
+                    el.style.background = '';
+                });
+                draggedIndex = null;
+                draggedOverIndex = null;
+            }
+            
+            function handleDragOver(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            }
+            
+            function handleDragEnter(e) {
+                if (this !== grid) {
+                    this.style.borderColor = '#3b82f6';
+                    this.style.background = '#eff6ff';
+                }
+            }
+            
+            function handleDragLeave(e) {
+                this.style.borderColor = '#e5e7eb';
+                this.style.background = '';
+            }
+            
+            function handleDrop(e) {
+                e.preventDefault();
+                const targetIndex = parseInt(this.dataset.fileIndex);
+                
+                if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                    // Swap files
+                    [currentFiles[draggedIndex], currentFiles[targetIndex]] = 
+                    [currentFiles[targetIndex], currentFiles[draggedIndex]];
+                    
+                    updateInputFiles(currentFiles);
+                    render(currentFiles);
+                }
+                
+                this.style.borderColor = '#e5e7eb';
+                this.style.background = '';
+            }
 
             // Variant Management
             let variantIndex = 0;

@@ -48,4 +48,18 @@ class ProductImageRepository
 
         return $created;
     }
+
+    /**
+     * Update positions of existing product images.
+     *
+     * @param  array<int|string>  $imageIds  Array of image IDs in the desired order
+     */
+    public function updateImagePositions(Product $product, array $imageIds): void
+    {
+        foreach ($imageIds as $position => $imageId) {
+            ProductImage::where('id', $imageId)
+                ->where('product_id', $product->id)
+                ->update(['position' => $position]);
+        }
+    }
 }

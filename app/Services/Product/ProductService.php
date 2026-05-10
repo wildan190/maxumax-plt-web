@@ -71,6 +71,12 @@ class ProductService
 
         $this->products->update($product, $attrs);
 
+        // Handle image position updates for existing images
+        $imagePositions = $request->imagePositions();
+        if (!empty($imagePositions)) {
+            $this->images->updateImagePositions($product, $imagePositions);
+        }
+
         if ($request->hasFile('images')) {
             $files = $request->file('images');
             if (is_array($files)) {

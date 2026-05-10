@@ -226,22 +226,31 @@
                             @php
                                 $paths = [];
                                 if ($product->image_path)
-                                    $paths[] = $product->image_path;
+                                    $paths[] = ['path' => $product->image_path, 'id' => null, 'is_main' => true];
                                 foreach ($product->images as $img)
-                                    $paths[] = $img->path;
+                                    $paths[] = ['path' => $img->path, 'id' => $img->id, 'is_main' => false];
                             @endphp
 
                             @if(count($paths) > 0)
-                                <div
+                                <div id="existingImagesGrid"
                                     style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.5rem;">
-                                    @foreach($paths as $path)
-                                        <div
-                                            style="aspect-ratio: 1; border-radius: 0.75rem; overflow: hidden; border: 1px solid #f3f4f6; position: relative; group">
-                                            <img src="{{ asset('storage/' . $path) }}"
+                                    @foreach($paths as $idx => $imgData)
+                                        <div class="existing-image-item"
+                                            data-image-id="{{ $imgData['id'] }}"
+                                            data-image-position="{{ $idx }}"
+                                            draggable="true"
+                                            style="aspect-ratio: 1; border-radius: 0.75rem; overflow: hidden; border: 1px solid #f3f4f6; position: relative; cursor: grab; transition: all 0.2s;">
+                                            <img src="{{ asset('storage/' . $imgData['path']) }}"
                                                 style="width: 100%; height: 100%; object-fit: cover;" alt="Product image" />
+                                            @if($imgData['is_main'])
+                                                <div style="position: absolute; bottom: 0.5rem; right: 0.5rem; background: #3b82f6; color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.625rem; font-weight: 700;">
+                                                    MAIN
+                                                </div>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
+                                <input type="hidden" id="imagePositionsInput" name="image_positions" value="" />
                             @else
                                 <div
                                     style="text-align: center; padding: 2rem 0; color: #9ca3af; background: #f9fafb; border-radius: 1rem; border: 1px dashed #e5e7eb; margin-bottom: 1.5rem;">
@@ -278,6 +287,7 @@
                                     Reset Selection
                                 </button>
                             </div>
+                            <p style=\"font-size: 0.7rem; color: #9ca3af; margin: 1rem 0 0 0; text-align: center; font-style: italic;\">💡 Tip: Drag images (existing or new) to reorder</p>
                         </div>
                     </div>
 
@@ -387,8 +397,17 @@
                         removeBtn.innerHTML = '<i data-feather="x" style="width: 14px; height: 14px;"></i>';
                         removeBtn.type = 'button';
                         removeBtn.style.cssText = 'position: absolute; top: 0.25rem; right: 0.25rem; width: 1.5rem; height: 1.5rem; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);';
-                        removeBtn.onclick = () => removeFile(i);
-
+                        removeBtn.onclick = () => removeFile(i);                        
+                        // Add drag attributes for reordering
+                        container.draggable = true;
+                        container.dataset.fileIndex = i;
+                        container.style.cursor = 'grab';
+                        container.addEventListener('dragstart', handleDragStart);
+                        container.addEventListener('dragend', handleDragEnd);
+                        container.addEventListener('dragover', handleDragOver);
+                        container.addEventListener('drop', handleDrop);
+                        container.addEventListener('dragenter', handleDragEnter);
+                        container.addEventListener('dragleave', handleDragLeave);
                         container.appendChild(img);
                         container.appendChild(removeBtn);
                         grid.appendChild(container);
@@ -428,6 +447,136 @@
             dz.ondrop = (e) => { e.preventDefault(); addFiles(e.dataTransfer.files); };
             input.onchange = (e) => addFiles(e.target.files);
             clearBtn.onclick = () => { currentFiles = []; updateInputFiles([]); render([]); };
+            
+            // Drag and Drop Reordering for New Images
+            let draggedIndex = null;
+            let draggedOverIndex = null;
+            
+            function handleDragStart(e) {
+                draggedIndex = parseInt(this.dataset.fileIndex);
+                this.style.opacity = '0.5';
+                e.dataTransfer.effectAllowed = 'move';
+            }
+            
+            function handleDragEnd(e) {
+                document.querySelectorAll('#imagePreviewGridEdit > div').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.borderColor = '#e5e7eb';
+                    el.style.background = '';
+                });
+                draggedIndex = null;
+                draggedOverIndex = null;
+            }
+            
+            function handleDragOver(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            }
+            
+            function handleDragEnter(e) {
+                if (this !== grid) {
+                    this.style.borderColor = '#3b82f6';
+                    this.style.background = '#eff6ff';
+                }
+            }
+            
+            function handleDragLeave(e) {
+                this.style.borderColor = '#e5e7eb';
+                this.style.background = '';
+            }
+            
+            function handleDrop(e) {
+                e.preventDefault();
+                const targetIndex = parseInt(this.dataset.fileIndex);
+                
+                if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                    // Swap files
+                    [currentFiles[draggedIndex], currentFiles[targetIndex]] = 
+                    [currentFiles[targetIndex], currentFiles[draggedIndex]];
+                    
+                    updateInputFiles(currentFiles);
+                    render(currentFiles);
+                }
+                
+                this.style.borderColor = '#e5e7eb';
+                this.style.background = '';
+            }
+            
+            // Drag and Drop Reordering for Existing Images
+            const existingGridEl = document.getElementById('existingImagesGrid');
+            if (existingGridEl) {
+                let draggedExistingEl = null;
+                
+                function setupExistingImageDragHandlers() {
+                    document.querySelectorAll('.existing-image-item').forEach(item => {
+                        item.addEventListener('dragstart', function(e) {
+                            draggedExistingEl = this;
+                            this.style.opacity = '0.5';
+                            e.dataTransfer.effectAllowed = 'move';
+                        });
+                        
+                        item.addEventListener('dragend', function(e) {
+                            document.querySelectorAll('.existing-image-item').forEach(el => {
+                                el.style.opacity = '1';
+                                el.style.borderColor = '#f3f4f6';
+                                el.style.background = '';
+                            });
+                            draggedExistingEl = null;
+                        });
+                        
+                        item.addEventListener('dragover', function(e) {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                        });
+                        
+                        item.addEventListener('dragenter', function(e) {
+                            if (this !== draggedExistingEl) {
+                                this.style.borderColor = '#3b82f6';
+                                this.style.background = '#eff6ff';
+                            }
+                        });
+                        
+                        item.addEventListener('dragleave', function(e) {
+                            this.style.borderColor = '#f3f4f6';
+                            this.style.background = '';
+                        });
+                        
+                        item.addEventListener('drop', function(e) {
+                            e.preventDefault();
+                            if (draggedExistingEl && draggedExistingEl !== this) {
+                                // Swap elements in the grid
+                                const draggedRect = draggedExistingEl.getBoundingClientRect();
+                                const targetRect = this.getBoundingClientRect();
+                                
+                                if (draggedRect.left + draggedRect.width / 2 < targetRect.left + targetRect.width / 2) {
+                                    this.parentNode.insertBefore(draggedExistingEl, this);
+                                } else {
+                                    this.parentNode.insertBefore(draggedExistingEl, this.nextSibling);
+                                }
+                                
+                                // Update positions
+                                updateExistingImagePositions();
+                            }
+                            this.style.borderColor = '#f3f4f6';
+                            this.style.background = '';
+                        });
+                    });
+                }
+                
+                function updateExistingImagePositions() {
+                    const imageIds = [];
+                    document.querySelectorAll('.existing-image-item').forEach((item, index) => {
+                        const id = item.dataset.imageId;
+                        if (id && id !== 'null') {
+                            imageIds.push(id);
+                        }
+                        item.dataset.imagePosition = index;
+                    });
+                    document.getElementById('imagePositionsInput').value = JSON.stringify(imageIds);
+                }
+                
+                setupExistingImageDragHandlers();
+            }
 
             // Variant Management
             let variantIndexEdit = {{ $product->variants->count() }};

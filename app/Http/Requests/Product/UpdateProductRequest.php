@@ -34,6 +34,7 @@ class UpdateProductRequest extends FormRequest
             'available_for_preorder' => 'sometimes|boolean',
             'image' => 'nullable|image|max:2048',
             'images.*' => 'nullable|image|max:4096',
+            'image_positions' => 'nullable|string',
             'variants.*.id' => 'nullable|exists:product_variants,id',
             'variants.*.name' => 'nullable|string|max:100',
             'variants.*.stock' => 'nullable|integer|min:0',
@@ -92,5 +93,23 @@ class UpdateProductRequest extends FormRequest
     public function variantsInput(): array
     {
         return $this->input('variants', []);
+    }
+
+    /**
+     * Get image positions for existing product images.
+     *
+     * @return array<int|string>
+     */
+    public function imagePositions(): array
+    {
+        $positions = $this->input('image_positions');
+        if (!$positions) {
+            return [];
+        }
+        try {
+            return json_decode($positions, true) ?? [];
+        } catch (\Exception) {
+            return [];
+        }
     }
 }
