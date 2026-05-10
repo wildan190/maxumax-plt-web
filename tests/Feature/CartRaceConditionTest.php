@@ -22,7 +22,6 @@ class CartRaceConditionTest extends TestCase
             'image_path' => null,
             'available_for_preorder' => false,
             'uuid' => (string) \Illuminate\Support\Str::uuid(),
-            'sku' => 'TJ-001',
             'stock' => 5,
         ]);
 

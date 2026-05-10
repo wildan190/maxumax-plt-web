@@ -13,7 +13,6 @@ class Product extends Model
         'name',
         'uuid',
         'slug',
-        'sku',
         'category',
         'collection',
         'collections',

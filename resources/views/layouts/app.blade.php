@@ -11,7 +11,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Feather Icons -->
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
@@ -25,22 +25,21 @@
 </head>
 
 <body class="bg-slate-50 font-sans text-slate-900 antialiased">
-    <div class="min-h-screen flex flex-col md:flex-row" x-data="{ sidebarOpen: false }">
-        <!-- Sidebar Overlay (Mobile) -->
+    <div class="flex h-screen bg-slate-50" x-data="{ sidebarOpen: false }">
+        <!-- Mobile Sidebar Overlay -->
         <div 
             x-show="sidebarOpen" 
+            @click="sidebarOpen = false" 
             x-transition:enter="transition-opacity ease-linear duration-300"
             x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100"
             x-transition:leave="transition-opacity ease-linear duration-300"
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
-            @click="sidebarOpen = false"
-            class="fixed inset-0 bg-slate-900/50 z-40 md:hidden"
+            class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
             x-cloak>
         </div>
 
-        <!-- Sidebar -->
         @include('layouts.partials.sidebar')
 
         <!-- Main Content -->

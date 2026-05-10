@@ -28,7 +28,6 @@ class UpdateProductRequest extends FormRequest
             'color' => 'nullable|string|max:100',
             'jersey_type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
-            'sku' => 'nullable|string|max:100',
             'stock' => 'sometimes|integer|min:0',
             'is_active' => 'sometimes|boolean',
             'available_for_preorder' => 'sometimes|boolean',
@@ -38,7 +37,6 @@ class UpdateProductRequest extends FormRequest
             'variants.*.id' => 'nullable|exists:product_variants,id',
             'variants.*.name' => 'nullable|string|max:100',
             'variants.*.stock' => 'nullable|integer|min:0',
-            'variants.*.sku' => 'nullable|string|max:100',
         ];
     }
 
@@ -74,7 +72,6 @@ class UpdateProductRequest extends FormRequest
             'is_active' => $this->boolean('is_active'),
             'available_for_preorder' => $this->boolean('available_for_preorder'),
             'stock' => (int) $this->input('stock', 0),
-            'sku' => $this->input('sku'),
             'collections' => $this->input('collections', []),
         ]);
 

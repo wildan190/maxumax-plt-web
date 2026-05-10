@@ -31,7 +31,7 @@
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <i data-feather="search" class="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
             </div>
-            <input type="text" name="search" placeholder="Search by name or SKU..." value="{{ request('search') }}"
+            <input type="text" name="search" placeholder="Search by name..." value="{{ request('search') }}"
                 class="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
         </form>
     </div>
@@ -61,7 +61,6 @@
                         <th class="px-6 py-4">Product</th>
                         <th class="px-6 py-4">Type</th>
                         <th class="px-6 py-4">Price</th>
-                        <th class="px-6 py-4">SKU</th>
                         <th class="px-6 py-4">Stock</th>
                         <th class="px-6 py-4">Status</th>
                         <th class="px-6 py-4 text-right">Actions</th>
@@ -79,9 +78,6 @@
                             <td class="px-6 py-4">
                                 <span class="text-xs font-bold text-slate-400 mr-0.5">RM</span>
                                 <span class="font-black text-slate-900">{{ number_format($p->price, 2) }}</span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="font-mono text-[10px] font-bold text-slate-400 uppercase tracking-tighter bg-slate-50 px-2 py-1 rounded-md">{{ $p->sku ?? '—' }}</span>
                             </td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-md font-bold text-xs {{ $p->stock < 10 ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-700' }}">
@@ -118,7 +114,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-slate-500 font-medium italic">
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-500 font-medium italic">
                                 No product data found.
                             </td>
                         </tr>

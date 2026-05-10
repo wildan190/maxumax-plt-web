@@ -8,7 +8,7 @@ use App\Models\ProductVariant;
 class ProductVariantRepository
 {
     /**
-     * @param  array<int, array{name: string, stock: int, sku: ?string}>  $variants
+     * @param  array<int, array{name: string, stock: int}>  $variants
      */
     public function createManyForProduct(Product $product, array $variants): void
     {
@@ -17,7 +17,6 @@ class ProductVariantRepository
                 'product_id' => $product->id,
                 'name' => $row['name'],
                 'stock' => $row['stock'],
-                'sku' => $row['sku'],
                 'is_available' => true,
             ]);
         }
@@ -39,8 +38,6 @@ class ProductVariantRepository
             }
 
             $stock = (int) ($variantData['stock'] ?? 0);
-            $skuRaw = isset($variantData['sku']) ? trim((string) $variantData['sku']) : '';
-            $sku = $skuRaw !== '' ? $skuRaw : null;
 
             $id = $variantData['id'] ?? null;
             if ($id) {
@@ -49,7 +46,6 @@ class ProductVariantRepository
                     $variant->update([
                         'name' => $name,
                         'stock' => $stock,
-                        'sku' => $sku,
                     ]);
                     $variantIds[] = $variant->id;
                 }
@@ -61,7 +57,6 @@ class ProductVariantRepository
                 'product_id' => $product->id,
                 'name' => $name,
                 'stock' => $stock,
-                'sku' => $sku,
                 'is_available' => true,
             ]);
             $variantIds[] = $created->id;

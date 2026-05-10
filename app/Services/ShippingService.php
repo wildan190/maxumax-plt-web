@@ -163,7 +163,7 @@ class ShippingService
                 $lineItem[] = [
                     'product_id' => (int) ($it['product_id'] ?? $idx + 1),
                     'name' => (string) ($it['name'] ?? 'Item ' . ($idx + 1)),
-                    'sku' => (string) ($it['sku'] ?? ''),
+                    'sku' => '',
                     'hscode' => '334221',
                     'duty_percent' => 0,
                     'duty_currency' => 'MYR',
@@ -327,7 +327,7 @@ class ShippingService
                 $lineItem[] = [
                     'product_id' => (int) ($it['product_id'] ?? $order->product_id ?? $idx + 1),
                     'name' => (string) ($it['variant_name'] ?? $it['name'] ?? 'Item ' . ($idx + 1)),
-                    'sku' => (string) ($it['sku'] ?? ''),
+                    'sku' => '',
                     'hscode' => '334221',
                     'duty_percent' => 0,
                     'duty_currency' => 'MYR',

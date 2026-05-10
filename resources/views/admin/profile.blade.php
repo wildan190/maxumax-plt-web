@@ -1,317 +1,171 @@
 @extends('layouts.app')
 
 @section('page-title', 'Account Settings')
+@section('page-subtitle', 'Update your personal information and security preferences')
 
 @section('content')
-    <style>
-        .profile-container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .profile-header {
-            margin-bottom: 2.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .profile-grid {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 2.5rem;
-            align-items: start;
-        }
-
-        .profile-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .profile-main {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .form-grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .profile-container {
-                padding: 0 1rem;
-            }
-
-            .profile-header {
-                flex-direction: column;
-                align-items: flex-start;
-                margin-bottom: 1.5rem;
-            }
-
-            .profile-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            .form-grid-2 {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .profile-card {
-                border-radius: 1rem !important;
-            }
-
-            .card-padding {
-                padding: 1.5rem !important;
-            }
-        }
-    </style>
-
-    <div class="profile-container">
-        <!-- Header Section -->
-        <div class="profile-header">
-            <div>
-                <h1
-                    style="font-size: 1.5rem; font-weight: 800; color: #111827; margin: 0; letter-spacing: -0.025em; text-transform: uppercase;">
-                    Manage Profile</h1>
-                <p style="font-size: 0.875rem; color: #6b7280; margin: 0.25rem 0 0 0;">Update your personal information and
-                    security preferences</p>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Sidebar Column -->
+    <div class="space-y-6">
+        <!-- Profile Summary Card -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden text-center p-8">
+            <div class="w-24 h-24 mx-auto mb-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-3xl font-black border-4 border-slate-50 shadow-xl">
+                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
             </div>
-            <div
-                style="background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 2rem; display: flex; align-items: center; gap: 0.5rem;">
-                <div style="width: 0.5rem; height: 0.5rem; background: #10b981; border-radius: 50%;"></div>
-                <span
-                    style="font-size: 0.75rem; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">Active
-                    Administrator</span>
+            <h2 class="text-xl font-bold text-slate-900 mb-1">
+                {{ auth()->user()->name }}
+            </h2>
+            <p class="text-sm text-slate-500 font-medium mb-6">
+                {{ auth()->user()->email }}
+            </p>
+
+            <div class="pt-6 border-t border-slate-50 flex flex-col gap-3 text-left">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <i data-feather="shield" class="w-4 h-4"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Access Role</span>
+                        <span class="text-xs font-bold text-slate-700">Administrator</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i data-feather="calendar" class="w-4 h-4"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Member Since</span>
+                        <span class="text-xs font-bold text-slate-700">{{ auth()->user()->created_at->format('M Y') }}</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        @if (session('success'))
-            <div
-                style="margin-bottom: 2rem; padding: 1rem 1.25rem; background: #ecfdf5; border-left: 4px solid #10b981; border-radius: 0.75rem; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                <i data-feather="check-circle" style="width: 20px; height: 20px; color: #059669;"></i>
-                <p style="margin: 0; font-size: 0.875rem; font-weight: 600; color: #065f46;">{{ session('success') }}</p>
+        <!-- Security Note -->
+        <div class="p-6 bg-indigo-600 rounded-3xl text-white shadow-xl shadow-indigo-600/20">
+            <div class="flex items-center gap-3 mb-3">
+                <i data-feather="lock" class="w-5 h-5 text-indigo-200"></i>
+                <h4 class="text-xs font-black uppercase tracking-widest">Security Tip</h4>
             </div>
-        @endif
+            <p class="text-sm font-medium leading-relaxed opacity-90">Always use a strong password and ensure you log out of shared devices to keep the admin panel secure.</p>
+        </div>
+    </div>
 
-        <div class="profile-grid">
-
-            <!-- Sidebar Column -->
-            <div class="profile-sidebar">
-                <!-- Profile Summary Card -->
-                <div class="profile-card"
-                    style="background: white; border-radius: 1.5rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; text-align: center; padding: 2.5rem 1.5rem;">
-                    <div
-                        style="width: 100px; height: 100px; margin: 0 auto 1.5rem; background: #111827; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; border: 4px solid #f3f4f6; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                    </div>
-                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #111827; margin: 0 0 0.25rem;">
-                        {{ auth()->user()->name }}
-                    </h2>
-                    <p style="font-size: 0.875rem; color: #6b7280; font-weight: 500; margin-bottom: 1.5rem;">
-                        {{ auth()->user()->email }}
-                    </p>
-
-                    <div
-                        style="padding-top: 1.5rem; border-top: 1px solid #f3f4f6; display: flex; flex-direction: column; gap: 0.75rem; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <i data-feather="shield" style="width: 16px; height: 16px; color: #6b7280;"></i>
-                            <span
-                                style="font-size: 0.75rem; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">Access
-                                Role: Superadmin</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <i data-feather="calendar" style="width: 16px; height: 16px; color: #6b7280;"></i>
-                            <span
-                                style="font-size: 0.75rem; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">Joined:
-                                {{ auth()->user()->created_at->format('M Y') }}</span>
-                        </div>
-                    </div>
+    <!-- Main Content Column -->
+    <div class="lg:col-span-2 space-y-8">
+        <!-- Personal Information Card -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400">
+                    <i data-feather="user" class="w-4 h-4"></i>
                 </div>
-
-                <!-- Quick Info -->
-                <div style="padding: 1.5rem; background: #f9fafb; border-radius: 1.25rem; border: 1px dashed #e5e7eb;">
-                    <h4
-                        style="font-size: 0.75rem; font-weight: 800; color: #111827; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i data-feather="info" style="width: 14px; height: 14px;"></i> Security Note
-                    </h4>
-                    <p style="font-size: 0.75rem; color: #6b7280; margin: 0; line-height: 1.5; font-weight: 500;">Always use
-                        a strong password and ensure you log out of shared devices to keep the admin panel secure.</p>
-                </div>
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Personal Information</h3>
             </div>
+            <div class="p-6 md:p-8">
+                <form method="POST" action="{{ route('profile.update') }}" class="space-y-6">
+                    @csrf
+                    @method('PUT')
 
-            <!-- Main Content Column -->
-            <div class="profile-main">
-
-                <!-- Personal Information Card -->
-                <div class="profile-card"
-                    style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
-                    <div
-                        style="padding: 1.5rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.75rem;">
-                        <div
-                            style="width: 2.5rem; height: 2.5rem; background: #e0e7ff; color: #4f46e5; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center;">
-                            <i data-feather="user" style="width: 20px; height: 20px;"></i>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-1.5">
+                            <label for="name" class="text-xs font-bold text-slate-700 uppercase tracking-widest ml-1">Display Name</label>
+                            <input type="text" id="name" name="name" value="{{ auth()->user()->name }}" required
+                                class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
+                            @error('name')
+                                <p class="mt-1 text-xs font-bold text-rose-600 ml-1">{{ $message }}</p>
+                            @enderror
                         </div>
-                        <h3
-                            style="font-size: 1rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
-                            Personal Information</h3>
+
+                        <div class="space-y-1.5">
+                            <label for="email" class="text-xs font-bold text-slate-700 uppercase tracking-widest ml-1">Email Address</label>
+                            <input type="email" id="email" name="email" value="{{ auth()->user()->email }}" required
+                                class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
+                            @error('email')
+                                <p class="mt-1 text-xs font-bold text-rose-600 ml-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
-                    <div class="card-padding" style="padding: 2rem;">
-                        <form method="POST" action="{{ route('profile.update') }}">
-                            @csrf
-                            @method('PUT')
 
-                            <div class="form-grid-2">
-                                <div>
-                                    <label for="name"
-                                        style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Display
-                                        Name</label>
-                                    <input type="text" id="name" name="name" value="{{ auth()->user()->name }}" required
-                                        style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 600; outline: none; transition: all 0.2s;"
-                                        onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 4px rgba(59, 130, 246, 0.1)';"
-                                        onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';">
-                                    @error('name')
-                                        <div
-                                            style="color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 0.375rem;">
-                                            {{ $message }}
-                                        </div>
-                                    @enderror
-                                </div>
-
-                                <div>
-                                    <label for="email"
-                                        style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Email
-                                        Address</label>
-                                    <input type="email" id="email" name="email" value="{{ auth()->user()->email }}" required
-                                        style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 600; outline: none;"
-                                        onfocus="this.style.borderColor='#3b82f6';"
-                                        onblur="this.style.borderColor='#e5e7eb';">
-                                    @error('email')
-                                        <div
-                                            style="color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 0.375rem;">
-                                            {{ $message }}
-                                        </div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div style="display: flex; justify-content: flex-end; padding-top: 0.5rem;">
-                                <button type="submit"
-                                    style="padding: 0.75rem 2rem; background: #111827; color: white; border: none; border-radius: 1rem; font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                    Update Profile
-                                </button>
-                            </div>
-                        </form>
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" class="px-8 py-3 bg-indigo-600 text-white text-sm font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20">
+                            Save Changes
+                        </button>
                     </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Security Card -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400">
+                    <i data-feather="shield" class="w-4 h-4"></i>
                 </div>
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Security & Password</h3>
+            </div>
+            <div class="p-6 md:p-8">
+                <form method="POST" action="{{ route('password.update') }}" class="space-y-6">
+                    @csrf
+                    @method('PUT')
 
-                <!-- Security Card -->
-                <div class="profile-card"
-                    style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
-                    <div
-                        style="padding: 1.5rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.75rem;">
-                        <div
-                            style="width: 2.5rem; height: 2.5rem; background: #fff7ed; color: #f59e0b; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center;">
-                            <i data-feather="lock" style="width: 20px; height: 20px;"></i>
+                    <div class="space-y-1.5">
+                        <label for="current_password" class="text-xs font-bold text-slate-700 uppercase tracking-widest ml-1">Current Password</label>
+                        <input type="password" id="current_password" name="current_password" required
+                            class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
+                        @error('current_password')
+                            <p class="mt-1 text-xs font-bold text-rose-600 ml-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-1.5">
+                            <label for="password" class="text-xs font-bold text-slate-700 uppercase tracking-widest ml-1">New Password</label>
+                            <input type="password" id="password" name="password" required
+                                class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
+                            @error('password')
+                                <p class="mt-1 text-xs font-bold text-rose-600 ml-1">{{ $message }}</p>
+                            @enderror
                         </div>
-                        <h3
-                            style="font-size: 1rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
-                            Security & Password</h3>
+
+                        <div class="space-y-1.5">
+                            <label for="password_confirmation" class="text-xs font-bold text-slate-700 uppercase tracking-widest ml-1">Confirm New Password</label>
+                            <input type="password" id="password_confirmation" name="password_confirmation" required
+                                class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
+                        </div>
                     </div>
-                    <div class="card-padding" style="padding: 2rem;">
-                        <form method="POST" action="{{ route('password.update') }}">
-                            @csrf
-                            @method('PUT')
 
-                            <div style="margin-bottom: 1.5rem;">
-                                <label for="current_password"
-                                    style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Current
-                                    Password</label>
-                                <input type="password" id="current_password" name="current_password" required
-                                    style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 600;">
-                                @error('current_password')
-                                    <div style="color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 0.375rem;">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-
-                            <div class="form-grid-2">
-                                <div>
-                                    <label for="password"
-                                        style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">New
-                                        Password</label>
-                                    <input type="password" id="password" name="password" required
-                                        style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 600;">
-                                    @error('password')
-                                        <div
-                                            style="color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 0.375rem;">
-                                            {{ $message }}
-                                        </div>
-                                    @enderror
-                                </div>
-
-                                <div>
-                                    <label for="password_confirmation"
-                                        style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Confirm
-                                        New Password</label>
-                                    <input type="password" id="password_confirmation" name="password_confirmation" required
-                                        style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 600;">
-                                </div>
-                            </div>
-
-                            <div style="display: flex; justify-content: flex-end; padding-top: 0.5rem;">
-                                <button type="submit"
-                                    style="padding: 0.75rem 2rem; background: #f9fafb; color: #111827; border: 1px solid #e5e7eb; border-radius: 1rem; font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: all 0.2s;">
-                                    Change Password
-                                </button>
-                            </div>
-                        </form>
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" class="px-8 py-3 bg-white border border-slate-200 text-slate-900 text-sm font-black uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+                            Update Password
+                        </button>
                     </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="bg-rose-50 rounded-3xl border border-rose-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-rose-100 bg-rose-100/20 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-white border border-rose-100 flex items-center justify-center text-rose-500">
+                    <i data-feather="alert-triangle" class="w-4 h-4"></i>
                 </div>
-
-                <!-- Danger Zone -->
-                <div class="profile-card"
-                    style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 1.25rem; overflow: hidden; margin-top: 1rem;">
-                    <div
-                        style="padding: 1.5rem; border-bottom: 1px solid #fee2e2; display: flex; align-items: center; gap: 0.75rem;">
-                        <div
-                            style="width: 2.5rem; height: 2.5rem; background: #fee2e2; color: #dc2626; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center;">
-                            <i data-feather="alert-triangle" style="width: 20px; height: 20px;"></i>
-                        </div>
-                        <h3
-                            style="font-size: 1rem; font-weight: 700; color: #991b1b; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
-                            Danger Area</h3>
-                    </div>
-                    <div class="card-padding"
-                        style="padding: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-                        <div>
-                            <h4 style="font-size: 0.875rem; font-weight: 700; color: #991b1b; margin: 0 0 0.25rem;">
-                                Permanent Account Deletion</h4>
-                            <p style="font-size: 0.8125rem; color: #b91c1c; margin: 0; font-weight: 500;">Please proceed
-                                with caution. This action cannot be reversed.</p>
-                        </div>
-                        <form method="POST" action="{{ route('profile.destroy') }}"
-                            onsubmit="return confirm('Are you absolutely sure? This will delete your administrator access permanently.');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                style="padding: 0.75rem 1.5rem; background: #dc2626; color: white; border: none; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
-                                Delete Account
-                            </button>
-                        </form>
-                    </div>
+                <h3 class="text-sm font-bold text-rose-900 uppercase tracking-wider">Danger Zone</h3>
+            </div>
+            <div class="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <h4 class="text-sm font-black text-rose-900 uppercase tracking-tight mb-1">Delete Account Permanently</h4>
+                    <p class="text-xs text-rose-600 font-medium">This action cannot be undone. All your data will be cleared.</p>
                 </div>
+                <form method="POST" action="{{ route('profile.destroy') }}"
+                    onsubmit="return confirm('Are you absolutely sure? This will delete your administrator access permanently.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="px-6 py-3 bg-rose-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-rose-700 transition-all shadow-lg shadow-rose-600/20">
+                        Delete Account
+                    </button>
+                </form>
             </div>
         </div>
     </div>
+</div>
 @endsection

@@ -101,12 +101,6 @@
                                             class="px-4 py-2 bg-white/10 rounded-full text-[9px] font-black text-white/70 uppercase tracking-widest border border-white/10">
                                             Size {{ $it['size'] ?? 'VLD' }}
                                         </div>
-                                        @if(!empty($it['variant_sku']))
-                                            <div
-                                                class="px-4 py-2 bg-white/10 rounded-full text-[9px] font-black text-white/70 uppercase tracking-widest border border-white/10">
-                                                ID {{ $it['variant_sku'] }}
-                                            </div>
-                                        @endif
                                         @if(!empty($it['long_sleeve']))
                                             <div
                                                 class="px-4 py-2 bg-amber-500/10 rounded-full text-[9px] font-black text-amber-500 uppercase tracking-widest border border-amber-500/20 italic">
@@ -181,7 +175,7 @@
                                 </div>
                             </div>
                             <script>
-                                window.cartSubtotal = {{ $total }};
+                                window.cartSubtotal = parseFloat("{{ $total }}");
                                 window.cartCurrency = "{{ $currency }}";
                             </script>
 

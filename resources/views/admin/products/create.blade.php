@@ -202,7 +202,7 @@
                                     Clear All
                                 </button>
                             </div>
-                            <p style=\"font-size: 0.7rem; color: #9ca3af; margin: 1rem 0 0 0; text-align: center; font-style: italic;\">💡 Tip: Drag images to reorder</p>
+                            <p style="font-size: 0.7rem; color: #9ca3af; margin: 1rem 0 0 0; text-align: center; font-style: italic;">💡 Tip: Drag images to reorder</p>
                         </div>
                     </div>
 
@@ -220,13 +220,6 @@
                                     <input type="number" step="0.01" name="price" value="{{ old('price', '40.00') }}" required 
                                            style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 3rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; font-weight: 700; color: #111827;" />
                                 </div>
-                            </div>
-
-                            <div style="margin-bottom: 1.25rem;">
-                                <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.375rem; letter-spacing: 0.05em;">Master SKU</label>
-                                <input type="text" name="sku" value="{{ old('sku') }}" 
-                                       style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; font-family: monospace; font-weight: 600; text-transform: uppercase;" 
-                                       placeholder="MM-OR-XXXX" />
                             </div>
 
                             <div style="margin-bottom: 1.25rem;">
@@ -293,7 +286,7 @@
                         
                         const img = document.createElement('img');
                         img.src = evt.target.result;
-                        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; pointer-events: none;';
                         
                         const removeBtn = document.createElement('button');
                         removeBtn.innerHTML = '<i data-feather="x" style="width: 14px; height: 14px;"></i>';
@@ -360,6 +353,7 @@
                 draggedIndex = parseInt(this.dataset.fileIndex);
                 this.style.opacity = '0.5';
                 e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', draggedIndex);
             }
             
             function handleDragEnd(e) {
@@ -394,9 +388,9 @@
                 const targetIndex = parseInt(this.dataset.fileIndex);
                 
                 if (draggedIndex !== null && draggedIndex !== targetIndex) {
-                    // Swap files
-                    [currentFiles[draggedIndex], currentFiles[targetIndex]] = 
-                    [currentFiles[targetIndex], currentFiles[draggedIndex]];
+                    // Reorder array
+                    const movedItem = currentFiles.splice(draggedIndex, 1)[0];
+                    currentFiles.splice(targetIndex, 0, movedItem);
                     
                     updateInputFiles(currentFiles);
                     render(currentFiles);
@@ -411,9 +405,9 @@
             const container = document.getElementById('variantsContainer');
             const addBtn = document.getElementById('addVariantBtn');
 
-            function createRow(name = '', stock = 0, sku = '') {
+            function createRow(name = '', stock = 0) {
                 const row = document.createElement('div');
-                row.style.cssText = 'display: grid; grid-template-columns: 2fr 1.5fr 2fr auto; gap: 0.75rem; align-items: center; padding: 0.75rem; background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 1rem;';
+                row.style.cssText = 'display: grid; grid-template-columns: 2fr 1.5fr auto; gap: 0.75rem; align-items: center; padding: 0.75rem; background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 1rem;';
                 
                 row.innerHTML = `
                     <div>
@@ -423,10 +417,6 @@
                     <div>
                         <input type="number" name="variants[${variantIndex}][stock]" value="${stock}" min="0" placeholder="Qty" 
                                style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;" required />
-                    </div>
-                    <div>
-                        <input type="text" name="variants[${variantIndex}][sku]" value="${sku}" placeholder="SKU Override" 
-                               style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-family: monospace; font-weight: 600;" />
                     </div>
                     <button type="button" class="remove-v" style="width: 2.25rem; height: 2.25rem; background: #fee2e2; color: #ef4444; border: none; border-radius: 0.625rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
@@ -482,58 +472,6 @@
 
             updateTotalStock();
 
-            // SKU Auto-Generation
-            const nameInput = document.querySelector('input[name="name"]');
-            const skuInput = document.querySelector('input[name="sku"]');
-
-            function generateSKU() {
-                if (!nameInput.value) return;
-                
-                const nameSlug = nameInput.value
-                    .trim()
-                    .toUpperCase()
-                    .replace(/[^A-Z0-9 ]/g, '')
-                    .split(' ')
-                    .map(word => word.substring(0, 3))
-                    .join('')
-                    .substring(0, 8);
-                
-                const random = Math.floor(1000 + Math.random() * 9000);
-                const masterSku = `MXM-${nameSlug}-${random}`;
-                skuInput.value = masterSku;
-
-                // Sync variant SKUs
-                updateVariantSKUs();
-            }
-
-            function updateVariantSKUs() {
-                const masterSku = skuInput.value;
-                const rows = container.querySelectorAll('div[style*="grid-template-columns"]');
-                rows.forEach(row => {
-                    const nameField = row.querySelector('input[name*="[name]"]');
-                    const skuField = row.querySelector('input[name*="[sku]"]');
-                    if (nameField && skuField && (!skuField.value || skuField.value.startsWith('MXM-'))) {
-                        skuField.value = `${masterSku}-${nameField.value.toUpperCase().replace(/[^A-Z0-9]/g, '')}`;
-                    }
-                });
-            }
-
-            nameInput.addEventListener('change', function() {
-                if (!skuInput.value || skuInput.value === '') {
-                    generateSKU();
-                }
-            });
-
-            // Re-sync variants if master SKU changes manually
-            skuInput.addEventListener('change', updateVariantSKUs);
-
-            // Re-sync variant SKU if its size name changes
-            container.addEventListener('input', function(e) {
-                if (e.target.name && e.target.name.includes('[name]')) {
-                    updateVariantSKUs();
-                }
-            });
-
             // Pre-order Toggle Logic
             const preOrderToggle = document.querySelector('input[name="available_for_preorder"]');
             const variantsSection = document.getElementById('variantsContainer');
@@ -545,7 +483,7 @@
                 const isPreorder = preOrderToggle.checked;
                 
                 // Toggle Hint
-                hint.style.display = isPreorder ? 'flex' : 'none';
+                if (hint) hint.style.display = isPreorder ? 'flex' : 'none';
                 
                 // Toggle Stock inputs in variants
                 const stockInputs = variantsSection.querySelectorAll('input[name*="[stock]"]');
@@ -557,8 +495,8 @@
                     if (isPreorder) el.value = 0;
                 });
 
-                // Keep Name and SKU inputs enabled
-                const otherInputs = variantsSection.querySelectorAll('input[name*="[name]"], input[name*="[sku]"]');
+                // Keep Name inputs enabled
+                const otherInputs = variantsSection.querySelectorAll('input[name*="[name]"]');
                 otherInputs.forEach(el => {
                     el.disabled = false;
                     el.style.opacity = '1';
@@ -574,17 +512,21 @@
                     el.style.cursor = 'pointer';
                 });
 
-                addVariantBtn.disabled = false;
-                addVariantBtn.style.opacity = '1';
-                addVariantBtn.style.cursor = 'pointer';
+                if (addVariantBtn) {
+                    addVariantBtn.disabled = false;
+                    addVariantBtn.style.opacity = '1';
+                    addVariantBtn.style.cursor = 'pointer';
+                }
 
                 // Disable Master Stock if Preorder
-                masterStockInput.disabled = isPreorder;
-                masterStockInput.style.background = isPreorder ? '#f3f4f6' : 'white';
-                if (isPreorder) {
-                    masterStockInput.value = 0;
-                } else {
-                    updateTotalStock();
+                if (masterStockInput) {
+                    masterStockInput.disabled = isPreorder;
+                    masterStockInput.style.background = isPreorder ? '#f3f4f6' : 'white';
+                    if (isPreorder) {
+                        masterStockInput.value = 0;
+                    } else {
+                        updateTotalStock();
+                    }
                 }
             }
 
@@ -599,14 +541,14 @@
             const collectionSelect = document.getElementById('collectionSelect');
             
             function toggleCollection() {
-                if (categorySelect.value !== '') {
-                    collectionContainer.style.display = 'block';
+                if (categorySelect && categorySelect.value !== '') {
+                    if (collectionContainer) collectionContainer.style.display = 'block';
                 } else {
-                    collectionContainer.style.display = 'none';
-                    collectionSelect.value = ''; // Reset when hidden
+                    if (collectionContainer) collectionContainer.style.display = 'none';
+                    if (collectionSelect) collectionSelect.value = ''; // Reset when hidden
                 }
             }
-            categorySelect.addEventListener('change', toggleCollection);
+            if (categorySelect) categorySelect.addEventListener('change', toggleCollection);
             toggleCollection(); // Run on init
         })();
     </script>

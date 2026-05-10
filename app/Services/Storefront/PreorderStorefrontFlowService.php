@@ -329,13 +329,6 @@ class PreorderStorefrontFlowService
         $items = [];
         $total = 0.0;
         foreach ($cart as $it) {
-            $variantSku = null;
-            if (!empty($it['product_variant_id'])) {
-                $variant = ProductVariant::find($it['product_variant_id']);
-                if ($variant) {
-                    $variantSku = $variant->sku;
-                }
-            }
             $unit = (float) $it['price'] * $config['rate'];
             if (!empty($it['long_sleeve'])) {
                 $unit += $config['longSleeve'];
@@ -345,7 +338,6 @@ class PreorderStorefrontFlowService
                 'unit' => $unit,
                 'line_total' => $line,
                 'currency' => $currency,
-                'variant_sku' => $variantSku,
             ]);
             $total += $line;
         }

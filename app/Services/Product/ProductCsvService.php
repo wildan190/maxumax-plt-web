@@ -34,7 +34,6 @@ class ProductCsvService
             'color',
             'jersey_type',
             'price',
-            'sku',
             'stock',
             'is_active',
             'available_for_preorder',
@@ -67,9 +66,9 @@ class ProductCsvService
     protected function dummyTemplateRows(): array
     {
         return [
-            ['Player Home Jersey', 'Premium home jersey for league', 'Jerseys', 'Football Series;Outdoor Series', 'Dry-fit', 'Men', 'Slim Fit', 'Red/White', 'Player Home', '199.00', 'JER-HOME-01', '50', '1', '1', 'S:10:SKU-S;M:20:SKU-M;L:15:SKU-L', 'https://placehold.co/600x400;https://placehold.co/600x400'],
-            ['Polo Classic', 'Classic cotton polo', 'Polos', 'Casual / Lifestyle', 'Cotton', 'Unisex', 'Regular Fit', 'Navy', '', '89.00', 'POL-CLS-01', '30', '1', '0', 'M:10:;L:10:;XL:10:', 'https://placehold.co/600x400'],
-            ['Tracksuit Pro', 'Professional tracksuits', 'Tracksuits', 'Run & Training Series', 'Polyester', 'Men', 'Regular Fit', 'Black', '', '259.00', 'TRK-PRO-01', '15', '1', '0', 'L:15:', ''],
+            ['Player Home Jersey', 'Premium home jersey for league', 'Jerseys', 'Football Series;Outdoor Series', 'Dry-fit', 'Men', 'Slim Fit', 'Red/White', 'Player Home', '199.00', '50', '1', '1', 'S:10;M:20;L:15', 'https://placehold.co/600x400;https://placehold.co/600x400'],
+            ['Polo Classic', 'Classic cotton polo', 'Polos', 'Casual / Lifestyle', 'Cotton', 'Unisex', 'Regular Fit', 'Navy', '', '89.00', '30', '1', '0', 'M:10;L:10;XL:10', 'https://placehold.co/600x400'],
+            ['Tracksuit Pro', 'Professional tracksuits', 'Tracksuits', 'Run & Training Series', 'Polyester', 'Men', 'Regular Fit', 'Black', '', '259.00', '15', '1', '0', 'L:15', ''],
         ];
     }
 
@@ -85,7 +84,7 @@ class ProductCsvService
             $this->products->chunkWithRelationsForExport(100, function ($products) use ($out) {
                 foreach ($products as $p) {
                     $variants = $p->variants->map(function ($v) {
-                        return "{$v->name}:{$v->stock}:{$v->sku}";
+                        return "{$v->name}:{$v->stock}";
                     })->implode(';');
 
                     $images = $p->images->map(function ($img) {
@@ -105,7 +104,6 @@ class ProductCsvService
                         $p->color,
                         $p->jersey_type,
                         $p->price,
-                        $p->sku,
                         $p->stock,
                         $p->is_active ? '1' : '0',
                         $p->available_for_preorder ? '1' : '0',
@@ -204,12 +202,11 @@ class ProductCsvService
                 'color' => trim((string) ($row[7] ?? '')),
                 'jersey_type' => trim((string) ($row[8] ?? '')),
                 'price' => (float) preg_replace('/[^0-9.]/', '', (string) ($row[9] ?? '0')),
-                'sku' => trim((string) ($row[10] ?? '')),
-                'stock' => (int) ($row[11] ?? 0),
-                'is_active' => in_array(strtolower(trim((string) ($row[12] ?? '1'))), ['1', 'yes', 'true', 'active'], true),
-                'available_for_preorder' => in_array(strtolower(trim((string) ($row[13] ?? '0'))), ['1', 'yes', 'true'], true),
-                'variants' => trim((string) ($row[14] ?? '')),
-                'images' => trim((string) ($row[15] ?? '')),
+                'stock' => (int) ($row[10] ?? 0),
+                'is_active' => in_array(strtolower(trim((string) ($row[11] ?? '1'))), ['1', 'yes', 'true', 'active'], true),
+                'available_for_preorder' => in_array(strtolower(trim((string) ($row[12] ?? '0'))), ['1', 'yes', 'true'], true),
+                'variants' => trim((string) ($row[13] ?? '')),
+                'images' => trim((string) ($row[14] ?? '')),
             ];
         }
         fclose($handle);
@@ -237,7 +234,6 @@ class ProductCsvService
             'color' => $row['color'] !== '' ? $row['color'] : null,
             'jersey_type' => $row['jersey_type'] !== '' ? $row['jersey_type'] : null,
             'price' => $row['price'],
-            'sku' => $row['sku'] !== '' ? $row['sku'] : null,
             'stock' => $row['stock'],
             'is_active' => $row['is_active'],
             'available_for_preorder' => $row['available_for_preorder'],
@@ -246,7 +242,7 @@ class ProductCsvService
         if (!empty($row['variants'])) {
             $variantRows = [];
             foreach (array_filter(explode(';', $row['variants'])) as $v) {
-                $parts = explode(':', $v, 3);
+                $parts = explode(':', $v, 2);
                 $vName = trim((string) ($parts[0] ?? ''));
                 if ($vName === '') {
                     continue;
@@ -254,7 +250,6 @@ class ProductCsvService
                 $variantRows[] = [
                     'name' => $vName,
                     'stock' => (int) ($parts[1] ?? 0),
-                    'sku' => isset($parts[2]) ? (trim((string) $parts[2]) ?: null) : null,
                 ];
             }
             if ($variantRows !== []) {

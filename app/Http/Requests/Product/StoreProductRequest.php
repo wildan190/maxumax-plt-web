@@ -27,7 +27,6 @@ class StoreProductRequest extends FormRequest
             'color' => 'nullable|string|max:100',
             'jersey_type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
-            'sku' => 'nullable|string|max:100',
             'stock' => 'sometimes|integer|min:0',
             'is_active' => 'sometimes|boolean',
             'available_for_preorder' => 'sometimes|boolean',
@@ -35,7 +34,6 @@ class StoreProductRequest extends FormRequest
             'images.*' => 'nullable|image|max:4096',
             'variants.*.name' => 'nullable|string|max:100',
             'variants.*.stock' => 'nullable|integer|min:0',
-            'variants.*.sku' => 'nullable|string|max:100',
         ];
     }
 
@@ -67,13 +65,12 @@ class StoreProductRequest extends FormRequest
             'is_active' => $this->boolean('is_active'),
             'available_for_preorder' => $this->boolean('available_for_preorder'),
             'stock' => (int) $this->input('stock', 0),
-            'sku' => $this->input('sku'),
             'collections' => $this->input('collections', []),
         ]);
     }
 
     /**
-     * @return array<int, array{name: string, stock: int, sku: ?string}>
+     * @return array<int, array{name: string, stock: int}>
      */
     public function normalizedVariants(): array
     {
@@ -86,7 +83,6 @@ class StoreProductRequest extends FormRequest
             $out[] = [
                 'name' => $name,
                 'stock' => (int) ($variant['stock'] ?? 0),
-                'sku' => isset($variant['sku']) ? (trim((string) $variant['sku']) ?: null) : null,
             ];
         }
 
