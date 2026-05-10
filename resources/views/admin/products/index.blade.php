@@ -1,203 +1,125 @@
 @extends('layouts.app')
 
 @section('page-title', 'Products')
+@section('page-subtitle', 'Manage and organize all your preorder products.')
 
 @section('content')
-    <style>
-        .hidden { display: none !important; }
-        /* Mobile Responsive Styles */
-        @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                gap: 1rem !important;
-            }
-            
-            .header-container a {
-                width: 100%;
-                justify-content: center !important;
-            }
-            
-            .desktop-table {
-                display: none !important;
-            }
-            
-            .mobile-list {
-                display: block !important;
-            }
-        }
-        
-        @media (min-width: 769px) {
-            .mobile-list {
-                display: none !important;
-            }
-        }
-        
-        /* Mobile Card Styles */
-        .product-card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.75rem;
-            margin-bottom: 1rem;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .product-card.expanded {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .product-header {
-            padding: 1rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            background: #f9fafb;
-        }
-        
-        .product-header:active {
-            background: #f3f4f6;
-        }
-        
-        .product-body {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        
-        .product-body.show {
-            max-height: 600px;
-        }
-        
-        .product-details {
-            padding: 1rem;
-            border-top: 1px solid #e5e7eb;
-        }
-        
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f3f4f6;
-            align-items: flex-start;
-        }
-        
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-        
-        .detail-label {
-            color: #6b7280;
-            font-size: 0.875rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            flex-shrink: 0;
-        }
-        
-        .detail-value {
-            color: #111827;
-            font-size: 0.95rem;
-            text-align: right;
-            max-width: 65%;
-            word-wrap: break-word;
-        }
-        
-        .product-actions {
-            padding: 1rem;
-            background: #f9fafb;
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .chevron {
-            transition: transform 0.3s ease;
-            flex-shrink: 0;
-        }
-        
-        .chevron.rotate {
-            transform: rotate(180deg);
-        }
-    </style>
-
-    <div class="header-container" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-        <div>
-            <p style="color: #6b7280; margin: 0.5rem 0 0 0; font-size: 0.95rem;">Manage and organize your preorder products</p>
+<div class="space-y-6">
+    <!-- Header Actions -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('admin.products.create') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 gap-2">
+                <i data-feather="plus" class="w-4 h-4"></i>
+                Add Product
+            </a>
+            <div class="h-8 w-px bg-slate-200 mx-1 hidden md:block"></div>
+            <a href="{{ route('admin.products.template') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-all gap-2">
+                <i data-feather="download" class="w-4 h-4"></i>
+                Template
+            </a>
+            <button type="button" onclick="document.getElementById('import-form').classList.toggle('hidden')" class="inline-flex items-center justify-center px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-all gap-2">
+                <i data-feather="upload" class="w-4 h-4"></i>
+                Import
+            </button>
+            <a href="{{ route('admin.products.export') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-all gap-2">
+                <i data-feather="file-text" class="w-4 h-4"></i>
+                Export
+            </a>
         </div>
-        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-            <a href="{{ route('admin.products.template') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #f3f4f6; color: #111827; padding: 0.625rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s; border: 1px solid #e5e7eb;">↓ Download Template</a>
-            <button type="button" onclick="document.getElementById('import-form').classList.toggle('hidden'); document.getElementById('import-toggle').classList.toggle('hidden');" id="import-toggle" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #e0e7ff; color: #3730a3; padding: 0.625rem 1.25rem; border-radius: 0.5rem; border: 1px solid #c7d2fe; font-weight: 600; cursor: pointer;">↑ Import CSV / Excel</button>
-            <a href="{{ route('admin.products.export') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #fef3c7; color: #92400e; padding: 0.625rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s; border: 1px solid #fde68a;">↑ Export Products</a>
-            <a href="{{ route('admin.products.create') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #000; color: #fff; padding: 0.625rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: background 0.2s;">+ Add Product</a>
-        </div>
-    </div>
 
-    <div id="import-form" class="hidden" style="margin-bottom: 1.5rem; padding: 1.5rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.75rem;">
-        <h3 style="margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 700; color: #111827;">Import produk dari CSV / Excel</h3>
-        <p style="margin: 0 0 1rem 0; font-size: 0.875rem; color: #6b7280;">Unduh template di atas, isi data, simpan sebagai CSV (UTF-8). Jika pakai Excel, simpan sebagai "CSV UTF-8 (Comma delimited)". Lalu unggah file di sini.</p>
-        <form action="{{ route('admin.products.import') }}" method="POST" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-            @csrf
-            <input type="file" name="file" accept=".csv,.txt" required style="padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem;">
-            <button type="submit" style="background: #2563eb; color: #fff; padding: 0.625rem 1.25rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer;">Import</button>
-            <button type="button" onclick="document.getElementById('import-form').classList.add('hidden'); document.getElementById('import-toggle').classList.remove('hidden');" style="background: #e5e7eb; color: #374151; padding: 0.625rem 1.25rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer;">Batal</button>
+        <form method="GET" action="{{ route('admin.products.index') }}" class="relative w-full lg:w-80 group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-feather="search" class="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
+            </div>
+            <input type="text" name="search" placeholder="Search by name or SKU..." value="{{ request('search') }}"
+                class="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
         </form>
     </div>
 
-    @if(session('success'))
-        <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 500;">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 500;">{{ session('error') }}</div>
-    @endif
+    <!-- Import Form (Toggleable) -->
+    <div id="import-form" class="hidden animate-in fade-in slide-in-from-top-4 duration-300">
+        <div class="bg-indigo-50 border border-indigo-100 p-6 rounded-3xl">
+            <h3 class="text-sm font-bold text-indigo-900 mb-2">Import products from CSV / Excel</h3>
+            <p class="text-xs text-indigo-700/70 mb-6 leading-relaxed">Download the template above, fill in the data, save as CSV (UTF-8). If using Excel, save as "CSV UTF-8 (Comma delimited)". Then upload the file here.</p>
+            <form action="{{ route('admin.products.import') }}" method="POST" enctype="multipart/form-data" class="flex flex-col md:flex-row items-start md:items-center gap-4">
+                @csrf
+                <input type="file" name="file" accept=".csv,.txt" required class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 transition-all cursor-pointer">
+                <div class="flex items-center gap-2">
+                    <button type="submit" class="px-6 py-2 bg-indigo-600 text-white text-xs font-bold rounded-full hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20">Start Import</button>
+                    <button type="button" onclick="document.getElementById('import-form').classList.add('hidden')" class="px-6 py-2 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-full hover:bg-slate-50 transition-all">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <!-- Desktop Table -->
-    <div class="desktop-table" style="background: white; border-radius: 0.75rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Name</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Type</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Price</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">SKU</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Stock</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Status</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #6b7280; font-size: 0.875rem; text-transform: uppercase;">Actions</th>
+    <!-- Table Card -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50/50 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                    <tr>
+                        <th class="px-6 py-4">Product</th>
+                        <th class="px-6 py-4">Type</th>
+                        <th class="px-6 py-4">Price</th>
+                        <th class="px-6 py-4">SKU</th>
+                        <th class="px-6 py-4">Stock</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-slate-100">
                     @forelse($products as $p)
-                        <tr style="border-bottom: 1px solid #e5e7eb; transition: background-color 0.2s;">
-                            <td style="padding: 1rem; color: #111827; font-weight: 500;">{{ $p->name }}</td>
-                            <td style="padding: 1rem; color: #6b7280;">{{ $p->jersey_type }}</td>
-                            <td style="padding: 1rem; color: #111827; font-weight: 500;">RM {{ number_format($p->price, 2) }}</td>
-                            <td style="padding: 1rem; color: #6b7280; font-family: monospace; font-size: 0.9rem;">{{ $p->sku ?? '—' }}</td>
-                            <td style="padding: 1rem; color: #111827; font-weight: 600;">{{ $p->stock }}</td>
-                            <td style="padding: 1rem;">
-                                <span style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                                    @if($p->is_active)
-                                        <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
-                                        <span style="color: #065f46; font-weight: 500; font-size: 0.85rem;">Active</span>
-                                    @else
-                                        <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
-                                        <span style="color: #7f1d1d; font-weight: 500; font-size: 0.85rem;">Inactive</span>
-                                    @endif
+                        <tr class="hover:bg-slate-50/50 transition-colors group">
+                            <td class="px-6 py-4">
+                                <span class="font-bold text-slate-900">{{ $p->name }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-xs font-medium text-slate-600">{{ $p->jersey_type }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-xs font-bold text-slate-400 mr-0.5">RM</span>
+                                <span class="font-black text-slate-900">{{ number_format($p->price, 2) }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="font-mono text-[10px] font-bold text-slate-400 uppercase tracking-tighter bg-slate-50 px-2 py-1 rounded-md">{{ $p->sku ?? '—' }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md font-bold text-xs {{ $p->stock < 10 ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-700' }}">
+                                    {{ $p->stock }}
                                 </span>
                             </td>
-                            <td style="padding: 1rem;">
-                                <div style="display: flex; gap: 0.75rem;">
-                                    <a href="{{ route('admin.products.edit', $p) }}" style="color: #000; text-decoration: none; font-weight: 500; padding: 0.5rem 0.75rem; border-radius: 0.375rem; background: #f3f4f6; transition: background 0.2s; font-size: 0.875rem;">Edit</a>
-                                    <form action="{{ route('admin.products.destroy', $p) }}" method="POST" style="display: inline;">
+                            <td class="px-6 py-4">
+                                @if($p->is_active)
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-emerald-100 bg-emerald-50 text-emerald-600">
+                                        <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        Active
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-slate-100 bg-slate-50 text-slate-400">
+                                        <span class="w-1 h-1 rounded-full bg-slate-400"></span>
+                                        Inactive
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <a href="{{ route('admin.products.edit', $p) }}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                                        <i data-feather="edit-3" class="w-4 h-4"></i>
+                                    </a>
+
+                                    <form action="{{ route('admin.products.destroy', $p) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?')">
                                         @csrf @method('DELETE')
-                                        <button type="submit" style="background: #fee2e2; color: #991b1b; border: none; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer; transition: background 0.2s; font-size: 0.875rem;" onclick="return confirm('Delete this product?')">Delete</button>
+                                        <button type="submit" class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete">
+                                            <i data-feather="trash-2" class="w-4 h-4"></i>
+                                        </button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="padding: 3rem; text-align: center; color: #6b7280;">
-                                <p style="margin: 0; font-size: 1rem;">No products found. <a href="{{ route('admin.products.create') }}" style="color: #000; font-weight: 600;">Create one</a></p>
+                            <td colspan="7" class="px-6 py-12 text-center text-slate-500 font-medium italic">
+                                No product data found.
                             </td>
                         </tr>
                     @endforelse
@@ -205,141 +127,11 @@
             </table>
         </div>
 
-        <!-- Pagination -->
-        <div style="padding: 1.5rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: center;">
-            {{ $products->links() }}
-        </div>
-    </div>
-
-    <!-- Mobile List -->
-    <div class="mobile-list">
-        @forelse($products as $p)
-            <div class="product-card" data-product-id="{{ $p->id }}">
-                <div class="product-header" onclick="toggleProduct({{ $p->id }})">
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="font-weight: 700; color: #111827; margin-bottom: 0.25rem; font-size: 0.95rem;">
-                            {{ $p->name }}
-                        </div>
-                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">
-                            {{ $p->jersey_type }}
-                        </div>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                            <span style="font-weight: 700; color: #111827; font-size: 0.95rem;">
-                                RM {{ number_format($p->price, 2) }}
-                            </span>
-                            <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
-                                @if($p->is_active)
-                                    <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
-                                    <span style="color: #065f46; font-weight: 500; font-size: 0.75rem;">Active</span>
-                                @else
-                                    <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
-                                    <span style="color: #7f1d1d; font-weight: 500; font-size: 0.75rem;">Inactive</span>
-                                @endif
-                            </span>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; margin-left: 0.5rem;">
-                        <svg class="chevron" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5 7.5L10 12.5L15 7.5" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </div>
-
-                <div class="product-body">
-                    <div class="product-details">
-                        <div class="detail-row">
-                            <span class="detail-label">Type</span>
-                            <span class="detail-value">{{ $p->jersey_type }}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Price</span>
-                            <span class="detail-value" style="font-weight: 700;">RM {{ number_format($p->price, 2) }}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">SKU</span>
-                            <span class="detail-value" style="font-family: monospace;">{{ $p->sku ?? '—' }}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Stock</span>
-                            <span class="detail-value" style="font-weight: 600;">{{ $p->stock }}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Status</span>
-                            <span class="detail-value">
-                                <span style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                                    @if($p->is_active)
-                                        <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
-                                        <span style="color: #065f46; font-weight: 500; font-size: 0.875rem;">Active</span>
-                                    @else
-                                        <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
-                                        <span style="color: #7f1d1d; font-weight: 500; font-size: 0.875rem;">Inactive</span>
-                                    @endif
-                                </span>
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="product-actions">
-                        <a href="{{ route('admin.products.edit', $p) }}" style="
-                            flex: 1;
-                            background: #f3f4f6;
-                            color: #000;
-                            padding: 0.625rem;
-                            border: none;
-                            border-radius: 0.5rem;
-                            font-size: 0.875rem;
-                            font-weight: 600;
-                            text-decoration: none;
-                            display: block;
-                            text-align: center;
-                        ">
-                            Edit
-                        </a>
-                        <form action="{{ route('admin.products.destroy', $p) }}" method="POST" style="flex: 1;">
-                            @csrf @method('DELETE')
-                            <button type="submit" style="
-                                width: 100%;
-                                background: #fee2e2;
-                                color: #991b1b;
-                                padding: 0.625rem;
-                                border: none;
-                                border-radius: 0.5rem;
-                                font-size: 0.875rem;
-                                font-weight: 600;
-                                cursor: pointer;
-                            " onclick="return confirm('Delete this product?')">
-                                Delete
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        @empty
-            <div style="background: white; border-radius: 0.75rem; padding: 3rem; text-align: center; border: 1px solid #e5e7eb;">
-                <p style="color: #6b7280; font-size: 1rem; margin: 0;">
-                    No products found. <a href="{{ route('admin.products.create') }}" style="color: #000; font-weight: 600;">Create one</a>
-                </p>
-            </div>
-        @endforelse
-
-        <!-- Mobile Pagination -->
-        @if($products->count() > 0)
-            <div style="padding: 1.5rem 0; display: flex; justify-content: center;">
+        @if($products->hasPages())
+            <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100">
                 {{ $products->links() }}
             </div>
         @endif
     </div>
-
-    <script>
-        // Toggle product card
-        function toggleProduct(productId) {
-            const card = document.querySelector(`[data-product-id="${productId}"]`);
-            const body = card.querySelector('.product-body');
-            const chevron = card.querySelector('.chevron');
-            
-            body.classList.toggle('show');
-            chevron.classList.toggle('rotate');
-            card.classList.toggle('expanded');
-        }
-    </script>
+</div>
 @endsection

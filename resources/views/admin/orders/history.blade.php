@@ -1,412 +1,186 @@
 @extends('layouts.app')
 
 @section('page-title', 'Order History')
+@section('page-subtitle', 'Comprehensive log of all transactions and order status updates.')
 
 @section('content')
-
-    <style>
-        /* Mobile Responsive Styles */
-        @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-            }
-            
-            .search-form {
-                max-width: 100% !important;
-            }
-            
-            .filter-tabs {
-                width: 100%;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            
-            .filter-tabs::-webkit-scrollbar {
-                display: none;
-            }
-            
-            .desktop-table {
-                display: none !important;
-            }
-            
-            .mobile-list {
-                display: block !important;
-            }
-        }
-        
-        @media (min-width: 769px) {
-            .mobile-list {
-                display: none !important;
-            }
-        }
-        
-        /* Mobile List Styles */
-        .history-card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.75rem;
-            margin-bottom: 1rem;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .history-card.expanded {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .history-header {
-            padding: 1rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            background: #f9fafb;
-        }
-        
-        .history-header:active {
-            background: #f3f4f6;
-        }
-        
-        .history-body {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        
-        .history-body.show {
-            max-height: 1000px;
-        }
-        
-        .history-details {
-            padding: 1rem;
-            border-top: 1px solid #e5e7eb;
-        }
-        
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f3f4f6;
-            align-items: flex-start;
-        }
-        
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-        
-        .detail-label {
-            color: #6b7280;
-            font-size: 0.875rem;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-        
-        .detail-value {
-            color: #111827;
-            font-size: 0.95rem;
-            text-align: right;
-            max-width: 65%;
-            word-wrap: break-word;
-        }
-        
-        .history-actions {
-            padding: 1rem;
-            background: #f9fafb;
-        }
-        
-        .chevron {
-            transition: transform 0.3s ease;
-            flex-shrink: 0;
-        }
-        
-        .chevron.rotate {
-            transform: rotate(180deg);
-        }
-    </style>
-
-    {{-- Header --}}
-    <div class="header-container" style="
-        margin-bottom: 2rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-    ">
-        <div>
-            <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.95rem;">
-                Filter berdasarkan tipe order
-            </p>
+<div x-data="{ activeMobileId: null }" class="space-y-6">
+    {{-- Header & Search --}}
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div class="w-full lg:w-auto">
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
+                @foreach(['all' => 'All', 'preorder' => 'Preorder', 'order' => 'Order'] as $key => $label)
+                    <a href="{{ route('admin.orders.history', ['type' => $key]) }}" 
+                        class="px-4 py-2 text-sm font-bold rounded-lg whitespace-nowrap transition-all {{ ($type ?? 'all') === $key ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">
+                        {{ $label }} <span class="ml-1 opacity-60 text-xs">{{ $counts[$key] ?? 0 }}</span>
+                    </a>
+                @endforeach
+            </div>
         </div>
 
-        {{-- Search Form --}}
-        <form method="GET" action="{{ route('admin.orders.history') }}" class="search-form" style="
-                  display: flex;
-                  gap: 0.5rem;
-                  flex-wrap: nowrap;
-                  width: 100%;
-                  max-width: 420px;
-              ">
-            <input type="text" name="search" placeholder="Search name/email/phone..." value="{{ request('search') }}" style="
-                    padding: 0.625rem 1rem;
-                    border: 1px solid #e5e7eb;
-                    border-radius: 0.5rem;
-                    font-size: 0.95rem;
-                    flex: 1;
-                    min-width: 0;
-                " />
-            <button type="submit" style="
-                        background: #000;
-                        color: white;
-                        padding: 0.625rem 1.25rem;
-                        border: none;
-                        border-radius: 0.5rem;
-                        font-weight: 600;
-                        cursor: pointer;
-                        white-space: nowrap;
-                    ">
-                Search
-            </button>
+        <form method="GET" action="{{ route('admin.orders.history') }}" class="relative w-full lg:w-96 group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-feather="search" class="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
+            </div>
+            <input type="text" name="search" placeholder="Search name, email, phone..." value="{{ request('search') }}"
+                class="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
         </form>
     </div>
 
-    {{-- Filter Tabs --}}
-    <div class="filter-tabs" style="margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 0.5rem;">
-        @foreach(['all' => 'All', 'preorder' => 'Preorder', 'order' => 'Order'] as $key => $label)
-            <a href="{{ route('admin.orders.history', ['type' => $key]) }}" style="
-                        padding: 0.5rem 0.75rem;
-                        border-radius: 0.5rem;
-                        font-weight: 600;
-                        text-decoration: none;
-                        background: {{ ($type ?? 'all') === $key ? '#000' : '#f3f4f6' }};
-                        color: {{ ($type ?? 'all') === $key ? 'white' : '#111827' }};
-                        white-space: nowrap;
-                        transition: all 0.2s;
-                   ">
-                {{ $label }} ({{ $counts[$key] ?? 0 }})
-            </a>
-        @endforeach
-    </div>
-
     {{-- Desktop Table View --}}
-    <div class="desktop-table" style="
-        background: white;
-        border-radius: 0.75rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        width: 100%;
-    ">
-        <div style="overflow-x: auto; width: 100%;">
-            <table style="
-                width: 100%;
-                min-width: 1100px;
-                border-collapse: collapse;
-            ">
-                <thead>
-                    <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                        @foreach(['Order', 'Customer', 'Type', 'Product', 'Qty', 'Status', 'Last Update', 'Actions'] as $head)
-                            <th style="
-                                    padding: 1rem;
-                                    text-align: left;
-                                    font-weight: 600;
-                                    font-size: 0.75rem;
-                                    text-transform: uppercase;
-                                    color: #6b7280;
-                                    white-space: nowrap;
-                                ">
-                                {{ $head }}
-                            </th>
-                        @endforeach
+    <div class="hidden md:block bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50/50 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                    <tr>
+                        <th class="px-6 py-4">Order #</th>
+                        <th class="px-6 py-4">Customer</th>
+                        <th class="px-6 py-4">Type</th>
+                        <th class="px-6 py-4">Product</th>
+                        <th class="px-6 py-4">Qty</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4">Last Update</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
-
-                <tbody>
+                <tbody class="divide-y divide-slate-100">
                     @forelse($orders as $o)
                         @php
                             $ptype = $o->product && $o->product->available_for_preorder ? 'Preorder' : 'Order';
                             $last = $o->histories->sortByDesc('created_at')->first();
+                            
+                            $statusConfig = match($o->status) {
+                                'paid' => ['bg' => 'bg-emerald-100', 'text' => 'text-emerald-700', 'border' => 'border-emerald-200', 'label' => 'Paid'],
+                                'confirmed' => ['bg' => 'bg-indigo-100', 'text' => 'text-indigo-700', 'border' => 'border-indigo-200', 'label' => 'Confirmed'],
+                                'pending' => ['bg' => 'bg-amber-100', 'text' => 'text-amber-700', 'border' => 'border-amber-200', 'label' => 'Pending'],
+                                default => ['bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'border' => 'border-slate-200', 'label' => ucfirst($o->status)]
+                            };
                         @endphp
-
-                        <tr style="border-bottom:1px solid #e5e7eb;">
-                            <td style="padding:1rem; white-space:nowrap;">#{{ $o->order_number }}</td>
-
-                            <td style="padding:1rem;">
-                                <div style="font-weight:600;">{{ $o->name }}</div>
-                                <div style="font-size:0.85rem; color:#6b7280;">
-                                    {{ $o->email ?? '-' }} · {{ $o->phone ?? '-' }}
+                        <tr class="hover:bg-slate-50/50 transition-colors group">
+                            <td class="px-6 py-4">
+                                <span class="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">{{ $o->order_number }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-slate-900">{{ $o->name }}</span>
+                                    <span class="text-xs text-slate-500">{{ $o->email ?? '-' }}</span>
                                 </div>
                             </td>
-
-                            <td style="padding:1rem;">
-                                <span style="background:#f3f4f6; padding:0.25rem 0.5rem; border-radius:0.375rem; font-size:0.8rem; font-weight:600;">
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ $ptype === 'Preorder' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
                                     {{ $ptype }}
                                 </span>
                             </td>
-
-                            <td style="padding:1rem;">
-                                <div style="font-weight:600;">{{ $o->product->name ?? '-' }}</div>
-                                <div style="font-size:0.85rem; color:#6b7280;">{{ $o->jersey_type ?? '-' }}</div>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col max-w-[180px]">
+                                    <span class="font-medium text-slate-700 truncate">{{ $o->product->name ?? '-' }}</span>
+                                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ $o->jersey_type ?? '-' }}</span>
+                                </div>
                             </td>
-
-                            <td style="padding:1rem; white-space:nowrap;">{{ $o->quantity }}</td>
-
-                            <td style="padding:1rem;">
-                                @php
-                                    $statusMap = [
-                                        'paid' => ['#dcfce7', '#166534', 'Paid'],
-                                        'confirmed' => ['#e0e7ff', '#3730a3', 'Confirmed'],
-                                        'pending' => ['#fef9c3', '#854d0e', 'Pending'],
-                                    ];
-                                    [$bg, $fg, $label] = $statusMap[$o->status] ?? $statusMap['pending'];
-                                @endphp
-                                <span style="background:{{ $bg }}; color:{{ $fg }}; padding:0.25rem 0.5rem; border-radius:0.375rem; font-size:0.8rem; font-weight:600;">
-                                    {{ $label }}
+                            <td class="px-6 py-4 font-bold text-slate-900">{{ $o->quantity }}</td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }} {{ $statusConfig['border'] }}">
+                                    {{ $statusConfig['label'] }}
                                 </span>
                             </td>
-
-                            <td style="padding:1rem; font-size:0.85rem; color:#6b7280; white-space:nowrap;">
+                            <td class="px-6 py-4 text-xs text-slate-500 whitespace-nowrap">
                                 {{ $last ? $last->created_at->format('M d, Y H:i') : $o->updated_at->format('M d, Y H:i') }}
                             </td>
-
-                            <td style="padding:1rem; white-space:nowrap;">
-                                <a href="{{ route('admin.preorders.show', $o) }}"
-                                    style="background:#3b82f6; color:white; padding:0.5rem 0.75rem; border-radius:0.375rem; font-size:0.85rem; font-weight:600; text-decoration:none;">
+                            <td class="px-6 py-4 text-right">
+                                <a href="{{ route('admin.orders.show', $o) }}" class="inline-flex items-center px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors gap-1.5">
+                                    <i data-feather="eye" class="w-3.5 h-3.5"></i>
                                     View
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" style="padding:3rem; text-align:center; color:#6b7280;">
-                                No orders found
+                            <td colspan="8" class="px-6 py-12 text-center text-slate-500 font-medium italic">
+                                No history records found.
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-
-        {{-- Pagination --}}
-        <div style="padding:1.5rem; border-top:1px solid #e5e7eb; display:flex; justify-content:center;">
-            {{ $orders->links() }}
-        </div>
-    </div>
-
-    {{-- Mobile List View --}}
-    <div class="mobile-list">
-        @forelse($orders as $o)
-            @php
-                $ptype = $o->product && $o->product->available_for_preorder ? 'Preorder' : 'Order';
-                $last = $o->histories->sortByDesc('created_at')->first();
-                $statusMap = [
-                    'paid' => ['#dcfce7', '#166534', 'Paid'],
-                    'confirmed' => ['#e0e7ff', '#3730a3', 'Confirmed'],
-                    'pending' => ['#fef9c3', '#854d0e', 'Pending'],
-                ];
-                [$bg, $fg, $statusLabel] = $statusMap[$o->status] ?? $statusMap['pending'];
-            @endphp
-
-            <div class="history-card" data-history-id="{{ $o->id }}">
-                <div class="history-header" onclick="toggleHistory({{ $o->id }})">
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="font-weight: 700; color: #111827; margin-bottom: 0.25rem; font-size: 0.95rem;">
-                            #{{ $o->order_number }}
-                        </div>
-                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">
-                            {{ $o->name }}
-                        </div>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                            <span style="background:#f3f4f6; padding:0.25rem 0.5rem; border-radius:0.375rem; font-size:0.75rem; font-weight:600; color:#111827;">
-                                {{ $ptype }}
-                            </span>
-                            <span style="background:{{ $bg }}; color:{{ $fg }}; padding:0.25rem 0.5rem; border-radius:0.375rem; font-size:0.75rem; font-weight:600;">
-                                {{ $statusLabel }}
-                            </span>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; margin-left: 0.5rem;">
-                        <svg class="chevron" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5 7.5L10 12.5L15 7.5" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </div>
-
-                <div class="history-body">
-                    <div class="history-details">
-                        <div class="detail-row">
-                            <span class="detail-label">Email</span>
-                            <span class="detail-value">{{ $o->email ?? '-' }}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Phone</span>
-                            <span class="detail-value">{{ $o->phone ?? '-' }}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Product</span>
-                            <span class="detail-value">
-                                <div style="font-weight: 600;">{{ $o->product->name ?? '-' }}</div>
-                                @if($o->jersey_type)
-                                    <div style="font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;">{{ $o->jersey_type }}</div>
-                                @endif
-                            </span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Quantity</span>
-                            <span class="detail-value" style="font-weight: 600;">{{ $o->quantity }}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Last Update</span>
-                            <span class="detail-value" style="font-size: 0.85rem; color: #6b7280;">
-                                {{ $last ? $last->created_at->format('M d, Y H:i') : $o->updated_at->format('M d, Y H:i') }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="history-actions">
-                        <a href="{{ route('admin.preorders.show', $o) }}" style="
-                            width: 100%;
-                            background: #3b82f6;
-                            color: white;
-                            padding: 0.625rem;
-                            border: none;
-                            border-radius: 0.5rem;
-                            font-size: 0.875rem;
-                            font-weight: 600;
-                            text-decoration: none;
-                            display: block;
-                            text-align: center;
-                        ">
-                            View Details
-                        </a>
-                    </div>
-                </div>
-            </div>
-        @empty
-            <div style="background: white; border-radius: 0.75rem; padding: 3rem; text-align: center;">
-                <p style="color: #6b7280; font-size: 1rem; margin: 0;">No orders found</p>
-            </div>
-        @endforelse
-
-        {{-- Mobile Pagination --}}
-        @if($orders->count() > 0)
-            <div style="padding: 1.5rem 0; display: flex; justify-content: center;">
+        @if($orders->hasPages())
+            <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100">
                 {{ $orders->links() }}
             </div>
         @endif
     </div>
 
-    <script>
-        // Toggle collapse function for mobile
-        function toggleHistory(historyId) {
-            const card = document.querySelector(`[data-history-id="${historyId}"]`);
-            const body = card.querySelector('.history-body');
-            const chevron = card.querySelector('.chevron');
-            
-            body.classList.toggle('show');
-            chevron.classList.toggle('rotate');
-            card.classList.toggle('expanded');
-        }
-    </script>
+    {{-- Mobile List View --}}
+    <div class="md:hidden space-y-4">
+        @forelse($orders as $o)
+            @php
+                $ptype = $o->product && $o->product->available_for_preorder ? 'Preorder' : 'Order';
+                $last = $o->histories->sortByDesc('created_at')->first();
+                $statusConfig = match($o->status) {
+                    'paid' => ['bg' => 'bg-emerald-100', 'text' => 'text-emerald-700', 'label' => 'Paid'],
+                    'confirmed' => ['bg' => 'bg-indigo-100', 'text' => 'text-indigo-700', 'label' => 'Confirmed'],
+                    'pending' => ['bg' => 'bg-amber-100', 'text' => 'text-amber-700', 'label' => 'Pending'],
+                    default => ['bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'label' => ucfirst($o->status)]
+                };
+            @endphp
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                <div @click="activeMobileId = (activeMobileId === {{ $o->id }} ? null : {{ $o->id }})" class="p-4 flex justify-between items-start cursor-pointer hover:bg-slate-50 transition-colors">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono text-xs font-bold text-indigo-600">#{{ $o->order_number }}</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase {{ $ptype === 'Preorder' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
+                                {{ $ptype }}
+                            </span>
+                        </div>
+                        <h4 class="font-bold text-slate-900">{{ $o->name }}</h4>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }}">
+                                {{ $statusConfig['label'] }}
+                            </span>
+                        </div>
+                    </div>
+                    <i data-feather="chevron-down" class="w-5 h-5 text-slate-400 transition-transform duration-300" :class="activeMobileId === {{ $o->id }} ? 'rotate-180' : ''"></i>
+                </div>
+                
+                <div x-show="activeMobileId === {{ $o->id }}" x-collapse>
+                    <div class="px-4 pb-4 pt-2 border-t border-slate-100 space-y-3 bg-slate-50/50">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase">Contact</p>
+                                <p class="text-sm text-slate-700">{{ $o->email ?? '-' }}</p>
+                                <p class="text-xs text-slate-500">{{ $o->phone ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase">Quantity</p>
+                                <p class="text-sm font-bold text-slate-900">{{ $o->quantity }} pcs</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Product</p>
+                            <p class="text-sm font-medium text-slate-800">{{ $o->product->name ?? '-' }}</p>
+                            <p class="text-xs text-slate-500">{{ $o->jersey_type ?? '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Last Update</p>
+                            <p class="text-xs text-slate-600">{{ $last ? $last->created_at->format('M d, Y H:i') : $o->updated_at->format('M d, Y H:i') }}</p>
+                        </div>
+                        <a href="{{ route('admin.orders.show', $o) }}" class="block w-full py-2.5 bg-indigo-600 text-white text-center text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-600/10">
+                            View Full Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="py-12 text-center bg-white rounded-2xl border border-slate-200">
+                <p class="text-slate-500 font-medium">No history found.</p>
+            </div>
+        @endforelse
 
+        @if($orders->hasPages())
+            <div class="py-4 flex justify-center">
+                {{ $orders->links() }}
+            </div>
+        @endif
+    </div>
+</div>
 @endsection

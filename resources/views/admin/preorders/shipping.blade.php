@@ -306,9 +306,9 @@
                                 <input type="hidden" name="send_contact" value="{{ $preorder->phone }}">
                                 <input type="hidden" name="send_addr1" value="{{ $preorder->address }}">
                                 <button type="submit" class="btn btn-dark btn-sm"
-                                    onclick="return confirm('Auto book dengan tarif termurah?');">
-                                    Auto Book Termurah
-                                </button>
+                                    onclick="return confirm('Auto book with the cheapest rate?');">
+                                     Auto Book Cheapest
+                                 </button>
                             </form>
                         </div>
                     @endif

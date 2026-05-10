@@ -297,9 +297,9 @@
                                 <input type="hidden" name="send_contact" value="{{ $order->phone }}">
                                 <input type="hidden" name="send_addr1" value="{{ $order->address }}">
                                 <button type="submit" class="btn btn-dark btn-sm"
-                                    onclick="return confirm('Auto book dengan tarif termurah?');">
-                                    Auto Book Termurah
-                                </button>
+                                    onclick="return confirm('Auto book with the cheapest rate?');">
+                                     Auto Book Cheapest
+                                 </button>
                             </form>
                         </div>
                     @endif
@@ -353,7 +353,7 @@
                                             <input type="hidden" name="send_addr1" value="{{ $order->address }}">
 
                                             <button type="submit" class="btn btn-success btn-sm"
-                                                onclick="return confirm('Confirm booking dengan courier ini? Ini akan membuat order.');">
+                                                onclick="return confirm('Confirm booking with this courier? This will place an order.');">
                                                 Book Shipment
                                             </button>
                                         </form>
