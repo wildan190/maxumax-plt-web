@@ -1,85 +1,154 @@
 <!-- Topbar/Navigation Partial -->
-<div class="admin-topbar">
-    <div class="admin-topbar-left">
-        <button type="button" class="admin-topbar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
+<header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
+    <div class="flex items-center">
+        <button 
+            type="button" 
+            class="p-2 -ml-2 text-slate-500 hover:text-slate-900 md:hidden transition-colors"
+            @click="sidebarOpen = true"
+            aria-label="Toggle sidebar">
+            <i data-feather="menu" class="w-6 h-6"></i>
         </button>
-        <!-- Page title is rendered in the main header to avoid duplication -->
     </div>
 
-    <div class="admin-topbar-right">
-        <div class="admin-notification-wrapper" id="notificationDropdown">
-            <button class="admin-topbar-notifications" id="notificationToggle" aria-label="Notifications" aria-expanded="false">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
+    <div class="flex items-center gap-2 md:gap-4">
+        <!-- Notifications -->
+        <div class="relative" x-data="{ open: false }">
+            <button 
+                @click="open = !open"
+                class="relative p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all duration-200"
+                aria-label="Notifications">
+                <i data-feather="bell" class="w-5 h-5"></i>
                 @if(auth()->user()->unreadNotifications->count() > 0)
-                    <span class="notification-badge">{{ auth()->user()->unreadNotifications->count() }}</span>
+                    <span class="absolute top-1.5 right-1.5 flex h-4 w-4">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-4 w-4 bg-rose-500 text-[10px] font-bold text-white items-center justify-center">
+                            {{ auth()->user()->unreadNotifications->count() }}
+                        </span>
+                    </span>
                 @endif
             </button>
 
-            <div class="admin-notification-dropdown" id="notificationMenu">
-                <div class="admin-notification-dropdown-header">
-                    <h6>Notifikasi</h6>
+            <div 
+                x-show="open" 
+                @click.away="open = false"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-75"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                class="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden"
+                x-cloak>
+                
+                <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <h3 class="text-sm font-semibold text-slate-900">Notifications</h3>
                     @if(auth()->user()->unreadNotifications->count() > 0)
                         <form action="{{ route('admin.notifications.markAllAsRead') }}" method="POST">
                             @csrf
-                            <button type="submit" class="admin-mark-read-all">Mark all read</button>
+                            <button type="submit" class="text-xs font-medium text-indigo-600 hover:text-indigo-700">Mark all as read</button>
                         </form>
                     @endif
                 </div>
-                <div class="admin-notification-dropdown-body">
+
+                <div class="max-h-[400px] overflow-y-auto">
                     @forelse(auth()->user()->notifications()->latest()->take(5)->get() as $notification)
-                        <div class="admin-notification-dropdown-item {{ $notification->unread() ? 'unread' : '' }}">
-                            <div class="admin-notification-dropdown-icon">
-                                @switch($notification->data['type'] ?? '')
-                                    @case('new_order')
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                                        @break
-                                    @case('new_preorder')
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                                        @break
-                                    @case('new_complaint')
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-danger"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-                                        @break
-                                    @case('replacement_ready')
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-info"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                        @break
-                                    @default
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                                @endswitch
-                            </div>
-                            <div class="admin-notification-dropdown-content">
-                                <p>{{ Str::limit($notification->data['message'] ?? 'No message', 50) }}</p>
-                                <span>{{ $notification->created_at->diffForHumans() }}</span>
+                        <div class="p-4 hover:bg-slate-50 border-b border-slate-100 last:border-0 transition-colors {{ $notification->unread() ? 'bg-indigo-50/30' : '' }}">
+                            <div class="flex gap-3">
+                                <div class="flex-shrink-0 mt-0.5">
+                                    @switch($notification->data['type'] ?? '')
+                                        @case('new_order')
+                                            <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                                <i data-feather="shopping-cart" class="w-4 h-4"></i>
+                                            </div>
+                                            @break
+                                        @case('new_preorder')
+                                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                                <i data-feather="clock" class="w-4 h-4"></i>
+                                            </div>
+                                            @break
+                                        @case('new_complaint')
+                                            <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+                                                <i data-feather="alert-triangle" class="w-4 h-4"></i>
+                                            </div>
+                                            @break
+                                        @default
+                                            <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+                                                <i data-feather="bell" class="w-4 h-4"></i>
+                                            </div>
+                                    @endswitch
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-slate-900 leading-snug">
+                                        {{ Str::limit($notification->data['message'] ?? 'No message', 60) }}
+                                    </p>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        {{ $notification->created_at->diffForHumans() }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     @empty
-                        <div class="admin-notification-dropdown-empty">
-                            Tidak ada notifikasi baru
+                        <div class="p-8 text-center">
+                            <i data-feather="bell-off" class="w-8 h-8 text-slate-300 mx-auto mb-3"></i>
+                            <p class="text-sm text-slate-500">No new notifications</p>
                         </div>
                     @endforelse
                 </div>
-                <div class="admin-notification-dropdown-footer">
-                    <a href="{{ route('admin.notifications.index') }}">Lihat Semua</a>
-                </div>
+
+                <a href="{{ route('admin.notifications.index') }}" class="block p-3 text-center text-sm font-medium text-slate-600 hover:bg-slate-50 border-t border-slate-100 transition-colors">
+                    View All
+                </a>
             </div>
         </div>
 
-        <div class="admin-topbar-user" id="userMenuToggle" aria-label="User menu">
-            <div class="admin-user-avatar">
-                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-            </div>
-            <div class="admin-topbar-user-info">
-                <h5>{{ auth()->user()->name }}</h5>
-                <p>{{ auth()->user()->email }}</p>
+        <!-- User Menu -->
+        <div class="relative" x-data="{ open: false }">
+            <button 
+                @click="open = !open"
+                class="flex items-center gap-2 p-1 pl-2 pr-2 md:pr-3 text-slate-700 hover:bg-slate-100 rounded-full transition-all duration-200"
+                aria-label="User menu">
+                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                </div>
+                <div class="hidden md:block text-left">
+                    <p class="text-sm font-semibold leading-none">{{ auth()->user()->name }}</p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">{{ auth()->user()->email }}</p>
+                </div>
+                <i data-feather="chevron-down" class="w-4 h-4 text-slate-400"></i>
+            </button>
+
+            <div 
+                x-show="open" 
+                @click.away="open = false"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-75"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden"
+                x-cloak>
+                
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 md:hidden">
+                    <p class="text-sm font-semibold text-slate-900">{{ auth()->user()->name }}</p>
+                    <p class="text-xs text-slate-500">{{ auth()->user()->email }}</p>
+                </div>
+
+                <div class="py-1">
+                    <a href="{{ route('profile.show') }}" class="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                        <i data-feather="user" class="w-4 h-4 mr-3 text-slate-400"></i>
+                        Profile
+                    </a>
+                    <div class="border-t border-slate-100 my-1"></div>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="flex w-full items-center px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 transition-colors">
+                            <i data-feather="log-out" class="w-4 h-4 mr-3"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</header>

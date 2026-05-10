@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Gallery;
-use App\Models\Product;
-use Illuminate\Http\Request;
+use App\Services\Page\PublicGalleryQueryService;
 
 class PageController extends Controller
 {
-    public function gallery()
+    public function gallery(PublicGalleryQueryService $publicGallery)
     {
-        $galleries = Gallery::latest()->paginate(20);
+        $galleries = $publicGallery->paginatePublicGallery(20);
+
         return view('gallery.index', compact('galleries'));
     }
 

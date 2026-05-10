@@ -22,59 +22,7 @@
 
 <body>
     <div class="auth-layout">
-        <!-- Left Side -->
-        <div class="auth-side">
-            <div class="auth-side-content">
-                <div class="auth-side-logo">
-                    {{ config('app.name', 'Maxumax') }}
-                </div>
-
-                <h2 class="auth-side-title">
-                    @yield('auth-title', 'Welcome')
-                </h2>
-
-                <p class="auth-side-desc">
-                    @yield('auth-subtitle', 'Manage your business easily and efficiently')
-                </p>
-
-                <div class="auth-side-features">
-                    <div class="auth-side-feature">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        <div class="auth-side-feature-text">
-                            <h4>Secure by Design</h4>
-                            <p>End-to-end encryption to protect your data</p>
-                        </div>
-                    </div>
-
-                    <div class="auth-side-feature">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        <div class="auth-side-feature-text">
-                            <h4>Easy Access</h4>
-                            <p>Access anytime, anywhere</p>
-                        </div>
-                    </div>
-
-                    <div class="auth-side-feature">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        <div class="auth-side-feature-text">
-                            <h4>Full Support</h4>
-                            <p>Our support team is available 24/7</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Side - Form -->
+        <!-- Center - Form -->
         <div class="auth-form-container">
             <div class="auth-form-wrapper">
                 @yield('content')

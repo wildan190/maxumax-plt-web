@@ -11,7 +11,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Feather Icons -->
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
@@ -20,239 +20,93 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        /* Basic Layout Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f8f9fa;
-        }
-
-        /* Admin Layout Container */
-        .admin-layout {
-            position: relative;
-            min-height: 100vh;
-        }
-
-        /* Main Content Area */
-        .admin-main {
-            transition: margin-left 0.3s ease;
-        }
-
-        /* Admin Content */
-        .admin-content {
-            padding: 1.5rem;
-        }
-
-        /* Page Header */
-        .admin-page-header {
-            margin-bottom: 2rem;
-        }
-
-        .admin-page-title {
-            font-size: 1.875rem;
-            font-weight: 700;
-            color: #1a1f36;
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-page-desc {
-            font-size: 1rem;
-            color: #6b7280;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .admin-content {
-                padding: 1rem;
-            }
-
-            .admin-page-title {
-                font-size: 1.5rem;
-            }
-        }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 
-<body>
-    <div class="admin-layout">
-        <!-- Sidebar Overlay -->
-        <div class="admin-sidebar-overlay" id="sidebarOverlay"></div>
+<body class="bg-slate-50 font-sans text-slate-900 antialiased">
+    <div class="flex h-screen bg-slate-50" x-data="{ sidebarOpen: false }">
+        <!-- Mobile Sidebar Overlay -->
+        <div 
+            x-show="sidebarOpen" 
+            @click="sidebarOpen = false" 
+            x-transition:enter="transition-opacity ease-linear duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity ease-linear duration-300"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
+            x-cloak>
+        </div>
 
-        <!-- Sidebar -->
         @include('layouts.partials.sidebar')
 
         <!-- Main Content -->
-        <div class="admin-main">
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
             <!-- Topbar -->
             @include('layouts.partials.topbar')
 
             <!-- Content Area -->
-            <div class="admin-content">
+            <main class="flex-1 overflow-y-auto p-4 md:p-8">
                 <!-- Flash Messages -->
-                @if (session('status'))
-                    <div
-                        style="margin-bottom: 2rem; padding: 1rem; background: #d1fae5; border: 1px solid #10b981; color: #065f46; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.75rem;">
-                        <span
-                            style="background: #10b981; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">✓</span>
-                        {{ session('status') }}
+                <div class="max-w-7xl mx-auto space-y-4 mb-6">
+                    @if (session('status'))
+                        <div class="flex items-center p-4 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-xl shadow-sm">
+                            <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-emerald-100 text-emerald-600 rounded-full mr-3">
+                                <i data-feather="check" class="w-4 h-4"></i>
+                            </div>
+                            <div class="text-sm font-medium">{{ session('status') }}</div>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="flex items-center p-4 text-rose-800 bg-rose-50 border border-rose-100 rounded-xl shadow-sm">
+                            <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-rose-100 text-rose-600 rounded-full mr-3">
+                                <i data-feather="alert-circle" class="w-4 h-4"></i>
+                            </div>
+                            <div class="text-sm font-medium">{{ session('error') }}</div>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="max-w-7xl mx-auto">
+                    <!-- Breadcrumb -->
+                    @if (isset($breadcrumbs))
+                        <div class="mb-6">
+                            @include('layouts.partials.breadcrumb')
+                        </div>
+                    @endif
+
+                    <!-- Page Header -->
+                    @unless (View::hasSection('hide-page-header'))
+                        <div class="mb-8">
+                            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">@yield('page-title', 'Dashboard')</h1>
+                            @if (View::hasSection('page-subtitle'))
+                                <p class="mt-1 text-slate-500">@yield('page-subtitle')</p>
+                            @endif
+                        </div>
+                    @endunless
+
+                    <!-- Main Content Content -->
+                    <div class="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                        @yield('content')
                     </div>
-                @endif
-
-                @if (session('error'))
-                    <div
-                        style="margin-bottom: 2rem; padding: 1rem; background: #fee2e2; border: 1px solid #ef4444; color: #991b1b; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.75rem;">
-                        <span
-                            style="background: #ef4444; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">!</span>
-                        {{ session('error') }}
-                    </div>
-                @endif
-
-                <!-- Breadcrumb -->
-                @if (isset($breadcrumbs))
-                    @include('layouts.partials.breadcrumb')
-                @endif
-
-                <!-- Page Header -->
-                @unless (View::hasSection('hide-page-header'))
-                    <div class="admin-page-header">
-                        <h1 class="admin-page-title">@yield('page-title', 'Dashboard')</h1>
-                        @if (View::hasSection('page-subtitle'))
-                            <p class="admin-page-desc">@yield('page-subtitle')</p>
-                        @endif
-                    </div>
-                @endunless
-
-                <!-- Main Content -->
-                @yield('content')
-            </div>
+                </div>
+            </main>
         </div>
     </div>
 
-    <!-- Sidebar Toggle Script -->
+    <!-- Scripts -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Initialize Feather Icons
             if (window.feather) {
                 feather.replace();
             }
-
-            const sidebar = document.getElementById('adminSidebar');
-            const toggle = document.getElementById('sidebarToggle');
-            const overlay = document.getElementById('sidebarOverlay');
-            const sidebarClose = document.getElementById('sidebarClose');
-
-            console.log('Sidebar elements:', { sidebar, toggle, overlay, sidebarClose }); // Debug
-
-            if (sidebar && toggle && overlay) {
-                function openSidebar() {
-                    console.log('Opening sidebar'); // Debug
-                    // Remove display:none and force reflow
-                    sidebar.style.display = 'block';
-                    sidebar.offsetHeight; // Force reflow
-
-                    // Add active classes
-                    setTimeout(() => {
-                        sidebar.classList.add('active');
-                        overlay.classList.add('active');
-                        document.body.style.overflow = 'hidden';
-                    }, 10);
-                }
-
-                function closeSidebar() {
-                    console.log('Closing sidebar'); // Debug
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                    document.body.style.overflow = '';
-
-                    // Wait for transition before hiding
-                    setTimeout(() => {
-                        if (!sidebar.classList.contains('active')) {
-                            sidebar.style.display = '';
-                        }
-                    }, 300);
-                }
-
-                // Toggle button click
-                toggle.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Toggle clicked, sidebar active:', sidebar.classList.contains('active')); // Debug
-
-                    if (sidebar.classList.contains('active')) {
-                        closeSidebar();
-                    } else {
-                        openSidebar();
-                    }
-                });
-
-                // Overlay click
-                overlay.addEventListener('click', function (e) {
-                    console.log('Overlay clicked'); // Debug
-                    closeSidebar();
-                });
-
-                // Close button click
-                if (sidebarClose) {
-                    sidebarClose.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Close button clicked'); // Debug
-                        closeSidebar();
-                    });
-                }
-
-                // Close sidebar when clicking nav items on mobile
-                const navItems = sidebar.querySelectorAll('.admin-nav-item');
-                navItems.forEach(item => {
-                    item.addEventListener('click', function () {
-                        if (window.innerWidth <= 768) {
-                            closeSidebar();
-                        }
-                    });
-                });
-
-                // Handle window resize
-                window.addEventListener('resize', function () {
-                    if (window.innerWidth > 768) {
-                        sidebar.classList.remove('active');
-                        sidebar.style.display = '';
-                        overlay.classList.remove('active');
-                        document.body.style.overflow = '';
-                    }
-                });
-            } else {
-                console.error('Sidebar elements not found!'); // Debug
-            }
-
-            // Notification Dropdown Toggle
-            const notificationToggle = document.getElementById('notificationToggle');
-            const notificationMenu = document.getElementById('notificationMenu');
-
-            if (notificationToggle && notificationMenu) {
-                notificationToggle.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    notificationMenu.classList.toggle('active');
-                    const isExpanded = notificationMenu.classList.contains('active');
-                    notificationToggle.setAttribute('aria-expanded', isExpanded);
-                });
-
-                // Close dropdown when clicking outside
-                document.addEventListener('click', function (e) {
-                    if (!notificationMenu.contains(e.target) && !notificationToggle.contains(e.target)) {
-                        notificationMenu.classList.remove('active');
-                        notificationToggle.setAttribute('aria-expanded', 'false');
-                    }
-                });
-            }
         });
     </script>
-
-    <!-- Vite handled scripts included above -->
 </body>
 
 </html>

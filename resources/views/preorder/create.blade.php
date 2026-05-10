@@ -74,20 +74,12 @@
                         {{ $product->description ?: 'Premium quality jersey with breathable fabric.' }}
                     </p>
 
-                    @if($product->sku || $product->stock)
+                    @if($product->stock)
                         <div class="product-meta">
-                            @if($product->sku)
-                                <div class="meta-item">
-                                    <label>SKU</label>
-                                    <span>{{ $product->sku }}</span>
-                                </div>
-                            @endif
-                            @if($product->stock)
-                                <div class="meta-item">
-                                    <label>Available</label>
-                                    <span>{{ $product->stock }} units</span>
-                                </div>
-                            @endif
+                            <div class="meta-item">
+                                <label>Available</label>
+                                <span>{{ $product->stock }} units</span>
+                            </div>
                         </div>
                     @endif
 
@@ -1036,8 +1028,8 @@
 
         // Check for errors and restore step
         document.addEventListener("DOMContentLoaded", function () {
-            const hasStep2Errors = {!! $errors->hasAny(['name','email','phone','region','province','city','postal_code','address_detail']) ? 'true' : 'false' !!};
-            const hasStep3Errors = {!! ($errors->has('items') || collect($errors->keys())->contains(fn($k) => str_contains($k, 'items.'))) ? 'true' : 'false' !!};
+            const hasStep2Errors = "{{ $errors->hasAny(['name','email','phone','region','province','city','postal_code','address_detail']) ? 'true' : 'false' }}" === 'true';
+            const hasStep3Errors = "{{ ($errors->has('items') || collect($errors->keys())->contains(fn($k) => str_contains($k, 'items.'))) ? 'true' : 'false' }}" === 'true';
             if (hasStep2Errors) {
                 showStep(2);
             } else if (hasStep3Errors) {

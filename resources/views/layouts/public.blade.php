@@ -148,7 +148,7 @@
                     </button>
                     <div x-show="open" x-cloak x-transition
                         class="absolute left-0 mt-0 w-64 bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[60]">
-                        @foreach (['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories'] as $cat)
+                        @foreach (['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories', 'Cotton'] as $cat)
                             <a href="{{ route('products.index', ['category' => $cat]) }}"
                                 class="block px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-colors">
                                 {{ $cat }}
@@ -258,7 +258,7 @@
                         <i data-feather="chevron-down" :class="{'rotate-180': open}" class="transition-transform" style="width:16px;height:16px"></i>
                     </button>
                     <div x-show="open" x-cloak class="mt-4 ml-4 flex flex-col space-y-4 border-l border-white/10 pl-4">
-                        @foreach (['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories'] as $cat)
+                        @foreach (['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories', 'Cotton'] as $cat)
                             <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['category' => $cat]) }}"
                                 class="text-white/60 font-black uppercase tracking-widest text-xs">
                                 {{ $cat }}

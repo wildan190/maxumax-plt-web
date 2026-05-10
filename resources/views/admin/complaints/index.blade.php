@@ -1,397 +1,170 @@
 @extends('layouts.app')
 
-@section('title', 'Complaints Management')
+@php
+    $breadcrumbs = [
+        ['label' => 'Complaints', 'url' => route('admin.complaints.index')]
+    ];
+@endphp
+
+@section('page-title', 'Complaints Management')
+@section('page-subtitle', 'Track and resolve customer refund or replacement requests.')
 
 @section('content')
-<style>
-    /* Mobile Responsive Styles */
-    @media (max-width: 768px) {
-        .filter-grid {
-            grid-template-columns: 1fr !important;
-        }
-        
-        .desktop-table {
-            display: none !important;
-        }
-        
-        .mobile-list {
-            display: block !important;
-        }
-    }
-    
-    @media (min-width: 769px) {
-        .mobile-list {
-            display: none !important;
-        }
-    }
-    
-    /* Mobile Card Styles */
-    .complaint-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.75rem;
-        margin-bottom: 1rem;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-    
-    .complaint-card.expanded {
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    
-    .complaint-header {
-        padding: 1rem;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        background: #f9fafb;
-    }
-    
-    .complaint-header:active {
-        background: #f3f4f6;
-    }
-    
-    .complaint-body {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-    }
-    
-    .complaint-body.show {
-        max-height: 500px;
-    }
-    
-    .complaint-details {
-        padding: 1rem;
-        border-top: 1px solid #e5e7eb;
-    }
-    
-    .detail-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #f3f4f6;
-        align-items: flex-start;
-    }
-    
-    .detail-row:last-child {
-        border-bottom: none;
-    }
-    
-    .detail-label {
-        color: #6b7280;
-        font-size: 0.875rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        flex-shrink: 0;
-    }
-    
-    .detail-value {
-        color: #111827;
-        font-size: 0.95rem;
-        text-align: right;
-        max-width: 65%;
-        word-wrap: break-word;
-    }
-    
-    .complaint-actions {
-        padding: 1rem;
-        background: #f9fafb;
-    }
-    
-    .chevron {
-        transition: transform 0.3s ease;
-        flex-shrink: 0;
-    }
-    
-    .chevron.rotate {
-        transform: rotate(180deg);
-    }
-</style>
-
-<div style="max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin: 0;">Complaints</h1>
-    </div>
-
+<div class="space-y-6">
     <!-- Filters -->
-    <form method="GET" style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
-        <div class="filter-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
-            <div>
-                <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">Status</label>
-                <select name="status" style="width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.5rem;">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-4">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Filter Status</label>
+                <select name="status" class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
                     <option value="">All Statuses</option>
-                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
-                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
-                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                    <option value="expired" {{ request('status') == 'expired' ? 'selected' : '' }}>Expired</option>
+                    @foreach(['pending', 'approved', 'rejected', 'completed', 'expired'] as $status)
+                        <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>{{ ucfirst($status) }}</option>
+                    @endforeach
                 </select>
             </div>
-            <div>
-                <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">Type</label>
-                <select name="type" style="width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.5rem;">
+            
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Filter Type</label>
+                <select name="type" class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
                     <option value="">All Types</option>
                     <option value="refund" {{ request('type') == 'refund' ? 'selected' : '' }}>Refund</option>
                     <option value="replacement" {{ request('type') == 'replacement' ? 'selected' : '' }}>Replacement</option>
                 </select>
             </div>
-            <div style="display: flex; align-items: flex-end;">
-                <button type="submit" style="width: 100%; background: #000000; color: #ffffff; padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">
-                    Filter
+
+            <div class="flex items-end">
+                <button type="submit" class="w-full px-6 py-2.5 bg-slate-900 text-white text-sm font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2">
+                    <i data-feather="filter" class="w-4 h-4"></i>
+                    Apply Filters
                 </button>
             </div>
-        </div>
-    </form>
-
-    <!-- Desktop Table -->
-    <div class="desktop-table" style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
-        <table style="width: 100%;">
-            <thead style="background: #f9fafb;">
-                <tr>
-                    <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">ID</th>
-                    <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Order</th>
-                    <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Type</th>
-                    <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Status</th>
-                    <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Submitted</th>
-                    <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Actions</th>
-                </tr>
-            </thead>
-            <tbody style="background: #ffffff;">
-                @forelse($complaints as $complaint)
-                    <tr>
-                        <td style="padding: 0.75rem 1.5rem; white-space: nowrap; font-size: 0.875rem; font-weight: 600; color: #111827; border-top: 1px solid #e5e7eb;">#{{ $complaint->id }}</td>
-                        <td style="padding: 0.75rem 1.5rem; white-space: nowrap; font-size: 0.875rem; color: #111827; font-family: monospace; border-top: 1px solid #e5e7eb;">
-                            {{ $complaint->preorder->order_number }}
-                        </td>
-                        <td style="padding: 0.75rem 1.5rem; white-space: nowrap; font-size: 0.875rem; text-transform: capitalize; border-top: 1px solid #e5e7eb;">{{ $complaint->type }}</td>
-                        <td style="padding: 0.75rem 1.5rem; white-space: nowrap; border-top: 1px solid #e5e7eb;">
-                            @if($complaint->status === 'pending')
-                                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #fef3c7; color: #92400e; display: inline-block;">
-                                    {{ ucfirst($complaint->status) }}
-                                </span>
-                            @elseif($complaint->status === 'approved')
-                                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #d1fae5; color: #065f46; display: inline-block;">
-                                    {{ ucfirst($complaint->status) }}
-                                </span>
-                            @elseif($complaint->status === 'rejected')
-                                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #fee2e2; color: #991b1b; display: inline-block;">
-                                    {{ ucfirst($complaint->status) }}
-                                </span>
-                            @elseif($complaint->status === 'completed')
-                                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #dbeafe; color: #1e3a8a; display: inline-block;">
-                                    {{ ucfirst($complaint->status) }}
-                                </span>
-                            @else
-                                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #f3f4f6; color: #111827; display: inline-block;">
-                                    {{ ucfirst($complaint->status) }}
-                                </span>
-                            @endif
-                        </td>
-                        <td style="padding: 0.75rem 1.5rem; white-space: nowrap; font-size: 0.875rem; color: #6b7280; border-top: 1px solid #e5e7eb;">
-                            {{ $complaint->created_at->format('M j, Y') }}
-                        </td>
-                        <td style="padding: 0.75rem 1.5rem; white-space: nowrap; font-size: 0.875rem; border-top: 1px solid #e5e7eb;">
-                            <a href="{{ route('admin.complaints.show', $complaint) }}" 
-                               style="color: #2563eb; text-decoration: none; font-weight: 500;">
-                                View Details →
-                            </a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" style="padding: 2rem 1.5rem; text-align: center; color: #6b7280;">
-                            No complaints found.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+        </form>
     </div>
 
-    <!-- Mobile List -->
-    <div class="mobile-list">
-        @forelse($complaints as $complaint)
-            
-            <div class="complaint-card" data-complaint-id="{{ $complaint->id }}">
-                <div class="complaint-header">
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="font-weight: 700; color: #111827; margin-bottom: 0.25rem; font-size: 0.95rem;">
-                            Complaint #{{ $complaint->id }}
-                        </div>
-                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem; font-family: monospace;">
-                            Order: {{ $complaint->preorder->order_number }}
-                        </div>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                            <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; text-transform: capitalize;">
-                                {{ $complaint->type }}
-                            </span>
-                            @if($complaint->status === 'pending')
-                                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #fef3c7; color: #92400e; display: inline-block;">
-                                    {{ ucfirst($complaint->status) }}
+    <!-- Desktop Table -->
+    <div class="hidden md:block bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50/50 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                    <tr>
+                        <th class="px-6 py-4">ID</th>
+                        <th class="px-6 py-4">Order Reference</th>
+                        <th class="px-6 py-4">Type</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4">Submitted</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($complaints as $complaint)
+                        <tr class="hover:bg-slate-50/50 transition-colors group">
+                            <td class="px-6 py-4">
+                                <span class="font-mono text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-md">#{{ $complaint->id }}</span>
+                            </td>
+                            <td class="px-6 py-4 font-mono text-xs text-indigo-600 font-bold">
+                                {{ $complaint->preorder->order_number }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600">
+                                    {{ $complaint->type }}
                                 </span>
-                            @elseif($complaint->status === 'approved')
-                                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #d1fae5; color: #065f46; display: inline-block;">
-                                    {{ ucfirst($complaint->status) }}
+                            </td>
+                            <td class="px-6 py-4">
+                                @php
+                                    $statusBadge = match($complaint->status) {
+                                        'pending' => 'bg-amber-100 text-amber-700 border-amber-200',
+                                        'approved' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                                        'rejected' => 'bg-rose-100 text-rose-700 border-rose-200',
+                                        'completed' => 'bg-blue-100 text-blue-700 border-blue-200',
+                                        default => 'bg-slate-100 text-slate-700 border-slate-200'
+                                    };
+                                @endphp
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border {{ $statusBadge }}">
+                                    {{ $complaint->status }}
                                 </span>
-                            @elseif($complaint->status === 'rejected')
-                                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #fee2e2; color: #991b1b; display: inline-block;">
-                                    {{ ucfirst($complaint->status) }}
-                                </span>
-                            @elseif($complaint->status === 'completed')
-                                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #dbeafe; color: #1e3a8a; display: inline-block;">
-                                    {{ ucfirst($complaint->status) }}
-                                </span>
-                            @else
-                                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #f3f4f6; color: #111827; display: inline-block;">
-                                    {{ ucfirst($complaint->status) }}
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; margin-left: 0.5rem;">
-                        <svg class="chevron" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5 7.5L10 12.5L15 7.5" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </div>
+                            </td>
+                            <td class="px-6 py-4 text-xs text-slate-500 font-medium">
+                                {{ $complaint->created_at->format('M j, Y') }}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="{{ route('admin.complaints.show', $complaint) }}" class="inline-flex items-center px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors gap-1.5">
+                                    <i data-feather="eye" class="w-3.5 h-3.5"></i>
+                                    Details
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-400 font-medium italic">
+                                No complaints found matching filters.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-                <div class="complaint-body">
-                    <div class="complaint-details">
-                        <div class="detail-row">
-                            <span class="detail-label">Submitted</span>
-                            <span class="detail-value">{{ $complaint->created_at->format('M j, Y H:i') }}</span>
+    <!-- Mobile View -->
+    <div class="md:hidden space-y-4" x-data="{ activeId: null }">
+        @forelse($complaints as $complaint)
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div @click="activeId = (activeId === {{ $complaint->id }} ? null : {{ $complaint->id }})" class="p-4 cursor-pointer hover:bg-slate-50 transition-colors flex justify-between items-start">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono text-[10px] font-bold text-slate-400">#{{ $complaint->id }}</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-100 text-slate-600">{{ $complaint->type }}</span>
                         </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Type</span>
-                            <span class="detail-value" style="text-transform: capitalize;">{{ $complaint->type }}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Status</span>
-                            <span class="detail-value">
-                                @if($complaint->status === 'pending')
-                                    <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #fef3c7; color: #92400e; display: inline-block;">
-                                        {{ ucfirst($complaint->status) }}
-                                    </span>
-                                @elseif($complaint->status === 'approved')
-                                    <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #d1fae5; color: #065f46; display: inline-block;">
-                                        {{ ucfirst($complaint->status) }}
-                                    </span>
-                                @elseif($complaint->status === 'rejected')
-                                    <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #fee2e2; color: #991b1b; display: inline-block;">
-                                        {{ ucfirst($complaint->status) }}
-                                    </span>
-                                @elseif($complaint->status === 'completed')
-                                    <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #dbeafe; color: #1e3a8a; display: inline-block;">
-                                        {{ ucfirst($complaint->status) }}
-                                    </span>
-                                @else
-                                    <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; background: #f3f4f6; color: #111827; display: inline-block;">
-                                        {{ ucfirst($complaint->status) }}
-                                    </span>
-                                @endif
-                            </span>
+                        <h4 class="font-bold text-slate-900 font-mono text-sm">{{ $complaint->preorder->order_number }}</h4>
+                        @php
+                            $statusBadge = match($complaint->status) {
+                                'pending' => 'bg-amber-100 text-amber-700',
+                                'approved' => 'bg-emerald-100 text-emerald-700',
+                                'rejected' => 'bg-rose-100 text-rose-700',
+                                'completed' => 'bg-blue-100 text-blue-700',
+                                default => 'bg-slate-100 text-slate-700'
+                            };
+                        @endphp
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest {{ $statusBadge }}">
+                            {{ $complaint->status }}
+                        </span>
+                    </div>
+                    <i data-feather="chevron-down" class="w-5 h-5 text-slate-400 transition-transform duration-300" :class="activeId === {{ $complaint->id }} ? 'rotate-180' : ''"></i>
+                </div>
+                
+                <div x-show="activeId === {{ $complaint->id }}" x-collapse>
+                    <div class="px-4 pb-4 pt-2 border-t border-slate-100 bg-slate-50/50 space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Submitted</p>
+                                <p class="text-xs font-bold text-slate-700">{{ $complaint->created_at->format('M j, Y H:i') }}</p>
+                            </div>
                         </div>
                         @if($complaint->reason)
-                            <div class="detail-row">
-                                <span class="detail-label">Reason</span>
-                                <span class="detail-value">{{ Str::limit($complaint->reason, 50) }}</span>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reason Preview</p>
+                                <p class="text-xs text-slate-600 italic leading-relaxed">{{ Str::limit($complaint->reason, 100) }}</p>
                             </div>
                         @endif
-                    </div>
-
-                    <div class="complaint-actions">
-                        <a href="{{ route('admin.complaints.show', $complaint) }}" style="
-                            width: 100%;
-                            background: #3b82f6;
-                            color: white;
-                            padding: 0.625rem;
-                            border: none;
-                            border-radius: 0.5rem;
-                            font-size: 0.875rem;
-                            font-weight: 600;
-                            text-decoration: none;
-                            display: block;
-                            text-align: center;
-                        ">
-                            View Details →
+                        <a href="{{ route('admin.complaints.show', $complaint) }}" class="block w-full py-2.5 bg-indigo-600 text-white text-center text-xs font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/10">
+                            View Full Details
                         </a>
                     </div>
                 </div>
             </div>
         @empty
-            <div style="background: white; border-radius: 0.75rem; padding: 3rem; text-align: center;">
-                <p style="color: #6b7280; font-size: 1rem; margin: 0;">No complaints found.</p>
+            <div class="py-12 text-center bg-white rounded-2xl border border-slate-200">
+                <p class="text-slate-500 font-medium">No complaints found.</p>
             </div>
         @endforelse
     </div>
 
     <!-- Pagination -->
     @if ($complaints->hasPages())
-        <div style="display:flex; justify-content:center; margin-top: 1.5rem;">
-            <nav aria-label="Pagination" style="display:flex; gap:0.5rem; align-items:center;">
-                @if ($complaints->onFirstPage())
-                    <span style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #9ca3af; background:#f9fafb; border-radius: 0.375rem; font-size: 0.875rem;">« Prev</span>
-                @else
-                    <a href="{{ $complaints->previousPageUrl() }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #111827; background:#fff; border-radius: 0.375rem; font-size: 0.875rem; text-decoration:none;">« Prev</a>
-                @endif
-
-                @php
-                    $start = max(1, $complaints->currentPage() - 2);
-                    $end = min($complaints->lastPage(), $complaints->currentPage() + 2);
-                @endphp
-                @if ($start > 1)
-                    <a href="{{ $complaints->url(1) }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #111827; background:#fff; border-radius: 0.375rem; font-size: 0.875rem; text-decoration:none;">1</a>
-                    @if ($start > 2)
-                        <span style="padding: 0.5rem 0.75rem; color: #9ca3af; font-size: 0.875rem;">…</span>
-                    @endif
-                @endif
-
-                @for ($page = $start; $page <= $end; $page++)
-                    @if ($page == $complaints->currentPage())
-                        <span style="padding: 0.5rem 0.75rem; border: 1px solid #111827; color: #fff; background:#111827; border-radius: 0.375rem; font-size: 0.875rem; font-weight:700;">{{ $page }}</span>
-                    @else
-                        <a href="{{ $complaints->url($page) }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #111827; background:#fff; border-radius: 0.375rem; font-size: 0.875rem; text-decoration:none;">{{ $page }}</a>
-                    @endif
-                @endfor
-
-                @if ($end < $complaints->lastPage())
-                    @if ($end < $complaints->lastPage() - 1)
-                        <span style="padding: 0.5rem 0.75rem; color: #9ca3af; font-size: 0.875rem;">…</span>
-                    @endif
-                    <a href="{{ $complaints->url($complaints->lastPage()) }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #111827; background:#fff; border-radius: 0.375rem; font-size: 0.875rem; text-decoration:none;">{{ $complaints->lastPage() }}</a>
-                @endif
-
-                @if ($complaints->hasMorePages())
-                    <a href="{{ $complaints->nextPageUrl() }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #111827; background:#fff; border-radius: 0.375rem; font-size: 0.875rem; text-decoration:none;">Next »</a>
-                @else
-                    <span style="padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #9ca3af; background:#f9fafb; border-radius: 0.375rem; font-size: 0.875rem;">Next »</span>
-                @endif
-            </nav>
+        <div class="pt-4 flex justify-center">
+            {{ $complaints->links() }}
         </div>
     @endif
 </div>
-
-<script>
-    // Toggle complaint card
-    function toggleComplaint(complaintId) {
-        const card = document.querySelector(`[data-complaint-id="${complaintId}"]`);
-        const body = card.querySelector('.complaint-body');
-        const chevron = card.querySelector('.chevron');
-        
-        body.classList.toggle('show');
-        chevron.classList.toggle('rotate');
-        card.classList.toggle('expanded');
-    }
-
-    document.querySelectorAll('.complaint-header').forEach(function(el){
-        el.addEventListener('click', function(){
-            var card = el.closest('.complaint-card');
-            var cid = card ? card.getAttribute('data-complaint-id') : null;
-            if (cid) toggleComplaint(cid);
-        });
-    });
-</script>
 @endsection

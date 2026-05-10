@@ -1,254 +1,155 @@
 @extends('layouts.app')
 
 @section('page-title', 'Preorder Management')
+@section('page-subtitle', 'Manage and monitor all customer preorder requests.')
 
 @section('content')
-
-    <style>
-        /* ===== HEADER ===== */
-        .page-header {
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .page-header form {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        /* ===== SUMMARY ===== */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        /* ===== TABLE ===== */
-        .table-wrapper {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        /* ===== ACTION BUTTONS ===== */
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        /* ===== MOBILE ===== */
-        @media (max-width: 768px) {
-            table {
-                min-width: 1100px;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .page-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .page-header form {
-                flex-direction: column;
-            }
-
-            .page-header input,
-            .page-header button {
-                width: 100%;
-            }
-
-            .hide-mobile {
-                display: none;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .action-buttons button,
-            .action-buttons a {
-                width: 100%;
-                text-align: center;
-            }
-        }
-    </style>
-
-    <div class="page-header">
-        <div>
-            <p style="color:#6b7280;margin:0.5rem 0 0 0;font-size:0.95rem;">
-                Manage and monitor all preorder requests
-            </p>
-        </div>
-
-        <form method="GET" action="{{ route('admin.preorders.index') }}">
-            <input type="text" name="search" placeholder="Search by name/email..." value="{{ request('search') }}"
-                style="padding:0.625rem 1rem;border:1px solid #e5e7eb;border-radius:0.5rem;font-size:0.95rem;">
-            <button type="submit"
-                style="background:#000;color:#fff;padding:0.625rem 1.5rem;border:none;border-radius:0.5rem;font-weight:600;">
-                Search
-            </button>
-        </form>
-    </div>
-
-    <!-- SUMMARY -->
-    <div class="summary-grid">
-        <div
-            style="background:#fff;padding:1.5rem;border-radius:.75rem;border-left:4px solid #000;box-shadow:0 1px 3px rgba(0,0,0,.05);">
-            <p style="font-size:.875rem;color:#6b7280;font-weight:600;text-transform:uppercase;">Total Orders</p>
-            <p style="font-size:1.875rem;font-weight:800;margin:0;">{{ $counts['total'] }}</p>
-        </div>
-
-        <div
-            style="background:#fff;padding:1.5rem;border-radius:.75rem;border-left:4px solid #f97316;box-shadow:0 1px 3px rgba(0,0,0,.05);">
-            <p style="font-size:.875rem;color:#6b7280;font-weight:600;text-transform:uppercase;">Pending</p>
-            <p style="font-size:1.875rem;font-weight:800;color:#f97316;margin:0;">{{ $counts['pending'] }}</p>
-        </div>
-
-        <div
-            style="background:#fff;padding:1.5rem;border-radius:.75rem;border-left:4px solid #6366f1;box-shadow:0 1px 3px rgba(0,0,0,.05);">
-            <p style="font-size:.875rem;color:#6b7280;font-weight:600;text-transform:uppercase;">Confirmed</p>
-            <p style="font-size:1.875rem;font-weight:800;color:#6366f1;margin:0;">{{ $counts['confirmed'] }}</p>
-        </div>
-
-        <div
-            style="background:#fff;padding:1.5rem;border-radius:.75rem;border-left:4px solid #22c55e;box-shadow:0 1px 3px rgba(0,0,0,.05);">
-            <p style="font-size:.875rem;color:#6b7280;font-weight:600;text-transform:uppercase;">Paid</p>
-            <p style="font-size:1.875rem;font-weight:800;color:#22c55e;margin:0;">{{ $counts['paid'] }}</p>
-        </div>
-    </div>
-
-    <!-- TABLE -->
-    <div style="background:#fff;border-radius:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;">
-        @if($preorders->count())
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr style="background:#f9fafb;border-bottom:1px solid #e5e7eb;">
-                            <th>ID</th>
-                            <th>Nama</th>
-                            <th class="hide-mobile">Email</th>
-                            <th class="hide-mobile">Phone</th>
-                            <th class="hide-mobile">Jersey</th>
-                            <th>Size</th>
-                            <th>Qty</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        @forelse($preorders as $preorder)
-                            <tr style="border-bottom:1px solid #e5e7eb;">
-                                <td style="padding:1rem;font-weight:600;">{{ $preorder->id }}</td>
-                                <td style="padding:1rem;">{{ $preorder->name }}</td>
-                                <td class="hide-mobile" style="padding:1rem;">{{ $preorder->email ?? '—' }}</td>
-                                <td class="hide-mobile" style="padding:1rem;">{{ $preorder->phone }}</td>
-                                <td class="hide-mobile" style="padding:1rem;">{{ $preorder->jersey_type }}</td>
-                                <td style="padding:1rem;">{{ $preorder->size }}</td>
-                                <td style="padding:1rem;font-weight:600;">{{ $preorder->quantity }}</td>
-                                <td style="padding:1rem;font-weight:700;">{{ $preorder->currency ?? 'MYR' }}
-                                    {{ number_format($preorder->total_amount, 2) }}</td>
-                                <td style="padding:1rem;">
-                                    @if($preorder->status === 'pending')
-                                        <span
-                                            style="background:#fef3c7;color:#92400e;padding:.35rem .75rem;border-radius:.5rem;font-size:.85rem;font-weight:600;">Pending</span>
-                                    @elseif($preorder->status === 'confirmed')
-                                        <span
-                                            style="background:#e0e7ff;color:#3730a3;padding:.35rem .75rem;border-radius:.5rem;font-size:.85rem;font-weight:600;">Confirmed</span>
-                                    @else
-                                        <span
-                                            style="background:#dcfce7;color:#166534;padding:.35rem .75rem;border-radius:.5rem;font-size:.85rem;font-weight:600;">Paid</span>
-                                    @endif
-                                </td>
-
-                                <td style="padding:1rem;">
-                                    <div class="action-buttons">
-                                        @if($preorder->status === 'pending')
-                                            <form method="POST" action="{{ route('admin.preorders.confirm', $preorder) }}"
-                                                class="js-confirm" data-title="Confirm this preorder?"
-                                                data-text="Status akan diubah menjadi confirmed.">
-                                                @csrf
-                                                <button type="submit"
-                                                    style="background:#6366f1;color:#fff;padding:.4rem .8rem;border:none;border-radius:.375rem;font-size:.8rem;">Confirm</button>
-                                            </form>
-                                        @elseif($preorder->status === 'confirmed')
-                                            <form method="POST" action="{{ route('admin.preorders.markPaid', $preorder) }}"
-                                                class="js-confirm" data-title="Mark as paid?"
-                                                data-text="Status akan diubah menjadi paid.">
-                                                @csrf
-                                                <button type="submit"
-                                                    style="background:#22c55e;color:#fff;padding:.4rem .8rem;border:none;border-radius:.375rem;font-size:.8rem;">Mark
-                                                    Paid</button>
-                                            </form>
-                                        @endif
-
-                                        <a href="{{ route('admin.preorders.show', $preorder) }}"
-                                            style="background:#3b82f6;color:#fff;padding:.4rem .8rem;border-radius:.375rem;font-size:.8rem;text-decoration:none;">View</a>
-
-                                        <form method="POST" action="{{ route('admin.preorders.destroy', $preorder) }}"
-                                            class="js-delete">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                style="background:#ef4444;color:#fff;padding:.4rem .8rem;border:none;border-radius:.375rem;font-size:.8rem;">Delete</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="10" style="padding:3rem;text-align:center;color:#6b7280;">
-                                    No preorders found
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+<div class="space-y-6">
+    <!-- Header Actions -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <form method="GET" action="{{ route('admin.preorders.index') }}" class="relative w-full md:w-96 group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-feather="search" class="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
             </div>
+            <input type="text" name="search" placeholder="Search by name, email, or phone..." value="{{ request('search') }}"
+                class="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
+        </form>
 
-            <div style="padding:1.5rem;border-top:1px solid #e5e7eb;display:flex;justify-content:center;">
+        <div class="flex items-center gap-2">
+            <a href="{{ route('admin.preorders.index', ['status' => 'pending']) }}" 
+                class="px-4 py-2 text-sm font-bold rounded-lg {{ request('status') === 'pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }} transition-all">
+                Pending
+            </a>
+            <a href="{{ route('admin.preorders.index', ['status' => 'confirmed']) }}" 
+                class="px-4 py-2 text-sm font-bold rounded-lg {{ request('status') === 'confirmed' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }} transition-all">
+                Confirmed
+            </a>
+            <a href="{{ route('admin.preorders.index') }}" 
+                class="px-4 py-2 text-sm font-bold rounded-lg {{ !request('status') ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }} transition-all">
+                All
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Orders</p>
+            <p class="text-2xl font-black text-slate-900">{{ number_format($counts['total']) }}</p>
+        </div>
+        <div class="bg-amber-50 p-5 rounded-2xl border border-amber-100 shadow-sm">
+            <p class="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1">Pending</p>
+            <p class="text-2xl font-black text-amber-600">{{ number_format($counts['pending']) }}</p>
+        </div>
+        <div class="bg-indigo-50 p-5 rounded-2xl border border-indigo-100 shadow-sm">
+            <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1">Confirmed</p>
+            <p class="text-2xl font-black text-indigo-600">{{ number_format($counts['confirmed']) }}</p>
+        </div>
+        <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 shadow-sm">
+            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">Paid</p>
+            <p class="text-2xl font-black text-emerald-600">{{ number_format($counts['paid']) }}</p>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50/50 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                    <tr>
+                        <th class="px-6 py-4">ID</th>
+                        <th class="px-6 py-4">Customer</th>
+                        <th class="px-6 py-4">Jersey & Size</th>
+                        <th class="px-6 py-4">Qty</th>
+                        <th class="px-6 py-4">Total</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($preorders as $preorder)
+                        <tr class="hover:bg-slate-50/50 transition-colors group">
+                            <td class="px-6 py-4">
+                                <span class="font-mono text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-md">#{{ $preorder->id }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-slate-900">{{ $preorder->name }}</span>
+                                    <span class="text-xs text-slate-500">{{ $preorder->phone }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    <span class="font-medium text-slate-700">{{ $preorder->jersey_type }}</span>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Size: {{ $preorder->size }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 font-bold text-slate-900">{{ $preorder->quantity }}</td>
+                            <td class="px-6 py-4">
+                                <span class="text-xs font-bold text-slate-400 mr-0.5">{{ $preorder->currency ?? 'MYR' }}</span>
+                                <span class="font-black text-slate-900">{{ number_format($preorder->total_amount, 2) }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                @php
+                                    $statusBadge = match($preorder->status) {
+                                        'pending' => 'bg-amber-100 text-amber-700 border-amber-200',
+                                        'confirmed' => 'bg-indigo-100 text-indigo-700 border-indigo-200',
+                                        'paid' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                                        default => 'bg-slate-100 text-slate-700 border-slate-200'
+                                    };
+                                @endphp
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border {{ $statusBadge }}">
+                                    {{ $preorder->status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    @if($preorder->status === 'pending')
+                                        <form method="POST" action="{{ route('admin.preorders.confirm', $preorder) }}" class="inline">
+                                            @csrf
+                                            <button type="submit" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Confirm">
+                                                <i data-feather="check-circle" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    @elseif($preorder->status === 'confirmed')
+                                        <form method="POST" action="{{ route('admin.preorders.markPaid', $preorder) }}" class="inline">
+                                            @csrf
+                                            <button type="submit" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Mark as Paid">
+                                                <i data-feather="dollar-sign" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                    
+                                    <a href="{{ route('admin.preorders.show', $preorder) }}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Details">
+                                        <i data-feather="eye" class="w-4 h-4"></i>
+                                    </a>
+
+                                    <form method="POST" action="{{ route('admin.preorders.destroy', $preorder) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete">
+                                            <i data-feather="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center text-slate-500 font-medium italic">
+                                No preorder data found.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if($preorders->hasPages())
+            <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100">
                 {{ $preorders->links() }}
             </div>
         @endif
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        document.querySelectorAll('.js-confirm').forEach(form => {
-            form.addEventListener('submit', e => {
-                e.preventDefault();
-                Swal.fire({
-                    title: form.dataset.title,
-                    text: form.dataset.text,
-                    icon: 'question',
-                    showCancelButton: true
-                }).then(r => r.isConfirmed && form.submit());
-            });
-        });
-
-        document.querySelectorAll('.js-delete').forEach(form => {
-            form.addEventListener('submit', e => {
-                e.preventDefault();
-                Swal.fire({
-                    title: 'Delete this preorder?',
-                    text: 'Tindakan ini tidak dapat dibatalkan.',
-                    icon: 'warning',
-                    showCancelButton: true
-                }).then(r => r.isConfirmed && form.submit());
-            });
-        });
-    </script>
-
+</div>
 @endsection

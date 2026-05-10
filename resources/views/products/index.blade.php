@@ -48,7 +48,7 @@
                             class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('category') == '' ? 'text-white bg-white/5' : 'text-white/40' }}">
                             All Categories
                         </a>
-                        @foreach(['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories'] as $cat)
+                        @foreach(['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories', 'Cotton'] as $cat)
                             <a href="{{ route('products.index', array_merge(request()->all(), ['category' => $cat])) }}" 
                                 class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white/10 {{ request('category') == $cat ? 'text-white bg-white/5' : 'text-white/40' }}">
                                 {{ $cat }}

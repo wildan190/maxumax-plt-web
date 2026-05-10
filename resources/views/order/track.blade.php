@@ -91,18 +91,11 @@
                                     <span
                                         class="text-white font-black text-right">{{ optional($preorder->product)->name ?? ($preorder->category ?? 'Individual Item') }}</span>
                                 </div>
-                                @php
-                                    $variantSku = optional($preorder->variant)->sku;
-                                @endphp
-                                @if($preorder->size || $variantSku)
+                                @if($preorder->size)
                                     <div class="flex justify-between items-end pb-4 border-b border-white/5">
                                         <span class="text-white/40 font-bold text-xs uppercase tracking-widest">Variant</span>
                                         <span class="text-white font-black text-right">
                                             {{ $preorder->size ?? optional($preorder->variant)->name ?? '-' }}
-                                            @if($variantSku)
-                                                <span class="text-white/20 font-bold text-xs uppercase tracking-widest ml-2">SKU
-                                                    {{ $variantSku }}</span>
-                                            @endif
                                         </span>
                                     </div>
                                 @endif
@@ -340,23 +333,25 @@
             })
         }
 
-        @if(session('status'))
+        const sessionStatus = "{{ session('status') }}";
+        if (sessionStatus) {
             Swal.fire({
                 icon: 'success',
                 title: 'BERHASIL',
-                text: "{{ session('status') }}",
+                text: sessionStatus,
                 confirmButtonColor: '#2563eb'
             });
-        @endif
+        }
 
-        @if(session('error'))
+        const sessionError = "{{ session('error') }}";
+        if (sessionError) {
             Swal.fire({
                 icon: 'error',
                 title: 'GAGAL',
-                text: "{{ session('error') }}",
+                text: sessionError,
                 confirmButtonColor: '#ef4444'
             });
-        @endif
+        }
     </script>
     <style>
         @keyframes fadeIn {

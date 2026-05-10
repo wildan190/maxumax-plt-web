@@ -1,5 +1,5 @@
 <!-- Example Usage of Breadcrumbs -->
-<!-- Letakkan di bagian atas view sebelum @extends -->
+<!-- Place at the top of the view before @extends -->
 
 <?php
 $breadcrumbs = [

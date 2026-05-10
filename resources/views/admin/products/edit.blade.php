@@ -70,7 +70,7 @@
                                 <select name="category" id="categorySelect" required
                                         style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
                                     <option value="">-- Select Category --</option>
-                                    @foreach(['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories'] as $cat)
+                                    @foreach(['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories', 'Cotton'] as $cat)
                                         <option value="{{ $cat }}" {{ old('category', $product->category) == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                                     @endforeach
                                 </select>
@@ -185,7 +185,7 @@
                             <div id="variantsContainerEdit" style="display: flex; flex-direction: column; gap: 0.75rem;">
                                 @foreach($product->variants as $variant)
                                     <div class="variant-row-edit"
-                                        style="display: grid; grid-template-columns: 2fr 1.5fr 2fr auto; gap: 0.75rem; align-items: center; padding: 0.75rem; background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 1rem;">
+                                        style="display: grid; grid-template-columns: 2fr 1.5fr auto; gap: 0.75rem; align-items: center; padding: 0.75rem; background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 1rem;">
                                         <input type="hidden" name="variants[{{ $loop->index }}][id]"
                                             value="{{ $variant->id }}" />
                                         <input type="text" name="variants[{{ $loop->index }}][name]"
@@ -196,9 +196,6 @@
                                             value="{{ $variant->stock }}" min="0" placeholder="Qty"
                                             style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;"
                                             required />
-                                        <input type="text" name="variants[{{ $loop->index }}][sku]" value="{{ $variant->sku }}"
-                                            placeholder="SKU Override"
-                                            style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-family: monospace; font-weight: 600;" />
                                         <button type="button" class="removeVariantBtnEdit"
                                             style="width: 2.25rem; height: 2.25rem; background: #fee2e2; color: #ef4444; border: none; border-radius: 0.625rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                                             <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
@@ -226,22 +223,31 @@
                             @php
                                 $paths = [];
                                 if ($product->image_path)
-                                    $paths[] = $product->image_path;
+                                    $paths[] = ['path' => $product->image_path, 'id' => null, 'is_main' => true];
                                 foreach ($product->images as $img)
-                                    $paths[] = $img->path;
+                                    $paths[] = ['path' => $img->path, 'id' => $img->id, 'is_main' => false];
                             @endphp
 
                             @if(count($paths) > 0)
-                                <div
+                                <div id="existingImagesGrid"
                                     style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.5rem;">
-                                    @foreach($paths as $path)
-                                        <div
-                                            style="aspect-ratio: 1; border-radius: 0.75rem; overflow: hidden; border: 1px solid #f3f4f6; position: relative; group">
-                                            <img src="{{ asset('storage/' . $path) }}"
-                                                style="width: 100%; height: 100%; object-fit: cover;" alt="Product image" />
+                                    @foreach($paths as $idx => $imgData)
+                                        <div class="existing-image-item"
+                                            data-image-id="{{ $imgData['id'] }}"
+                                            data-image-position="{{ $idx }}"
+                                            draggable="true"
+                                            style="aspect-ratio: 1; border-radius: 0.75rem; overflow: hidden; border: 1px solid #f3f4f6; position: relative; cursor: grab; transition: all 0.2s;">
+                                            <img src="{{ asset('storage/' . $imgData['path']) }}"
+                                                style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;" alt="Product image" />
+                                            @if($imgData['is_main'])
+                                                <div style="position: absolute; bottom: 0.5rem; right: 0.5rem; background: #3b82f6; color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.625rem; font-weight: 700;">
+                                                    MAIN
+                                                </div>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
+                                <input type="hidden" id="imagePositionsInput" name="image_positions" value="" />
                             @else
                                 <div
                                     style="text-align: center; padding: 2rem 0; color: #9ca3af; background: #f9fafb; border-radius: 1rem; border: 1px dashed #e5e7eb; margin-bottom: 1.5rem;">
@@ -278,6 +284,7 @@
                                     Reset Selection
                                 </button>
                             </div>
+                            <p style="font-size: 0.7rem; color: #9ca3af; margin: 1rem 0 0 0; text-align: center; font-style: italic;">💡 Tip: Drag images (existing or new) to reorder</p>
                         </div>
                     </div>
 
@@ -303,15 +310,6 @@
                                         value="{{ old('price', $product->price) }}" required
                                         style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 3rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; font-weight: 700; color: #111827;" />
                                 </div>
-                            </div>
-
-                            <div style="margin-bottom: 1.25rem;">
-                                <label
-                                    style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.375rem; letter-spacing: 0.05em;">Master
-                                    SKU</label>
-                                <input type="text" name="sku" value="{{ old('sku', $product->sku) }}"
-                                    style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; font-family: monospace; font-weight: 600; text-transform: uppercase;"
-                                    placeholder="MM-OR-XXXX" />
                             </div>
 
                             <div style="margin-bottom: 1.25rem;">
@@ -381,14 +379,23 @@
 
                         const img = document.createElement('img');
                         img.src = evt.target.result;
-                        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; pointer-events: none;';
 
                         const removeBtn = document.createElement('button');
                         removeBtn.innerHTML = '<i data-feather="x" style="width: 14px; height: 14px;"></i>';
                         removeBtn.type = 'button';
                         removeBtn.style.cssText = 'position: absolute; top: 0.25rem; right: 0.25rem; width: 1.5rem; height: 1.5rem; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);';
-                        removeBtn.onclick = () => removeFile(i);
-
+                        removeBtn.onclick = () => removeFile(i);                        
+                        // Add drag attributes for reordering
+                        container.draggable = true;
+                        container.dataset.fileIndex = i;
+                        container.style.cursor = 'grab';
+                        container.addEventListener('dragstart', handleDragStart);
+                        container.addEventListener('dragend', handleDragEnd);
+                        container.addEventListener('dragover', handleDragOver);
+                        container.addEventListener('drop', handleDrop);
+                        container.addEventListener('dragenter', handleDragEnter);
+                        container.addEventListener('dragleave', handleDragLeave);
                         container.appendChild(img);
                         container.appendChild(removeBtn);
                         grid.appendChild(container);
@@ -428,16 +435,149 @@
             dz.ondrop = (e) => { e.preventDefault(); addFiles(e.dataTransfer.files); };
             input.onchange = (e) => addFiles(e.target.files);
             clearBtn.onclick = () => { currentFiles = []; updateInputFiles([]); render([]); };
+            
+            // Drag and Drop Reordering for New Images
+            let draggedIndex = null;
+            let draggedOverIndex = null;
+            
+            function handleDragStart(e) {
+                draggedIndex = parseInt(this.dataset.fileIndex);
+                this.style.opacity = '0.5';
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', draggedIndex);
+            }
+            
+            function handleDragEnd(e) {
+                document.querySelectorAll('#imagePreviewGridEdit > div').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.borderColor = '#e5e7eb';
+                    el.style.background = '';
+                });
+                draggedIndex = null;
+                draggedOverIndex = null;
+            }
+            
+            function handleDragOver(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            }
+            
+            function handleDragEnter(e) {
+                if (this !== grid) {
+                    this.style.borderColor = '#3b82f6';
+                    this.style.background = '#eff6ff';
+                }
+            }
+            
+            function handleDragLeave(e) {
+                this.style.borderColor = '#e5e7eb';
+                this.style.background = '';
+            }
+            
+            function handleDrop(e) {
+                e.preventDefault();
+                const targetIndex = parseInt(this.dataset.fileIndex);
+                
+                if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                    // Reorder array
+                    const movedItem = currentFiles.splice(draggedIndex, 1)[0];
+                    currentFiles.splice(targetIndex, 0, movedItem);
+                    
+                    updateInputFiles(currentFiles);
+                    render(currentFiles);
+                }
+                
+                this.style.borderColor = '#e5e7eb';
+                this.style.background = '';
+            }
+            
+            // Drag and Drop Reordering for Existing Images
+            const existingGridEl = document.getElementById('existingImagesGrid');
+            if (existingGridEl) {
+                let draggedExistingEl = null;
+                
+                function setupExistingImageDragHandlers() {
+                    document.querySelectorAll('.existing-image-item').forEach(item => {
+                        item.addEventListener('dragstart', function(e) {
+                            draggedExistingEl = this;
+                            this.style.opacity = '0.5';
+                            e.dataTransfer.effectAllowed = 'move';
+                            e.dataTransfer.setData('text/plain', '');
+                        });
+                        
+                        item.addEventListener('dragend', function(e) {
+                            document.querySelectorAll('.existing-image-item').forEach(el => {
+                                el.style.opacity = '1';
+                                el.style.borderColor = '#f3f4f6';
+                                el.style.background = '';
+                            });
+                            draggedExistingEl = null;
+                        });
+                        
+                        item.addEventListener('dragover', function(e) {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                        });
+                        
+                        item.addEventListener('dragenter', function(e) {
+                            if (this !== draggedExistingEl) {
+                                this.style.borderColor = '#3b82f6';
+                                this.style.background = '#eff6ff';
+                            }
+                        });
+                        
+                        item.addEventListener('dragleave', function(e) {
+                            this.style.borderColor = '#f3f4f6';
+                            this.style.background = '';
+                        });
+                        
+                        item.addEventListener('drop', function(e) {
+                            e.preventDefault();
+                            if (draggedExistingEl && draggedExistingEl !== this) {
+                                // Insert dragged element before or after target based on position
+                                const children = Array.from(existingGridEl.children);
+                                const draggedPos = children.indexOf(draggedExistingEl);
+                                const targetPos = children.indexOf(this);
+                                
+                                if (draggedPos < targetPos) {
+                                    this.parentNode.insertBefore(draggedExistingEl, this.nextSibling);
+                                } else {
+                                    this.parentNode.insertBefore(draggedExistingEl, this);
+                                }
+                                
+                                // Update positions
+                                updateExistingImagePositions();
+                            }
+                            this.style.borderColor = '#f3f4f6';
+                            this.style.background = '';
+                        });
+                    });
+                }
+                
+                function updateExistingImagePositions() {
+                    const imageIds = [];
+                    document.querySelectorAll('.existing-image-item').forEach((item, index) => {
+                        const id = item.dataset.imageId;
+                        if (id && id !== 'null') {
+                            imageIds.push(id);
+                        }
+                        item.dataset.imagePosition = index;
+                    });
+                    document.getElementById('imagePositionsInput').value = JSON.stringify(imageIds);
+                }
+                
+                setupExistingImageDragHandlers();
+            }
 
             // Variant Management
-            let variantIndexEdit = {{ $product->variants->count() }};
+            let variantIndexEdit = parseInt("{{ $product->variants->count() }}");
             const container = document.getElementById('variantsContainerEdit');
             const addBtn = document.getElementById('addVariantBtnEdit');
 
-            function createRowEdit(name = '', stock = 0, sku = '', id = null) {
+            function createRowEdit(name = '', stock = 0, id = null) {
                 const row = document.createElement('div');
                 row.className = 'variant-row-edit';
-                row.style.cssText = 'display: grid; grid-template-columns: 2fr 1.5fr 2fr auto; gap: 0.75rem; align-items: center; padding: 0.75rem; background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 1rem;';
+                row.style.cssText = 'display: grid; grid-template-columns: 2fr 1.5fr auto; gap: 0.75rem; align-items: center; padding: 0.75rem; background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 1rem;';
 
                 const idInput = id ? `<input type="hidden" name="variants[${variantIndexEdit}][id]" value="${id}" />` : '';
 
@@ -450,10 +590,6 @@
                                     <div>
                                         <input type="number" name="variants[${variantIndexEdit}][stock]" value="${stock}" min="0" placeholder="Qty" 
                                                style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700;" required />
-                                    </div>
-                                    <div>
-                                        <input type="text" name="variants[${variantIndexEdit}][sku]" value="${sku}" placeholder="SKU Override" 
-                                               style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 0.625rem; font-size: 0.875rem; font-family: monospace; font-weight: 600;" />
                                     </div>
                                     <button type="button" class="remove-v-edit" style="width: 2.25rem; height: 2.25rem; background: #fee2e2; color: #ef4444; border: none; border-radius: 0.625rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                                         <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
@@ -511,58 +647,6 @@
 
             updateTotalStockEdit();
 
-            // SKU Auto-Generation
-            const nameInput = document.querySelector('input[name="name"]');
-            const skuInput = document.querySelector('input[name="sku"]');
-
-            function generateSKU() {
-                if (!nameInput.value) return;
-
-                const nameSlug = nameInput.value
-                    .trim()
-                    .toUpperCase()
-                    .replace(/[^A-Z0-9 ]/g, '')
-                    .split(' ')
-                    .map(word => word.substring(0, 3))
-                    .join('')
-                    .substring(0, 8);
-
-                const random = Math.floor(1000 + Math.random() * 9000);
-                const masterSku = `MXM-${nameSlug}-${random}`;
-                skuInput.value = masterSku;
-
-                // Sync variant SKUs
-                updateVariantSKUs();
-            }
-
-            function updateVariantSKUs() {
-                const masterSku = skuInput.value;
-                const rows = container.querySelectorAll('.variant-row-edit');
-                rows.forEach(row => {
-                    const nameField = row.querySelector('input[name*="[name]"]');
-                    const skuField = row.querySelector('input[name*="[sku]"]');
-                    if (nameField && skuField && (!skuField.value || skuField.value.startsWith('MXM-'))) {
-                        skuField.value = `${masterSku}-${nameField.value.toUpperCase().replace(/[^A-Z0-9]/g, '')}`;
-                    }
-                });
-            }
-
-            nameInput.addEventListener('change', function () {
-                if (!skuInput.value || skuInput.value === '') {
-                    generateSKU();
-                }
-            });
-
-            // Re-sync variants if master SKU changes manually
-            skuInput.addEventListener('change', updateVariantSKUs);
-
-            // Re-sync variant SKU if its size name changes
-            container.addEventListener('input', function (e) {
-                if (e.target.name && e.target.name.includes('[name]')) {
-                    updateVariantSKUs();
-                }
-            });
-
             // Pre-order Toggle Logic
             const preOrderToggle = document.querySelector('input[name="available_for_preorder"]');
             const variantsSection = document.getElementById('variantsContainerEdit');
@@ -574,7 +658,7 @@
                 const isPreorder = preOrderToggle.checked;
 
                 // Toggle Hint
-                hint.style.display = isPreorder ? 'flex' : 'none';
+                if (hint) hint.style.display = isPreorder ? 'flex' : 'none';
 
                 // Toggle Stock inputs in variants
                 const stockInputs = variantsSection.querySelectorAll('input[name*="[stock]"]');
@@ -586,8 +670,8 @@
                     if (isPreorder) el.value = 0;
                 });
 
-                // Keep Name and SKU inputs enabled
-                const otherInputs = variantsSection.querySelectorAll('input[name*="[name]"], input[name*="[sku]"]');
+                // Keep Name inputs enabled
+                const otherInputs = variantsSection.querySelectorAll('input[name*="[name]"]');
                 otherInputs.forEach(el => {
                     el.disabled = false;
                     el.style.opacity = '1';
@@ -603,17 +687,21 @@
                     el.style.cursor = 'pointer';
                 });
 
-                addVariantBtn.disabled = false;
-                addVariantBtn.style.opacity = '1';
-                addVariantBtn.style.cursor = 'pointer';
+                if (addVariantBtn) {
+                    addVariantBtn.disabled = false;
+                    addVariantBtn.style.opacity = '1';
+                    addVariantBtn.style.cursor = 'pointer';
+                }
 
                 // Disable Master Stock if Preorder
-                masterStockInput.disabled = isPreorder;
-                masterStockInput.style.background = isPreorder ? '#f3f4f6' : 'white';
-                if (isPreorder) {
-                    masterStockInput.value = 0;
-                } else {
-                    updateTotalStockEdit();
+                if (masterStockInput) {
+                    masterStockInput.disabled = isPreorder;
+                    masterStockInput.style.background = isPreorder ? '#f3f4f6' : 'white';
+                    if (isPreorder) {
+                        masterStockInput.value = 0;
+                    } else {
+                        updateTotalStockEdit();
+                    }
                 }
             }
 
@@ -628,16 +716,16 @@
             const collectionSelect = document.getElementById('collectionSelect');
             
             function toggleCollection() {
-                if (categorySelect.value !== '') {
-                    collectionContainer.style.display = 'block';
+                if (categorySelect && categorySelect.value !== '') {
+                    if (collectionContainer) collectionContainer.style.display = 'block';
                 } else {
-                    collectionContainer.style.display = 'none';
-                    if (!collectionSelect.value) {
+                    if (collectionContainer) collectionContainer.style.display = 'none';
+                    if (collectionSelect && !collectionSelect.value) {
                          collectionSelect.value = ''; // keep existing value if it is loaded, otherwise reset
                     }
                 }
             }
-            categorySelect.addEventListener('change', toggleCollection);
+            if (categorySelect) categorySelect.addEventListener('change', toggleCollection);
             toggleCollection(); // Run on init
         })();
     </script>

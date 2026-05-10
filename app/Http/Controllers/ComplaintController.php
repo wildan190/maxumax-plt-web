@@ -2,97 +2,57 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Complaint\StoreComplaintRequest;
 use App\Models\Complaint;
 use App\Models\Preorder;
-use Illuminate\Http\Request;
+use App\Services\Complaint\CustomerComplaintService;
 
 class ComplaintController extends Controller
 {
-    /**
-     * Show the complaint submission form
-     */
-    public function create($preorder)
+    public function create(string $preorder, CustomerComplaintService $complaints)
     {
-        $preorder = Preorder::with(['product', 'histories', 'complaints'])
-            ->where('order_number', $preorder)
-            ->orWhere('id', $preorder)
-            ->orWhere('uuid', $preorder)
-            ->firstOrFail();
+        $preorderModel = $complaints->findPreorderForComplaint($preorder);
 
-        // Check if order is delivered
-        $deliveryTime = $preorder->getDeliveryTimestamp();
-
+        $deliveryTime = $preorderModel->getDeliveryTimestamp();
         if (!$deliveryTime) {
             return back()->with('error', 'You can only file a complaint after the order has been delivered.');
         }
 
-        // Calculate expiration (7 days from delivery)
-        $expiresAt = \Carbon\Carbon::parse($deliveryTime)->addDays(7);
-
-        if (now()->isAfter($expiresAt)) {
+        $expiresAt = $complaints->expiresAtAfterDelivery($preorderModel);
+        if ($expiresAt && now()->isAfter($expiresAt)) {
             return back()->with('error', 'The complaint window has expired. You must file within 7 days of delivery.');
         }
 
-        // Check if there's already a pending complaint
-        $existingComplaint = $preorder->complaints()->whereIn('status', ['pending', 'approved'])->first();
+        $existingComplaint = $complaints->activeComplaintBlocking($preorderModel);
         if ($existingComplaint) {
             return redirect()->route('complaints.show', $existingComplaint)
                 ->with('info', 'You already have an active complaint for this order.');
         }
 
-        return view('complaints.create', compact('preorder', 'expiresAt'));
+        return view('complaints.create', [
+            'preorder' => $preorderModel,
+            'expiresAt' => $expiresAt,
+        ]);
     }
 
-    /**
-     * Store a new complaint
-     */
-    public function store(Request $request)
+    public function store(StoreComplaintRequest $request, CustomerComplaintService $complaints)
     {
-        $data = $request->validate([
-            'preorder_id' => 'required|exists:preorders,id',
-            'type' => 'required|in:refund,replacement',
-            'reason' => 'required|string|min:10|max:1000',
-        ]);
+        $preorder = Preorder::with('histories')->findOrFail($request->validated('preorder_id'));
 
-        $preorder = Preorder::with('histories')->findOrFail($data['preorder_id']);
-
-        // Verify delivery and expiration
-        $deliveryTime = $preorder->getDeliveryTimestamp();
-
-        if (!$deliveryTime) {
-            return back()->withErrors(['delivery' => 'Order must be delivered before filing a complaint.'])->withInput();
-        }
-
-        $expiresAt = \Carbon\Carbon::parse($deliveryTime)->addDays(7);
-
-        if (now()->isAfter($expiresAt)) {
-            return back()->withErrors(['expired' => 'Complaint window has expired.'])->withInput();
-        }
-
-        // Check for existing complaint
-        $existing = $preorder->complaints()->whereIn('status', ['pending', 'approved'])->first();
-        if ($existing) {
-            return redirect()->route('complaints.show', $existing)
+        if ($blocking = $complaints->activeComplaintBlocking($preorder)) {
+            return redirect()->route('complaints.show', $blocking)
                 ->with('info', 'You already have an active complaint.');
         }
 
-        // Create complaint
-        $complaint = Complaint::create([
-            'preorder_id' => $preorder->id,
-            'type' => $data['type'],
-            'reason' => $data['reason'],
-            'status' => 'pending',
-            'refund_amount' => $data['type'] === 'refund' ? $preorder->total_amount : null,
-            'expires_at' => $expiresAt,
+        $complaint = $complaints->createComplaint($preorder, [
+            'type' => $request->validated('type'),
+            'reason' => $request->validated('reason'),
         ]);
 
         return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Your complaint has been submitted successfully. We will review it shortly.');
     }
 
-    /**
-     * Show complaint status
-     */
     public function show(Complaint $complaint)
     {
         $complaint->load('preorder.product', 'approver');
@@ -100,9 +60,6 @@ class ComplaintController extends Controller
         return view('complaints.show', compact('complaint'));
     }
 
-    /**
-     * Cancel a pending complaint
-     */
     public function cancel(Complaint $complaint)
     {
         if (!$complaint->canBeCancelled()) {
