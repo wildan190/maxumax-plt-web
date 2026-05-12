@@ -65,11 +65,19 @@ class ProductService
 
         if ($request->hasFile('image')) {
             $attrs['image_path'] = $this->imageStorage->storeUploaded($request->file('image'));
+        } elseif ($request->shouldDeleteMainImage()) {
+            $attrs['image_path'] = null;
+        }
+
+        $this->products->update($product, $attrs);
+
+        // Handle gallery image deletions
+        $deletedIds = $request->deletedImageIds();
+        if (!empty($deletedIds)) {
+            $this->images->deleteMany($product, $deletedIds);
         }
 
         $existingImageCount = (int) $product->images()->count();
-
-        $this->products->update($product, $attrs);
 
         // Handle image position updates for existing images
         $imagePositions = $request->imagePositions();

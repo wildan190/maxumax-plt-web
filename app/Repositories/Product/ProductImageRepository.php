@@ -62,4 +62,16 @@ class ProductImageRepository
                 ->update(['position' => $position]);
         }
     }
+
+    /**
+     * Delete multiple images by their IDs.
+     *
+     * @param  array<int|string>  $imageIds
+     */
+    public function deleteMany(Product $product, array $imageIds): void
+    {
+        ProductImage::whereIn('id', $imageIds)
+            ->where('product_id', $product->id)
+            ->delete();
+    }
 }

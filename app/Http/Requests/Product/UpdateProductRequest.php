@@ -34,6 +34,8 @@ class UpdateProductRequest extends FormRequest
             'image' => 'nullable|image|max:2048',
             'images.*' => 'nullable|image|max:4096',
             'image_positions' => 'nullable|string',
+            'deleted_images' => 'nullable|string',
+            'delete_main_image' => 'nullable|boolean',
             'variants.*.id' => 'nullable|exists:product_variants,id',
             'variants.*.name' => 'nullable|string|max:100',
             'variants.*.stock' => 'nullable|integer|min:0',
@@ -108,5 +110,31 @@ class UpdateProductRequest extends FormRequest
         } catch (\Exception) {
             return [];
         }
+    }
+
+    /**
+     * Get IDs of images to be deleted.
+     *
+     * @return array<int|string>
+     */
+    public function deletedImageIds(): array
+    {
+        $deleted = $this->input('deleted_images');
+        if (!$deleted) {
+            return [];
+        }
+        try {
+            return json_decode($deleted, true) ?? [];
+        } catch (\Exception) {
+            return [];
+        }
+    }
+
+    /**
+     * Should the main image be deleted?
+     */
+    public function shouldDeleteMainImage(): bool
+    {
+        return $this->boolean('delete_main_image');
     }
 }

@@ -234,6 +234,7 @@
                                     @foreach($paths as $idx => $imgData)
                                         <div class="existing-image-item"
                                             data-image-id="{{ $imgData['id'] }}"
+                                            data-image-is-main="{{ $imgData['is_main'] ? '1' : '0' }}"
                                             data-image-position="{{ $idx }}"
                                             draggable="true"
                                             style="aspect-ratio: 1; border-radius: 0.75rem; overflow: hidden; border: 1px solid #f3f4f6; position: relative; cursor: grab; transition: all 0.2s;">
@@ -244,10 +245,16 @@
                                                     MAIN
                                                 </div>
                                             @endif
+                                            <button type="button" class="remove-existing-image-btn"
+                                                style="position: absolute; top: 0.25rem; right: 0.25rem; width: 1.5rem; height: 1.5rem; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); z-index: 10;">
+                                                <i data-feather="x" style="width: 14px; height: 14px;"></i>
+                                            </button>
                                         </div>
                                     @endforeach
                                 </div>
                                 <input type="hidden" id="imagePositionsInput" name="image_positions" value="" />
+                                <input type="hidden" id="deletedImagesInput" name="deleted_images" value="[]" />
+                                <input type="hidden" id="deleteMainImageInput" name="delete_main_image" value="0" />
                             @else
                                 <div
                                     style="text-align: center; padding: 2rem 0; color: #9ca3af; background: #f9fafb; border-radius: 1rem; border: 1px dashed #e5e7eb; margin-bottom: 1.5rem;">
@@ -551,6 +558,27 @@
                             this.style.borderColor = '#f3f4f6';
                             this.style.background = '';
                         });
+
+                        // Add removal listener
+                        const removeBtn = item.querySelector('.remove-existing-image-btn');
+                        if (removeBtn) {
+                            removeBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                const id = item.dataset.imageId;
+                                const isMain = item.dataset.imageIsMain === '1';
+                                
+                                if (isMain) {
+                                    document.getElementById('deleteMainImageInput').value = '1';
+                                } else if (id && id !== 'null') {
+                                    const deletedIds = JSON.parse(document.getElementById('deletedImagesInput').value);
+                                    deletedIds.push(id);
+                                    document.getElementById('deletedImagesInput').value = JSON.stringify(deletedIds);
+                                }
+                                
+                                item.remove();
+                                updateExistingImagePositions();
+                            };
+                        }
                     });
                 }
                 
