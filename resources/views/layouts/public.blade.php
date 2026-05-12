@@ -84,11 +84,16 @@
 </head>
 
 <body class="public-body bg-black text-white" x-data="{ 
-    showSplash: !sessionStorage.getItem('splash_dismissed') && window.location.pathname === '/' 
+    showSplash: !sessionStorage.getItem('splash_dismissed') && (window.location.pathname === '/' || window.location.pathname === '/index.php'),
+    init() {
+        if (window.location.pathname !== '/' && window.location.pathname !== '/index.php') {
+            sessionStorage.setItem('splash_dismissed', 'true');
+        }
+    }
 }" :class="{ 'overflow-hidden': showSplash }">
 
     <!-- Splash Screen -->
-    <div x-show="showSplash" x-transition:leave="transition ease-in duration-700" x-transition:leave-start="opacity-100"
+    <div x-show="showSplash" x-cloak x-transition:leave="transition ease-in duration-700" x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center">
 
