@@ -45,7 +45,7 @@
                     <div class="w-1/2 p-6 bg-[#0a0a0a]">
                         <h4 class="text-white/40 font-black uppercase tracking-widest text-[9px] mb-4">By Product</h4>
                         <div class="grid grid-cols-2 gap-3">
-                            @foreach (['Jerseys', 'Pro Jerseys', 'Polos', 'Windbreakers', 'Tracksuits', 'Jackets', 'Pants', 'Socks', 'Accessories', 'Caps'] as $cat)
+                            @foreach (['Jerseys', 'Pro Jerseys', 'Polos', 'Shirts', 'Windbreakers', 'Tracksuits', 'Jackets', 'Pants', 'Socks', 'Accessories', 'Caps'] as $cat)
                                 <a href="{{ route('products.index', ['category' => $cat]) }}"
                                     class="text-[10px] font-black uppercase tracking-widest text-white hover:text-blue-400 transition-colors">
                                     {{ $cat }}
@@ -178,7 +178,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="{'rotate-180': open}" class="transition-transform"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </button>
                 <div x-show="open" x-collapse x-cloak class="mt-4 flex flex-col space-y-4 bg-white/5 p-4 rounded-xl">
-                    @foreach (['Jerseys', 'Pro Jerseys', 'Polos', 'Windbreakers', 'Tracksuits', 'Jackets', 'Pants', 'Base Layer / Inner', 'Cotton Series', 'Socks', 'Sleeve Socks', 'Caps', 'Accessories'] as $cat)
+                    @foreach (['Jerseys', 'Pro Jerseys', 'Polos', 'Shirts', 'Windbreakers', 'Tracksuits', 'Jackets', 'Pants', 'Base Layer / Inner', 'Cotton Series', 'Socks', 'Sleeve Socks', 'Caps', 'Accessories'] as $cat)
                         <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['category' => $cat]) }}"
                             class="text-white/70 font-bold uppercase tracking-widest text-xs hover:text-white">
                             {{ $cat }}

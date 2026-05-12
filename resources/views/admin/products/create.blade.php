@@ -56,7 +56,7 @@
                                 <select name="category" id="categorySelect" required
                                         style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
                                     <option value="">-- Select Category --</option>
-                                    @foreach(['Jerseys', 'Polos', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories', 'Cotton'] as $cat)
+                                    @foreach(['Jerseys', 'Polos', 'Shirts', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Accessories', 'Cotton'] as $cat)
                                         <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                                     @endforeach
                                 </select>

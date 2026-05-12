@@ -22,7 +22,7 @@
             <div>
                 <h4 class="text-white font-black uppercase tracking-widest text-sm mb-8">Products</h4>
                 <ul class="space-y-4">
-                    @foreach(['Jerseys', 'Pro Jerseys', 'Polos', 'Windbreakers', 'Tracksuits', 'Jackets', 'Pants', 'Socks', 'Accessories'] as $item)
+                    @foreach(['Jerseys', 'Pro Jerseys', 'Polos', 'Shirts', 'Windbreakers', 'Tracksuits', 'Jackets', 'Pants', 'Socks', 'Accessories'] as $item)
                     <li><a href="{{ route('products.index', ['category' => $item]) }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">{{ $item }}</a></li>
                     @endforeach
                 </ul>
