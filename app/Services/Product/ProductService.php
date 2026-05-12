@@ -42,7 +42,12 @@ class ProductService
         }
 
         if (!isset($attrs['image_path']) && $gallery !== []) {
-            $attrs['image_path'] = $gallery[0]['path'];
+            $main = array_shift($gallery);
+            $attrs['image_path'] = $main['path'];
+            // Re-index gallery positions
+            foreach ($gallery as $idx => &$g) {
+                $g['position'] = $idx;
+            }
         }
 
         $product = $this->products->create($attrs);
@@ -99,6 +104,23 @@ class ProductService
 
         if ($request->has('variants')) {
             $this->variants->syncFromForm($product, $request->variantsInput());
+        }
+
+        // --- Post-Update Image Consolidation ---
+        $product->refresh();
+        
+        // 1. If main image is missing, promote the first gallery image
+        if (!$product->image_path) {
+            $firstGallery = $product->images()->orderBy('position', 'asc')->first();
+            if ($firstGallery) {
+                $this->products->update($product, ['image_path' => $firstGallery->path]);
+                $firstGallery->delete();
+            }
+        }
+        
+        // 2. Ensure no duplicates (gallery image with same path as main image)
+        if ($product->image_path) {
+            $product->images()->where('path', $product->image_path)->delete();
         }
     }
 

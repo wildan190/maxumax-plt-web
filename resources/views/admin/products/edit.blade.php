@@ -224,8 +224,11 @@
                                 $paths = [];
                                 if ($product->image_path)
                                     $paths[] = ['path' => $product->image_path, 'id' => null, 'is_main' => true];
-                                foreach ($product->images as $img)
+                                foreach ($product->images as $img) {
+                                    // Skip if it's the same path as the main image to avoid UI duplication
+                                    if ($product->image_path && $img->path === $product->image_path) continue;
                                     $paths[] = ['path' => $img->path, 'id' => $img->id, 'is_main' => false];
+                                }
                             @endphp
 
                             @if(count($paths) > 0)

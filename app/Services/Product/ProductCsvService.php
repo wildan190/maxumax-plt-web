@@ -265,9 +265,11 @@ class ProductCsvService
                 if ($stored === null) {
                     continue;
                 }
-                $gallery[] = ['path' => $stored, 'position' => $position];
+                
                 if ($position === 0) {
                     $this->products->update($product, ['image_path' => $stored]);
+                } else {
+                    $gallery[] = ['path' => $stored, 'position' => $position - 1];
                 }
                 $position++;
             }

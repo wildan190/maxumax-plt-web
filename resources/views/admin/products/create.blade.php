@@ -305,6 +305,13 @@
                         container.addEventListener('dragenter', handleDragEnter);
                         container.addEventListener('dragleave', handleDragLeave);
                         
+                        if (i === 0) {
+                            const badge = document.createElement('div');
+                            badge.textContent = 'MAIN';
+                            badge.style.cssText = 'position: absolute; bottom: 0.5rem; right: 0.5rem; background: #3b82f6; color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.625rem; font-weight: 700; z-index: 5;';
+                            container.appendChild(badge);
+                        }
+                        
                         container.appendChild(img);
                         container.appendChild(removeBtn);
                         grid.appendChild(container);
