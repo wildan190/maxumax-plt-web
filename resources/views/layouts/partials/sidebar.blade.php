@@ -95,6 +95,12 @@
                         <span>Gallery</span>
                     </a>
 
+                    <a href="{{ route('admin.landing-page.edit') }}"
+                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.landing-page.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                        <i data-feather="layout" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.landing-page.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                        <span>Landing page</span>
+                    </a>
+
                     <a href="{{ route('admin.complaints.index') }}"
                         class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.complaints.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
                         <i data-feather="message-square" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.complaints.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
