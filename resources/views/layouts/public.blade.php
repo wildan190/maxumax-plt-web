@@ -14,12 +14,12 @@
     <link rel="canonical" href="{{ url()->current() }}">
 
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="@yield('title', config('app.name', 'Maxumax'))">
     <meta property="og:description"
         content="@yield('meta_description', 'Maxumax - Premium quality jerseys for sports and lifestyle. Expertly crafted in Malaysia.')">
-    <meta property="og:image" content="{{ asset('assets/img/og-image.jpg') }}">
+    <meta property="og:image" content="@yield('meta_image', asset('assets/img/og-image.jpg'))">
     <meta property="og:site_name" content="Maxumax Malaysia">
 
     <!-- Twitter -->
@@ -28,7 +28,7 @@
     <meta property="twitter:title" content="@yield('title', config('app.name', 'Maxumax'))">
     <meta property="twitter:description"
         content="@yield('meta_description', 'Maxumax - Premium quality jerseys for sports and lifestyle.')">
-    <meta property="twitter:image" content="{{ asset('assets/img/og-image.jpg') }}">
+    <meta property="twitter:image" content="@yield('meta_image', asset('assets/img/og-image.jpg'))">
 
     <!-- Schema Markup -->
     <script type="application/ld+json">

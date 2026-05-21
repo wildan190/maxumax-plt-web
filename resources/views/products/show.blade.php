@@ -2,6 +2,10 @@
 
 @section('title', $product->name . ' — Product Detail')
 
+@section('meta_description', e(Str::limit(strip_tags($product->description ?: 'Precision-engineered performance apparel. Designed for the elite who demand absolute excellence on and off the field.'), 160)))
+@section('meta_image', $product->image_path ? asset('storage/' . $product->image_path) : asset('assets/img/logo.png'))
+@section('og_type', 'product')
+
 @push('schema')
     <script type="application/ld+json">
     {
