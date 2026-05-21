@@ -282,6 +282,11 @@
                                            style="width: 1.125rem; height: 1.125rem; border-radius: 0.375rem; cursor: pointer;" />
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #374151;">Market Visibility (Active)</span>
                                 </label>
+                                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                                    <input type="checkbox" name="add_to_homepage" value="1" {{ old('add_to_homepage') ? 'checked' : '' }} 
+                                           style="width: 1.125rem; height: 1.125rem; border-radius: 0.375rem; cursor: pointer;" />
+                                    <span style="font-size: 0.875rem; font-weight: 600; color: #374151;">Add to Homepage</span>
+                                </label>
                             </div>
                         </div>
                     </div>

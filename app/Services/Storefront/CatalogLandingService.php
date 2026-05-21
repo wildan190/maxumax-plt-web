@@ -26,7 +26,7 @@ class CatalogLandingService
             ->where('add_to_homepage', true)
             ->orderBy('position', 'asc')
             ->orderBy('created_at', 'desc')
-            ->take(8)
+            ->take(6)
             ->get();
         $highlightedGallery = Gallery::where('is_highlight', true)->latest()->take(6)->get();
         $currency = $this->currencyService->resolveCurrency($request);

@@ -7,14 +7,11 @@
     {{-- 1. Hero --}}
     @include('partials.home.hero')
 
-    {{-- 2. Two Ways to Shop --}}
-    @include('partials.home.ways-to-shop')
-
-    {{-- 3. Main Categories --}}
-    @include('partials.home.shop-by-sport')
-
-    {{-- 4. Featured Products --}}
+    {{-- 4. Product Highlights --}}
     @include('partials.home.new-arrivals')
+
+    {{-- 3. Featured Collections --}}
+    @include('partials.home.shop-by-sport')
 
     {{-- 5. Trusted Projects --}}
     @include('partials.home.trusted-projects')

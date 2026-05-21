@@ -56,6 +56,15 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Product updated');
     }
 
+    public function toggleHomepage(\Illuminate\Http\Request $request, Product $product)
+    {
+        $product->update([
+            'add_to_homepage' => $request->boolean('add_to_homepage')
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     public function destroy(Product $product)
     {
         $this->productService->delete($product);

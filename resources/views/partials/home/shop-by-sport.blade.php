@@ -2,7 +2,7 @@
 <section class="bg-[#050505] py-24 px-6 border-b border-white/5">
     <div class="max-w-7xl mx-auto">
         <div class="text-center mb-16">
-            <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight">Main Categories</h2>
+            <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight">Featured Collections</h2>
         </div>
         <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             @foreach ($shopBySportItems as $sportItem)

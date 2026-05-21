@@ -42,7 +42,10 @@
                 <div x-show="searchOpen" x-cloak x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" 
                     class="absolute right-0 top-full mt-4 w-64 bg-black/95 backdrop-blur-md border border-white/10 rounded-2xl p-3 shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-50">
                     <form action="{{ route('products.index') }}" method="GET" class="relative">
-                        <input type="text" name="search" placeholder="Search products..." class="w-full bg-black/50 text-white border border-white/10 rounded-xl pl-3 pr-10 py-2.5 text-xs font-semibold focus:outline-none focus:border-white/30" autofocus>
+                        @foreach(request()->except(['search', 'page']) as $key => $value)
+                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                        @endforeach
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search products..." class="w-full bg-black/50 text-white border border-white/10 rounded-xl pl-3 pr-10 py-2.5 text-xs font-semibold focus:outline-none focus:border-white/30" autofocus>
                         <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                         </button>

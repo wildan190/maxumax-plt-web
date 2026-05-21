@@ -337,6 +337,43 @@
                     </div>
                 @endif
             </div>
+
+            @if(isset($products) && $products->hasPages())
+                <div class="mt-16 border-t border-white/5 pt-12 flex justify-center">
+                    <div class="inline-flex items-center gap-1">
+                        {{-- Custom Simple Tailwind Pagination --}}
+                        @if(!$products->onFirstPage())
+                            <a href="{{ $products->previousPageUrl() }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/5">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                                </svg>
+                            </a>
+                        @endif
+
+                        @foreach ($products->getUrlRange(1, $products->lastPage()) as $page => $url)
+                            @if ($page == $products->currentPage())
+                                <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-white text-black font-black text-xs shadow-lg shadow-white/10">
+                                    {{ $page }}
+                                </span>
+                            @elseif ($page == 1 || $page == $products->lastPage() || ($page >= $products->currentPage() - 1 && $page <= $products->currentPage() + 1))
+                                <a href="{{ $url }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/5 font-black text-xs">
+                                    {{ $page }}
+                                </a>
+                            @elseif ($page == 2 || $page == $products->lastPage() - 1)
+                                <span class="w-10 h-10 flex items-center justify-center text-white/20">...</span>
+                            @endif
+                        @endforeach
+
+                        @if($products->hasMorePages())
+                            <a href="{{ $products->nextPageUrl() }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/5">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
     </section>
 @endsection

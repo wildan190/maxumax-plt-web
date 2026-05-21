@@ -201,7 +201,7 @@ class PreorderStorefrontFlowService
             $query->orderBy('position', 'asc')->orderBy('created_at', 'desc');
         }
 
-        $products = $query->get();
+        $products = $query->paginate(12)->withQueryString();
 
         $currency = $this->currencyService->resolveCurrency($request);
         $currencyConfig = $this->currencyService->getCurrencyConfig($currency);

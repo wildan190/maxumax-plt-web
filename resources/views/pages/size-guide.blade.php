@@ -12,34 +12,23 @@
         </p>
     </section>
 
+    @if($sizeGuides->isNotEmpty())
     <!-- Size Guide Tabs Section using Alpine.js -->
-    <section class="max-w-6xl mx-auto px-6 mb-24" x-data="{ activeTab: 'polo-golf-adult' }">
+    <section class="max-w-6xl mx-auto px-6 mb-24" x-data="{ activeTab: '{{ $sizeGuides->first()->slug }}' }">
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar / Tab Navigation -->
             <div class="w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
                 <div class="sticky top-24 bg-white/5 border border-white/10 rounded-xl p-4 overflow-y-auto max-h-[70vh] custom-scrollbar">
                     <nav class="flex flex-col gap-1 space-y-1">
-                        <template x-for="tab in [
-                            { id: 'polo-golf-adult', name: 'POLO GOLF (ADULT)' },
-                            { id: 'polo-golf-kid', name: 'POLO GOLF (KID)' },
-                            { id: 'raglan-cut-adult', name: 'RAGLAN CUT (ADULT)' },
-                            { id: 'raglan-cut-kid', name: 'RAGLAN CUT (KID)' },
-                            { id: 'regular-cut-adult', name: 'REGULAR CUT (ADULT)' },
-                            { id: 'regular-cut-kid', name: 'REGULAR CUT (KID)' },
-                            { id: 'short-adult', name: 'SHORT (ADULT)' },
-                            { id: 'oversized-cotton', name: 'OVERSIZED COTTON' },
-                            { id: 'hoodie', name: 'HOODIE' },
-                            { id: 'running-vest-adult', name: 'RUNNING VEST (ADULT)' },
-                            { id: 'running-vest-kid', name: 'RUNNING VEST (KID)' },
-                            { id: 'sabah-fa', name: 'SABAH FA WOMEN’S TEAM' }
-                        ]">
+                        @foreach($sizeGuides as $guide)
                             <button 
-                                @click="activeTab = tab.id"
-                                :class="activeTab === tab.id ? 'bg-white text-black font-bold' : 'text-white/70 hover:bg-white/10 hover:text-white'"
+                                @click="activeTab = '{{ $guide->slug }}'"
+                                :class="activeTab === '{{ $guide->slug }}' ? 'bg-white text-black font-bold' : 'text-white/70 hover:bg-white/10 hover:text-white'"
                                 class="text-left px-4 py-3 text-sm tracking-wide rounded-lg transition-colors duration-200"
-                                x-text="tab.name"
-                            ></button>
-                        </template>
+                            >
+                                {{ $guide->name }}
+                            </button>
+                        @endforeach
                     </nav>
                 </div>
             </div>
@@ -47,93 +36,62 @@
             <!-- Tab Content Area -->
             <div class="w-full md:w-2/3 lg:w-3/4">
                 <div class="bg-white/5 border border-white/10 rounded-xl p-6 md:p-10 min-h-[500px]">
-                    <!-- Generic Tab Content Template (Repeated for all sizes) -->
-                    <template x-for="tab in [
-                        { id: 'polo-golf-adult', name: 'POLO GOLF (ADULT)' },
-                        { id: 'polo-golf-kid', name: 'POLO GOLF (KID)' },
-                        { id: 'raglan-cut-adult', name: 'RAGLAN CUT (ADULT)' },
-                        { id: 'raglan-cut-kid', name: 'RAGLAN CUT (KID)' },
-                        { id: 'regular-cut-adult', name: 'REGULAR CUT (ADULT)' },
-                        { id: 'regular-cut-kid', name: 'REGULAR CUT (KID)' },
-                        { id: 'short-adult', name: 'SHORT (ADULT)' },
-                        { id: 'oversized-cotton', name: 'OVERSIZED COTTON' },
-                        { id: 'hoodie', name: 'HOODIE' },
-                        { id: 'running-vest-adult', name: 'RUNNING VEST (ADULT) **Singlet' },
-                        { id: 'running-vest-kid', name: 'RUNNING VEST (KID) **Singlet' },
-                        { id: 'sabah-fa', name: 'SABAH FA WOMEN’S TEAM' }
-                    ]">
-                        <div x-show="activeTab === tab.id" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+                    @foreach($sizeGuides as $guide)
+                        <div x-show="activeTab === '{{ $guide->slug }}'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
                             
-                            <h2 class="text-2xl font-black uppercase mb-6" x-text="tab.name"></h2>
+                            <h2 class="text-2xl font-black uppercase mb-6">{{ $guide->name }}</h2>
                             
                             <div class="mb-8 text-white/60 text-sm">
                                 <p>Please note that all measurements are in centimeters (cm). Allow a tolerance of +/- 1-2cm for manufacturing variations.</p>
                             </div>
 
+                            @if($guide->data && isset($guide->data['headers']) && isset($guide->data['rows']))
                             <div class="overflow-x-auto rounded-lg border border-white/10">
                                 <table class="w-full text-left border-collapse min-w-[600px]">
                                     <thead>
                                         <tr class="bg-white/10">
-                                            <th class="py-4 px-6 font-bold uppercase text-sm border-b border-white/10">Size</th>
-                                            <th class="py-4 px-6 font-bold uppercase text-sm border-b border-white/10">Chest Width</th>
-                                            <th class="py-4 px-6 font-bold uppercase text-sm border-b border-white/10">Body Length</th>
-                                            <th class="py-4 px-6 font-bold uppercase text-sm border-b border-white/10">Sleeve Length</th>
+                                            @foreach($guide->data['headers'] as $header)
+                                                <th class="py-4 px-6 font-bold uppercase text-sm border-b border-white/10">{{ $header }}</th>
+                                            @endforeach
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-white/5">
-                                        <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="py-4 px-6 font-bold">XS</td>
-                                            <td class="py-4 px-6 text-white/80">46</td>
-                                            <td class="py-4 px-6 text-white/80">66</td>
-                                            <td class="py-4 px-6 text-white/80">20</td>
-                                        </tr>
-                                        <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="py-4 px-6 font-bold">S</td>
-                                            <td class="py-4 px-6 text-white/80">48</td>
-                                            <td class="py-4 px-6 text-white/80">68</td>
-                                            <td class="py-4 px-6 text-white/80">21</td>
-                                        </tr>
-                                        <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="py-4 px-6 font-bold">M</td>
-                                            <td class="py-4 px-6 text-white/80">51</td>
-                                            <td class="py-4 px-6 text-white/80">71</td>
-                                            <td class="py-4 px-6 text-white/80">22</td>
-                                        </tr>
-                                        <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="py-4 px-6 font-bold">L</td>
-                                            <td class="py-4 px-6 text-white/80">53</td>
-                                            <td class="py-4 px-6 text-white/80">74</td>
-                                            <td class="py-4 px-6 text-white/80">23</td>
-                                        </tr>
-                                        <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="py-4 px-6 font-bold">XL</td>
-                                            <td class="py-4 px-6 text-white/80">56</td>
-                                            <td class="py-4 px-6 text-white/80">76</td>
-                                            <td class="py-4 px-6 text-white/80">24</td>
-                                        </tr>
-                                        <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="py-4 px-6 font-bold">2XL</td>
-                                            <td class="py-4 px-6 text-white/80">58</td>
-                                            <td class="py-4 px-6 text-white/80">79</td>
-                                            <td class="py-4 px-6 text-white/80">25</td>
-                                        </tr>
+                                        @foreach($guide->data['rows'] as $row)
+                                            <tr class="hover:bg-white/5 transition-colors">
+                                                @foreach($row as $index => $cell)
+                                                    <td class="py-4 px-6 {{ $index === 0 ? 'font-bold' : 'text-white/80' }}">{{ $cell }}</td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
                                     </tbody>
                                 </table>
                             </div>
+                            @endif
                             
+                            @if($guide->image_path)
+                            <div class="mt-8">
+                                <img src="{{ asset('storage/' . $guide->image_path) }}" alt="{{ $guide->name }} Chart" class="w-full h-auto rounded-xl border border-white/10 shadow-2xl">
+                            </div>
+                            @else
                             <!-- Placeholder for Image representation if needed -->
                             <div class="mt-8 bg-black border border-white/5 rounded-xl p-8 flex flex-col items-center justify-center text-center">
                                 <svg class="w-12 h-12 text-white/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path>
                                 </svg>
-                                <p class="text-white/40 text-sm">Visual size chart representation can be added here.</p>
+                                <p class="text-white/40 text-sm">Visual size chart representation will be available soon.</p>
                             </div>
+                            @endif
                         </div>
-                    </template>
+                    @endforeach
                 </div>
             </div>
         </div>
     </section>
+    @else
+    <section class="max-w-4xl mx-auto px-6 text-center py-20">
+        <p class="text-white/40 italic">Size guides are currently being updated. Please check back later.</p>
+    </section>
+    @endif
 
     <!-- Closing & CTA Section -->
     <section class="max-w-3xl mx-auto px-6 text-center border-t border-white/10 pt-16">

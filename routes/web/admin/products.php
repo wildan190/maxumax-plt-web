@@ -14,5 +14,6 @@ Route::prefix('products')->name('admin.products.')->group(function () {
     Route::post('/', [ProductController::class, 'store'])->name('store');
     Route::get('{product}/edit', [ProductController::class, 'edit'])->name('edit');
     Route::put('{product}', [ProductController::class, 'update'])->name('update');
+    Route::post('{product}/toggle-homepage', [ProductController::class, 'toggleHomepage'])->name('toggle-homepage');
     Route::delete('{product}', [ProductController::class, 'destroy'])->name('destroy');
 });

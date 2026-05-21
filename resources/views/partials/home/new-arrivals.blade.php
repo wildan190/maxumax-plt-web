@@ -1,17 +1,18 @@
-<!-- 8. New Arrivals (Only show if products exist) -->
+<!-- 8. Product Highlights (Only show if products exist) -->
 @if(isset($products) && $products->isNotEmpty())
 <section class="bg-black py-24 px-6">
     <div class="max-w-7xl mx-auto">
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div>
-                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mb-2">New Arrivals</h2>
+                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mb-2">Product Highlights</h2>
+                <p class="text-slate-400 font-medium mt-3">Explore our latest ready stock drops and performance gear.</p>
             </div>
             <a href="{{ route('products.index', ['filter' => 'new-arrivals']) }}" class="inline-flex items-center gap-2 text-white font-bold uppercase tracking-widest text-xs hover:text-slate-400 transition-colors">
                 View All <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </a>
         </div>
 
-        <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+        <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             @foreach ($products as $product)
                 <div class="w-[70vw] md:w-auto snap-start shrink-0 flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group relative">
                     <!-- Product Image -->
@@ -19,7 +20,7 @@
                         @if ($product->image_path)
                             <img src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}"
                                 onerror="this.onerror=null;this.src='{{ asset('assets/img/logo.png') }}';"
-                                class="max-w-[85%] max-h-[85%] md:max-w-full md:max-h-full object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)] group-hover:scale-105 transition-transform duration-700">
+                                class="max-w-[85%] max-h-[85%] md:max-w-full md:max-h-full object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)] group-hover:scale-110 transition-transform duration-700">
                         @else
                             <div class="text-white/10">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 md:w-16 md:h-16"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>

@@ -20,7 +20,11 @@ class PageController extends Controller
 
     public function sizeGuide()
     {
-        return view('pages.size-guide');
+        $sizeGuides = \App\Models\SizeGuide::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('pages.size-guide', compact('sizeGuides'));
     }
 
     public function customization()

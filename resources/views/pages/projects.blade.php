@@ -5,9 +5,9 @@
 @section('content')
 <section class="bg-black py-24 px-6 min-h-[40vh] flex items-center justify-center border-b border-white/5">
     <div class="max-w-4xl mx-auto text-center">
-        <h1 class="text-4xl md:text-6xl font-black text-white uppercase tracking-tight mb-6">Trusted Projects</h1>
+        <h1 class="text-4xl md:text-6xl font-black text-white uppercase tracking-tight mb-6">PROJECTS SHOWCASE</h1>
         <p class="text-slate-400 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
-            Teams, governments & corporates that trust MAXUMAX gear for peak performance.
+            Trusted by teams, organizations and event partners across Sabah and beyond.
         </p>
     </div>
 </section>
