@@ -17,6 +17,7 @@ use App\Notifications\NewOrderNotification;
 use App\Notifications\NewPreorderNotification;
 use App\Services\CurrencyService;
 use App\Services\EasyParcelService;
+use App\Services\Landing\LandingPageHomeContentService;
 use App\Services\MyParcelAsiaService;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
@@ -30,6 +31,7 @@ class PreorderStorefrontFlowService
     public function __construct(
         protected OrderService $orderService,
         protected CurrencyService $currencyService,
+        protected LandingPageHomeContentService $landingService,
     ) {}
 
     public function submitProductOrderForm(StorePreorderRequest $request)
@@ -205,8 +207,9 @@ class PreorderStorefrontFlowService
 
         $currency = $this->currencyService->resolveCurrency($request);
         $currencyConfig = $this->currencyService->getCurrencyConfig($currency);
+        $shopBySportItems = $this->landingService->shopBySportItems();
 
-        return view('products.index', compact('products', 'currency', 'currencyConfig'));
+        return view('products.index', compact('products', 'currency', 'currencyConfig', 'shopBySportItems'));
     }
 
     public function retailProductDetailView(Request $request, Product $product)
