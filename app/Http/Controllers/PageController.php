@@ -28,6 +28,16 @@ class PageController extends Controller
         return view('pages.customization');
     }
 
+    public function projects()
+    {
+        return view('pages.projects');
+    }
+
+    public function about()
+    {
+        return view('pages.about');
+    }
+
     public function faq()
     {
         return view('pages.faq');

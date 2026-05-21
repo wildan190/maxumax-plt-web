@@ -14,6 +14,8 @@
 
     @include('partials.home.customizable-items')
 
+    @include('partials.home.custom-process')
+
     <!-- FAQ Section -->
     <section class="py-24 px-6 border-t border-white/10">
         <div class="max-w-4xl mx-auto">

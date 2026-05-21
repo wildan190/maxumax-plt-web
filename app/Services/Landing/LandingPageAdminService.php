@@ -5,6 +5,7 @@ namespace App\Services\Landing;
 use App\Http\Requests\Admin\UpdateLandingPageRequest;
 use App\Models\LandingFeaturedCollectionItem;
 use App\Models\LandingHeroSlide;
+use App\Models\LandingProjectItem;
 use App\Models\LandingShopBySportItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -17,6 +18,7 @@ class LandingPageAdminService
             $this->syncHero($request);
             $this->syncShop($request);
             $this->syncFeatured($request);
+            $this->syncProjects($request);
         });
     }
 
@@ -33,6 +35,11 @@ class LandingPageAdminService
     public function resetFeaturedToDefaults(): void
     {
         $this->deleteAllFeaturedItems();
+    }
+
+    public function resetProjectsToDefaults(): void
+    {
+        $this->deleteAllProjectItems();
     }
 
     private function syncHero(UpdateLandingPageRequest $request): void
@@ -80,13 +87,16 @@ class LandingPageAdminService
                 }
                 $slide->update($data);
             } else {
-                LandingHeroSlide::query()->create([
+                $slideData = [
                     'sort_order' => $order,
                     'title' => $row['title'],
                     'body' => $row['body'] ?? null,
                     'buttons' => $buttons,
-                    'image_path' => $request->file("hero.$index.image")->store('landing/hero', 'public'),
-                ]);
+                ];
+                if ($request->hasFile("hero.$index.image")) {
+                    $slideData['image_path'] = $request->file("hero.$index.image")->store('landing/hero', 'public');
+                }
+                LandingHeroSlide::query()->create($slideData);
             }
         }
     }
@@ -133,12 +143,15 @@ class LandingPageAdminService
                 }
                 $item->update($data);
             } else {
-                LandingShopBySportItem::query()->create([
+                $itemData = [
                     'sort_order' => $order,
                     'label' => $row['label'],
                     'sport_param' => $row['sport_param'],
-                    'image_path' => $request->file("shop.$index.image")->store('landing/shop-by-sport', 'public'),
-                ]);
+                ];
+                if ($request->hasFile("shop.$index.image")) {
+                    $itemData['image_path'] = $request->file("shop.$index.image")->store('landing/shop-by-sport', 'public');
+                }
+                LandingShopBySportItem::query()->create($itemData);
             }
         }
     }
@@ -185,12 +198,72 @@ class LandingPageAdminService
                 }
                 $item->update($data);
             } else {
-                LandingFeaturedCollectionItem::query()->create([
+                $itemData = [
                     'sort_order' => $order,
                     'label' => $row['label'],
                     'filter_param' => $row['filter_param'],
-                    'image_path' => $request->file("featured.$index.image")->store('landing/featured-collections', 'public'),
-                ]);
+                ];
+                if ($request->hasFile("featured.$index.image")) {
+                    $itemData['image_path'] = $request->file("featured.$index.image")->store('landing/featured-collections', 'public');
+                }
+                LandingFeaturedCollectionItem::query()->create($itemData);
+            }
+        }
+    }
+
+    private function syncProjects(UpdateLandingPageRequest $request): void
+    {
+        $rows = $request->input('projects', []);
+        $keptIds = [];
+        $toSave = [];
+
+        foreach ($rows as $index => $row) {
+            if ($this->isBlankProjectRow($request, $index)) {
+                continue;
+            }
+            $id = isset($row['id']) ? (int) $row['id'] : null;
+            if ($id) {
+                $keptIds[] = $id;
+            }
+            $toSave[] = ['index' => $index, 'row' => $row, 'id' => $id];
+        }
+
+        $allIds = LandingProjectItem::query()->pluck('id')->all();
+        $removeIds = array_values(array_diff($allIds, $keptIds));
+        if ($removeIds !== []) {
+            LandingProjectItem::query()->whereIn('id', $removeIds)->get()->each(function (LandingProjectItem $item) {
+                $this->deleteStoredIfExists($item->image_path);
+                $item->delete();
+            });
+        }
+
+        foreach ($toSave as $order => $pack) {
+            $row = $pack['row'];
+            $index = $pack['index'];
+            if ($pack['id']) {
+                $item = LandingProjectItem::query()->findOrFail($pack['id']);
+                $data = [
+                    'sort_order' => $order,
+                    'category' => $row['category'] ?? null,
+                    'title' => $row['title'],
+                    'description' => $row['description'] ?? null,
+                ];
+                if ($request->hasFile("projects.$index.image")) {
+                    $this->deleteStoredIfExists($item->image_path);
+                    $data['image_path'] = $request->file("projects.$index.image")->store('landing/projects', 'public');
+                }
+                $item->update($data);
+            } else {
+                $itemData = [
+                    'sort_order' => $order,
+                    'category' => $row['category'] ?? null,
+                    'title' => $row['title'],
+                    'description' => $row['description'] ?? null,
+                ];
+                if ($request->hasFile("projects.$index.image")) {
+                    $itemData['image_path'] = $request->file("projects.$index.image")->store('landing/projects', 'public');
+                }
+                LandingProjectItem::query()->create($itemData);
             }
         }
     }
@@ -250,6 +323,17 @@ class LandingPageAdminService
             && ! $request->hasFile("featured.$index.image");
     }
 
+    private function isBlankProjectRow(UpdateLandingPageRequest $request, int $index): bool
+    {
+        $row = $request->input("projects.$index", []);
+
+        return ! ($row['id'] ?? null)
+            && trim((string) ($row['title'] ?? '')) === ''
+            && trim((string) ($row['category'] ?? '')) === ''
+            && trim((string) ($row['description'] ?? '')) === ''
+            && ! $request->hasFile("projects.$index.image");
+    }
+
     private function deleteStoredIfExists(?string $path): void
     {
         if ($path && Storage::disk('public')->exists($path)) {
@@ -276,6 +360,14 @@ class LandingPageAdminService
     private function deleteAllFeaturedItems(): void
     {
         LandingFeaturedCollectionItem::query()->get()->each(function (LandingFeaturedCollectionItem $item) {
+            $this->deleteStoredIfExists($item->image_path);
+            $item->delete();
+        });
+    }
+
+    private function deleteAllProjectItems(): void
+    {
+        LandingProjectItem::query()->get()->each(function (LandingProjectItem $item) {
             $this->deleteStoredIfExists($item->image_path);
             $item->delete();
         });

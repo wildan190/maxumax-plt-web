@@ -17,7 +17,7 @@ class CatalogLandingService
     /**
      * Home page storefront (featured products open for preorder + gallery teasers).
      *
-     * @return array{products: \Illuminate\Support\Collection, highlightedGallery: \Illuminate\Support\Collection, currency: string, currencyConfig: array, heroSlides: array, shopBySportItems: array, featuredCollectionItems: array}
+     * @return array{products: \Illuminate\Support\Collection, highlightedGallery: \Illuminate\Support\Collection, currency: string, currencyConfig: array, heroSlides: array, shopBySportItems: array, featuredCollectionItems: array, trustedProjectItems: array, whyChooseItems: array}
      */
     public function homeDataset(Request $request): array
     {
@@ -34,6 +34,8 @@ class CatalogLandingService
         $heroSlides = $this->landingPageHomeContent->heroSlides();
         $shopBySportItems = $this->landingPageHomeContent->shopBySportItems();
         $featuredCollectionItems = $this->landingPageHomeContent->featuredCollectionItems();
+        $trustedProjectItems = $this->landingPageHomeContent->trustedProjectItems();
+        $whyChooseItems = $this->landingPageHomeContent->whyChooseItems();
 
         return compact(
             'products',
@@ -43,6 +45,8 @@ class CatalogLandingService
             'heroSlides',
             'shopBySportItems',
             'featuredCollectionItems',
+            'trustedProjectItems',
+            'whyChooseItems',
         );
     }
 }

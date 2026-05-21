@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Admin\UpdateLandingPageRequest;
 use App\Models\LandingFeaturedCollectionItem;
 use App\Models\LandingHeroSlide;
+use App\Models\LandingProjectItem;
 use App\Models\LandingShopBySportItem;
 use App\Services\Landing\LandingPageAdminService;
 use Illuminate\Http\RedirectResponse;
@@ -25,8 +26,9 @@ class LandingPageAdminController extends Controller
         $heroSlides = LandingHeroSlide::query()->orderBy('sort_order')->orderBy('id')->get();
         $shopItems = LandingShopBySportItem::query()->orderBy('sort_order')->orderBy('id')->get();
         $featuredItems = LandingFeaturedCollectionItem::query()->orderBy('sort_order')->orderBy('id')->get();
+        $projectItems = LandingProjectItem::query()->orderBy('sort_order')->orderBy('id')->get();
 
-        return view('admin.landing-page.edit', compact('heroSlides', 'shopItems', 'featuredItems'));
+        return view('admin.landing-page.edit', compact('heroSlides', 'shopItems', 'featuredItems', 'projectItems'));
     }
 
     public function update(UpdateLandingPageRequest $request): RedirectResponse
@@ -55,5 +57,12 @@ class LandingPageAdminController extends Controller
         $this->landingPageAdminService->resetFeaturedToDefaults();
 
         return redirect()->route('admin.landing-page.edit')->with('success', 'Featured collections dikembalikan ke default situs.');
+    }
+
+    public function resetProjects(): RedirectResponse
+    {
+        $this->landingPageAdminService->resetProjectsToDefaults();
+
+        return redirect()->route('admin.landing-page.edit')->with('success', 'Trusted projects dikembalikan ke default situs.');
     }
 }

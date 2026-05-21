@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\LandingFeaturedCollectionItem;
 use App\Models\LandingHeroSlide;
+use App\Models\LandingProjectItem;
 use App\Models\LandingShopBySportItem;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Storage;
@@ -42,6 +43,13 @@ class UpdateLandingPageRequest extends FormRequest
             'featured.*.label' => ['nullable', 'string', 'max:255'],
             'featured.*.filter_param' => ['nullable', 'string', 'max:255'],
             'featured.*.image' => $webpFile,
+
+            'projects' => ['nullable', 'array'],
+            'projects.*.id' => ['nullable', 'integer', 'exists:landing_project_items,id'],
+            'projects.*.category' => ['nullable', 'string', 'max:255'],
+            'projects.*.title' => ['nullable', 'string', 'max:255'],
+            'projects.*.description' => ['nullable', 'string', 'max:1000'],
+            'projects.*.image' => $webpFile,
         ];
     }
 
@@ -51,6 +59,7 @@ class UpdateLandingPageRequest extends FormRequest
             $this->validateHeroImages($validator);
             $this->validateShopImages($validator);
             $this->validateFeaturedImages($validator);
+            $this->validateProjectImages($validator);
         });
     }
 
@@ -62,26 +71,6 @@ class UpdateLandingPageRequest extends FormRequest
             }
             if (trim((string) ($row['title'] ?? '')) === '') {
                 $validator->errors()->add("hero.$index.title", 'Judul slide wajib diisi.');
-            }
-            $id = $row['id'] ?? null;
-            $hasNewFile = $this->hasFile("hero.$index.image");
-            if (! $hasNewFile) {
-                if (! $id) {
-                    $validator->errors()->add(
-                        "hero.$index.image",
-                        'Unggah gambar .webp wajib untuk slide baru (maks 2MB).'
-                    );
-
-                    continue;
-                }
-                $slide = LandingHeroSlide::query()->find($id);
-                $path = $slide?->image_path;
-                if (! $path || ! Storage::disk('public')->exists($path)) {
-                    $validator->errors()->add(
-                        "hero.$index.image",
-                        'File gambar tidak ada di penyimpanan. Unggah .webp baru (maks 2MB).'
-                    );
-                }
             }
         }
     }
@@ -98,26 +87,6 @@ class UpdateLandingPageRequest extends FormRequest
             if (trim((string) ($row['sport_param'] ?? '')) === '') {
                 $validator->errors()->add("shop.$index.sport_param", 'Nilai sport (query) wajib diisi.');
             }
-            $id = $row['id'] ?? null;
-            $hasNewFile = $this->hasFile("shop.$index.image");
-            if (! $hasNewFile) {
-                if (! $id) {
-                    $validator->errors()->add(
-                        "shop.$index.image",
-                        'Unggah gambar .webp wajib untuk item baru (maks 2MB).'
-                    );
-
-                    continue;
-                }
-                $item = LandingShopBySportItem::query()->find($id);
-                $path = $item?->image_path;
-                if (! $path || ! Storage::disk('public')->exists($path)) {
-                    $validator->errors()->add(
-                        "shop.$index.image",
-                        'File gambar tidak ada di penyimpanan. Unggah .webp baru (maks 2MB).'
-                    );
-                }
-            }
         }
     }
 
@@ -133,25 +102,17 @@ class UpdateLandingPageRequest extends FormRequest
             if (trim((string) ($row['filter_param'] ?? '')) === '') {
                 $validator->errors()->add("featured.$index.filter_param", 'Nilai filter (query) wajib diisi.');
             }
-            $id = $row['id'] ?? null;
-            $hasNewFile = $this->hasFile("featured.$index.image");
-            if (! $hasNewFile) {
-                if (! $id) {
-                    $validator->errors()->add(
-                        "featured.$index.image",
-                        'Unggah gambar .webp wajib untuk item baru (maks 2MB).'
-                    );
+        }
+    }
 
-                    continue;
-                }
-                $item = LandingFeaturedCollectionItem::query()->find($id);
-                $path = $item?->image_path;
-                if (! $path || ! Storage::disk('public')->exists($path)) {
-                    $validator->errors()->add(
-                        "featured.$index.image",
-                        'File gambar tidak ada di penyimpanan. Unggah .webp baru (maks 2MB).'
-                    );
-                }
+    private function validateProjectImages(Validator $validator): void
+    {
+        foreach ($this->input('projects', []) as $index => $row) {
+            if ($this->isBlankProjectRow($index)) {
+                continue;
+            }
+            if (trim((string) ($row['title'] ?? '')) === '') {
+                $validator->errors()->add("projects.$index.title", 'Judul proyek wajib diisi.');
             }
         }
     }
@@ -184,5 +145,16 @@ class UpdateLandingPageRequest extends FormRequest
             && trim((string) ($row['label'] ?? '')) === ''
             && trim((string) ($row['filter_param'] ?? '')) === ''
             && ! $this->hasFile("featured.$index.image");
+    }
+
+    private function isBlankProjectRow(int $index): bool
+    {
+        $row = $this->input("projects.$index", []);
+
+        return ! ($row['id'] ?? null)
+            && trim((string) ($row['title'] ?? '')) === ''
+            && trim((string) ($row['category'] ?? '')) === ''
+            && trim((string) ($row['description'] ?? '')) === ''
+            && ! $this->hasFile("projects.$index.image");
     }
 }

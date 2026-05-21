@@ -8,3 +8,4 @@ Route::put('landing-page', [LandingPageAdminController::class, 'update'])->name(
 Route::post('landing-page/reset-hero', [LandingPageAdminController::class, 'resetHero'])->name('admin.landing-page.reset-hero');
 Route::post('landing-page/reset-shop', [LandingPageAdminController::class, 'resetShop'])->name('admin.landing-page.reset-shop');
 Route::post('landing-page/reset-featured', [LandingPageAdminController::class, 'resetFeatured'])->name('admin.landing-page.reset-featured');
+Route::post('landing-page/reset-projects', [LandingPageAdminController::class, 'resetProjects'])->name('admin.landing-page.reset-projects');

@@ -20,51 +20,15 @@
 
         <!-- DESKTOP NAV (CENTER) -->
         <div class="hidden lg:flex flex-1 items-center justify-center gap-2.5 text-[9px] xl:text-[10px] font-bold tracking-[0.12em] uppercase text-white/80">
-            <a href="/" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">HOME</a>
+            <a href="{{ route('products.index') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">SHOP</a>
             
-            <a href="{{ route('products.index') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">ALL PRODUCTS</a>
+            <a href="{{ route('pages.customization') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">CUSTOM TEAMWEAR</a>
 
-            <!-- Shop By Sport Dropdown -->
-            <div class="relative group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-                <button class="hover:text-white transition-all duration-200 py-2 focus:outline-none px-1 border-0 bg-transparent m-0 p-0 text-[inherit] font-[inherit] tracking-[inherit] uppercase">
-                    SHOP BY SPORT
-                </button>
-                <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1"
-                    class="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[220px] bg-black/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden z-[60] flex flex-col p-2.5">
-                    @foreach (['Football Series', 'Golf Series', 'Fishing Series', 'Basketball Series', 'Outdoor Series', 'Run and Training Series', 'Casual / Lifestyle'] as $sport)
-                        <a href="{{ route('products.index', ['sport' => $sport]) }}"
-                            class="text-[9px] font-bold uppercase tracking-[0.15em] text-white/80 hover:text-white hover:bg-white/5 rounded-xl px-3 py-2 transition-all">
-                            {{ $sport }}
-                        </a>
-                    @endforeach
-                </div>
-            </div>
+            <a href="{{ route('pages.projects') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">PROJECTS</a>
 
-            <!-- Shop By Product Dropdown -->
-            <div class="relative group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-                <button class="hover:text-white transition-all duration-200 py-2 focus:outline-none px-1 border-0 bg-transparent m-0 p-0 text-[inherit] font-[inherit] tracking-[inherit] uppercase">
-                    SHOP BY PRODUCT
-                </button>
-                <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1"
-                    class="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[380px] bg-black/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden z-[60] p-4">
-                    <div class="grid grid-cols-2 gap-x-2 gap-y-0.5">
-                        @foreach (['Jerseys', 'Pro Jerseys', 'Polos', 'Shirts', 'Windbreakers', 'Tracksuits', 'Jackets', 'Pants', 'Base Layer / Inner', 'Cotton', 'Socks', 'Sleeve Socks', 'Caps', 'Accessories'] as $cat)
-                            <a href="{{ route('products.index', ['category' => $cat]) }}"
-                                class="text-[9px] font-bold uppercase tracking-[0.15em] text-white/80 hover:text-white hover:bg-white/5 rounded-xl px-3 py-1.5 transition-all">
-                                {{ $cat }}
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
+            <a href="{{ route('pages.about') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">ABOUT & PRODUCTION</a>
 
-            <a href="{{ route('pages.customization') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">CUSTOMIZATION</a>
-
-            <a href="{{ route('products.index', ['filter' => 'sale']) }}" class="text-red-500 hover:text-red-400 transition-all duration-200 py-2 inline-block px-1">SALE</a>
-
-            <a href="{{ route('order.track') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">TRACK ORDER</a>
-
-            <a href="{{ route('pages.contact-us') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">CONTACT US</a>
+            <a href="{{ route('pages.contact-us') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">CONTACT</a>
         </div>
 
         <!-- DESKTOP RIGHT (ICONS) -->
@@ -141,55 +105,20 @@
         class="lg:hidden bg-[#0a0a0a] border-t border-white/10 shadow-2xl overflow-y-auto max-h-[80vh]">
         <div class="flex flex-col p-6 space-y-4">
 
-            <a @click="mobileMenuOpen=false" href="/"
-                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Home</a>
-            
             <a @click="mobileMenuOpen=false" href="{{ route('products.index') }}"
-                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">All Products</a>
-
-            <!-- Shop by Sport Mobile Accordion -->
-            <div x-data="{ open: false }" class="border-b border-white/5 py-2">
-                <button @click="open = !open" class="flex items-center justify-between w-full text-white font-black uppercase tracking-widest text-sm">
-                    <span>Shop by Sport</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="{'rotate-180': open}" class="transition-transform"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                </button>
-                <div x-show="open" x-collapse x-cloak class="mt-4 flex flex-col space-y-4 bg-white/5 p-4 rounded-xl">
-                    @foreach (['Football Series', 'Golf Series', 'Fishing Series', 'Basketball Series', 'Outdoor Series', 'Run and Training Series', 'Casual / Lifestyle'] as $sport)
-                        <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['sport' => $sport]) }}"
-                            class="text-white/70 font-bold uppercase tracking-widest text-xs hover:text-white">
-                            {{ $sport }}
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- Shop by Product Mobile Accordion -->
-            <div x-data="{ open: false }" class="border-b border-white/5 py-2">
-                <button @click="open = !open" class="flex items-center justify-between w-full text-white font-black uppercase tracking-widest text-sm">
-                    <span>Shop by Product</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="{'rotate-180': open}" class="transition-transform"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                </button>
-                <div x-show="open" x-collapse x-cloak class="mt-4 flex flex-col space-y-4 bg-white/5 p-4 rounded-xl">
-                    @foreach (['Jerseys', 'Pro Jerseys', 'Polos', 'Shirts', 'Windbreakers', 'Tracksuits', 'Jackets', 'Pants', 'Base Layer / Inner', 'Cotton', 'Socks', 'Sleeve Socks', 'Caps', 'Accessories'] as $cat)
-                        <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['category' => $cat]) }}"
-                            class="text-white/70 font-bold uppercase tracking-widest text-xs hover:text-white">
-                            {{ $cat }}
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-
+                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Shop</a>
+            
             <a @click="mobileMenuOpen=false" href="{{ route('pages.customization') }}"
-                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Teamwear Customization</a>
+                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Custom Teamwear</a>
 
-            <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['filter' => 'sale']) }}"
-                class="text-red-500 font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Sale</a>
+            <a @click="mobileMenuOpen=false" href="{{ route('pages.projects') }}"
+                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Projects</a>
 
-            <a @click="mobileMenuOpen=false" href="{{ route('order.track') }}"
-                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Track Order</a>
+            <a @click="mobileMenuOpen=false" href="{{ route('pages.about') }}"
+                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">About & Production</a>
 
             <a @click="mobileMenuOpen=false" href="{{ route('pages.contact-us') }}"
-                class="text-white font-black uppercase tracking-widest text-sm py-2">Contact Us</a>
+                class="text-white font-black uppercase tracking-widest text-sm py-2">Contact</a>
 
             <!-- Currency Mobile -->
             <div class="pt-6 border-t border-white/10">

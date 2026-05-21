@@ -68,6 +68,22 @@
             </div>
         </div>
 
+        <div style="background: white; border-radius: 0.75rem; border: 1px solid #e5e7eb; padding: 2rem; margin-bottom: 2rem;">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0; font-size: 1.15rem; font-weight: 700;">Trusted projects</h2>
+                <button type="button" onclick="addProjectRow()" style="padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid #d1d5db; background: #f9fafb; font-weight: 600; cursor: pointer;">Tambah proyek</button>
+            </div>
+            <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem;">Section ini menampilkan tim, pemerintah, atau korporat yang mempercayai MAXUMAX.</p>
+
+            <div id="project-rows">
+                @forelse ($projectItems as $item)
+                    @include('admin.landing-page.partials.project-row', ['index' => $loop->index, 'item' => $item])
+                @empty
+                    @include('admin.landing-page.partials.project-row', ['index' => 0, 'item' => null])
+                @endforelse
+            </div>
+        </div>
+
         <button type="submit" style="padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; background: #4f46e5; color: white; font-weight: 700; cursor: pointer;">Simpan perubahan</button>
     </form>
 
@@ -87,6 +103,11 @@
             <button type="submit" onclick="return confirm('Hapus semua item Featured collections kustom?');"
                 style="padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid #fecaca; background: #fef2f2; color: #991b1b; font-weight: 600; cursor: pointer;">Reset featured</button>
         </form>
+        <form action="{{ route('admin.landing-page.reset-projects') }}" method="POST" style="display: inline;">
+            @csrf
+            <button type="submit" onclick="return confirm('Hapus semua item Trusted projects kustom?');"
+                style="padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid #fecaca; background: #fef2f2; color: #991b1b; font-weight: 600; cursor: pointer;">Reset projects</button>
+        </form>
     </div>
 
     <template id="tpl-hero-row">
@@ -97,6 +118,9 @@
     </template>
     <template id="tpl-featured-row">
         {!! view('admin.landing-page.partials.featured-row', ['index' => '__IDX__', 'item' => null])->render() !!}
+    </template>
+    <template id="tpl-project-row">
+        {!! view('admin.landing-page.partials.project-row', ['index' => '__IDX__', 'item' => null])->render() !!}
     </template>
 
     <script>
@@ -120,6 +144,14 @@
             document.querySelectorAll('#featured-rows [data-featured-row]').forEach(function (row, i) {
                 row.querySelectorAll('[name]').forEach(function (el) {
                     el.name = el.name.replace(/^featured\[\d+\]/, 'featured[' + i + ']');
+                });
+            });
+        }
+
+        function reindexProjectRows() {
+            document.querySelectorAll('#project-rows [data-project-row]').forEach(function (row, i) {
+                row.querySelectorAll('[name]').forEach(function (el) {
+                    el.name = el.name.replace(/^projects\[\d+\]/, 'projects[' + i + ']');
                 });
             });
         }
@@ -183,6 +215,26 @@
             }
             row.remove();
             reindexFeaturedRows();
+        }
+
+        function addProjectRow() {
+            var container = document.getElementById('project-rows');
+            var n = container.querySelectorAll('[data-project-row]').length;
+            var html = document.getElementById('tpl-project-row').innerHTML.replace(/__IDX__/g, String(n));
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function removeProjectRow(btn) {
+            var container = document.getElementById('project-rows');
+            var row = btn.closest('[data-project-row]');
+            if (container.querySelectorAll('[data-project-row]').length <= 1) {
+                row.querySelectorAll('input[type="text"], textarea').forEach(function (e) { e.value = ''; });
+                row.querySelectorAll('input[type="file"]').forEach(function (e) { e.value = ''; });
+                row.querySelectorAll('input[type="hidden"][name$="[id]"]').forEach(function (e) { e.remove(); });
+                return;
+            }
+            row.remove();
+            reindexProjectRows();
         }
     </script>
 @endsection

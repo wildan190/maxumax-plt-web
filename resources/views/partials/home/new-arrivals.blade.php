@@ -5,16 +5,15 @@
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div>
                 <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mb-2">New Arrivals</h2>
-                <p class="text-slate-400 font-medium">Explore our latest ready stock drops.</p>
             </div>
             <a href="{{ route('products.index', ['filter' => 'new-arrivals']) }}" class="inline-flex items-center gap-2 text-white font-bold uppercase tracking-widest text-xs hover:text-slate-400 transition-colors">
                 View All <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </a>
         </div>
 
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+        <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             @foreach ($products as $product)
-                <div class="flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group relative">
+                <div class="w-[70vw] md:w-auto snap-start shrink-0 flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group relative">
                     <!-- Product Image -->
                     <div class="aspect-square md:aspect-[4/5] relative flex items-center justify-center p-3 md:p-8 bg-gradient-to-b from-[#1a1a1a] to-[#111111]">
                         @if ($product->image_path)

@@ -4,6 +4,7 @@ namespace App\Services\Landing;
 
 use App\Models\LandingFeaturedCollectionItem;
 use App\Models\LandingHeroSlide;
+use App\Models\LandingProjectItem;
 use App\Models\LandingShopBySportItem;
 use Illuminate\Support\Facades\Storage;
 
@@ -100,12 +101,52 @@ class LandingPageHomeContentService
         })->all();
     }
 
+    /**
+     * @return array<int, array{category: string, title: string, description: string, img: string}>
+     */
+    public function trustedProjectItems(): array
+    {
+        $defaults = LandingPageDefaults::trustedProjects();
+        $rows = LandingProjectItem::query()->orderBy('sort_order')->orderBy('id')->get();
+        if ($rows->isEmpty()) {
+            return array_slice($defaults, 0, 4);
+        }
+
+        $n = count($defaults);
+
+        return $rows->values()->take(4)->map(function (LandingProjectItem $row, int $i) use ($defaults, $n) {
+            $def = $defaults[$i % $n];
+            $img = $this->publicUrlOrNull($row->image_path) ?? $def['img'];
+            $category = trim((string) $row->category) !== '' ? $row->category : $def['category'];
+            $title = trim((string) $row->title) !== '' ? $row->title : $def['title'];
+            $description = trim((string) $row->description) !== '' ? $row->description : $def['description'];
+
+            return [
+                'category' => $category,
+                'title' => $title,
+                'description' => $description,
+                'img' => $img,
+            ];
+        })->all();
+    }
+
+    /**
+     * @return array<int, array{title: string, description: string, icon: string}>
+     */
+    public function whyChooseItems(): array
+    {
+        return LandingPageDefaults::whyChoose();
+    }
+
     private function publicUrlOrNull(?string $path): ?string
     {
         if (! $path || ! Storage::disk('public')->exists($path)) {
             return null;
         }
 
-        return Storage::disk('public')->url($path);
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk('public');
+
+        return $disk->url($path);
     }
 }
