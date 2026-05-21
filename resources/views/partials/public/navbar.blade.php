@@ -26,7 +26,7 @@
 
             <a href="{{ route('pages.projects') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">PROJECTS</a>
 
-            <a href="{{ route('pages.about') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">ABOUT & PRODUCTION</a>
+            <a href="{{ route('pages.size-guide') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">SIZE GUIDE</a>
 
             <a href="{{ route('pages.contact-us') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">CONTACT</a>
         </div>
@@ -114,8 +114,8 @@
             <a @click="mobileMenuOpen=false" href="{{ route('pages.projects') }}"
                 class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Projects</a>
 
-            <a @click="mobileMenuOpen=false" href="{{ route('pages.about') }}"
-                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">About & Production</a>
+            <a @click="mobileMenuOpen=false" href="{{ route('pages.size-guide') }}"
+                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Size Guide</a>
 
             <a @click="mobileMenuOpen=false" href="{{ route('pages.contact-us') }}"
                 class="text-white font-black uppercase tracking-widest text-sm py-2">Contact</a>
