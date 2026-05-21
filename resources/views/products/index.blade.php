@@ -8,29 +8,57 @@
     $subhead = "Precision-engineered athletic wear, available for immediate dispatch. Join the elite.";
 
     $sportMap = [
+        'football' => [
+            'headline' => 'FOOTBALL SERIES',
+            'subhead' => 'Official apparel for football teams and associations'
+        ],
         'football series' => [
             'headline' => 'FOOTBALL SERIES',
             'subhead' => 'Official apparel for football teams and associations'
+        ],
+        'golf' => [
+            'headline' => 'GOLF SERIES',
+            'subhead' => 'Premium performance apparel for golfers on and off the course'
         ],
         'golf series' => [
             'headline' => 'GOLF SERIES',
             'subhead' => 'Premium performance apparel for golfers on and off the course'
         ],
+        'fishing' => [
+            'headline' => 'FISHING SERIES',
+            'subhead' => 'Technical apparel designed for comfort and protection on every expedition'
+        ],
         'fishing series' => [
             'headline' => 'FISHING SERIES',
             'subhead' => 'Technical apparel designed for comfort and protection on every expedition'
+        ],
+        'basketball' => [
+            'headline' => 'BASKETBALL SERIES',
+            'subhead' => 'High-performance apparel for basketball training and competition'
         ],
         'basketball series' => [
             'headline' => 'BASKETBALL SERIES',
             'subhead' => 'High-performance apparel for basketball training and competition'
         ],
+        'outdoor' => [
+            'headline' => 'OUTDOOR SERIES',
+            'subhead' => 'Breatheable performance wear for outdoor pursuits'
+        ],
         'outdoor series' => [
             'headline' => 'OUTDOOR SERIES',
             'subhead' => 'Breatheable performance wear for outdoor pursuits'
         ],
+        'run & training' => [
+            'headline' => 'RUN & TRAINING SERIES',
+            'subhead' => 'Performance apparel designed for running and intensive training'
+        ],
         'run & training series' => [
             'headline' => 'RUN & TRAINING SERIES',
             'subhead' => 'Performance apparel designed for running and intensive training'
+        ],
+        'lifestyle' => [
+            'headline' => 'CASUAL/LIFESTYLE',
+            'subhead' => 'Modern essentials for everyday comfort and style'
         ],
         'casual / lifestyle' => [
             'headline' => 'CASUAL/LIFESTYLE',
@@ -102,6 +130,10 @@
         'accessories' => [
             'headline' => 'ACCESSORIES',
             'subhead' => 'Official merchandise and accessories for everyday use'
+        ],
+        'sale' => [
+            'headline' => 'EXCLUSIVE DEALS',
+            'subhead' => 'Premium performance gear at special prices. Limited stock available.'
         ]
     ];
 

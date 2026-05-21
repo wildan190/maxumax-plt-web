@@ -35,7 +35,7 @@
             
             <a href="{{ route('pages.customization') }}" class="{{ request()->is('customization*') ? 'text-white underline underline-offset-8 decoration-2' : 'hover:text-white' }} transition-all duration-200 py-2 inline-block px-1">TEAMWEAR CUSTOMIZATION</a>
 
-            <a href="{{ route('products.index', ['category' => 'SALE']) }}" class="{{ request('category') == 'SALE' ? 'text-white underline underline-offset-8 decoration-2' : 'hover:text-white' }} transition-all duration-200 py-2 inline-block px-1">SALE</a>
+            <a href="{{ route('products.index', ['category' => 'SALE']) }}" class="italic {{ request('category') == 'SALE' ? 'text-rose-500 underline underline-offset-8 decoration-2' : 'text-rose-400 hover:text-rose-300' }} transition-all duration-200 py-2 inline-block px-1">SALE</a>
 
             <a href="{{ route('pages.contact-us') }}" class="{{ request()->is('contact-us*') ? 'text-white underline underline-offset-8 decoration-2' : 'hover:text-white' }} transition-all duration-200 py-2 inline-block px-1">CONTACT US</a>
         </div>
@@ -134,7 +134,7 @@
                 class="{{ request()->is('customization*') ? 'text-white' : 'text-white/60' }} font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Teamwear Customization</a>
 
             <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['category' => 'SALE']) }}"
-                class="{{ request('category') == 'SALE' ? 'text-white' : 'text-white/60' }} font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Sale</a>
+                class="italic {{ request('category') == 'SALE' ? 'text-rose-500' : 'text-rose-400' }} font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Sale</a>
 
             <a @click="mobileMenuOpen=false" href="{{ route('pages.contact-us') }}"
                 class="{{ request()->is('contact-us*') ? 'text-white' : 'text-white/60' }} font-black uppercase tracking-widest text-sm py-2">Contact Us</a>

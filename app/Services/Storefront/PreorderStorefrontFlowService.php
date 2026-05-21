@@ -167,13 +167,19 @@ class PreorderStorefrontFlowService
         }
 
         if ($request->filled('category')) {
-            $query->where('category', $request->category);
+            if ($request->category === 'SALE') {
+                $query->where('on_sale', true);
+            } else {
+                $query->where('category', $request->category);
+            }
         }
 
         if ($request->filled('sport')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('collection', $request->sport)
-                    ->orWhereJsonContains('collections', $request->sport);
+            $sport = $request->sport;
+            $query->where(function ($q) use ($sport) {
+                $q->where('collection', 'like', "%{$sport}%")
+                    ->orWhere('name', 'like', "%{$sport}%")
+                    ->orWhereJsonContains('collections', $sport);
             });
         }
 
