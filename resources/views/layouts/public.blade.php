@@ -89,38 +89,13 @@
     @stack('schema')
 </head>
 
-<body class="public-body bg-black text-white" x-data="{ 
-    showSplash: !sessionStorage.getItem('splash_dismissed') && (window.location.pathname === '/' || window.location.pathname === '/index.php'),
-    init() {
-        if (window.location.pathname !== '/' && window.location.pathname !== '/index.php') {
-            sessionStorage.setItem('splash_dismissed', 'true');
-        }
-    }
-}" :class="{ 'overflow-hidden': showSplash }">
-
-    <!-- Splash Screen -->
-    <div x-show="showSplash" x-cloak x-transition:leave="transition ease-in duration-700" x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center">
-
-        <!-- Logo -->
-        <div class="relative mb-12 transform transition-all duration-1000 scale-110">
-            <img src="{{ asset('assets/img/logo.png') }}" alt="MAXUMAX"
-                class="w-[280px] sm:w-[400px] md:w-[500px] invert brightness-0" />
-        </div>
-
-        <!-- Shop Now Button -->
-        <button @click="showSplash = false; sessionStorage.setItem('splash_dismissed', 'true')"
-            class="px-12 py-4 bg-white text-black font-black text-sm tracking-[0.2em] rounded-full uppercase transition-all duration-300 hover:bg-slate-200 hover:scale-105 active:scale-95 shadow-2xl">
-            Shop Now
-        </button>
-    </div>
+<body class="public-body bg-black text-white">
 
     @include('partials.public.navbar')
 
 
     <!-- Main Content -->
-    <main x-show="!showSplash" class="w-full">
+    <main class="w-full">
         @yield('content')
     </main>
 

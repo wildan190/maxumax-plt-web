@@ -14,7 +14,7 @@
 
         <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             @foreach ($products as $product)
-                <div class="w-[70vw] md:w-auto snap-start shrink-0 flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group relative">
+                <div class="w-[70vw] md:w-auto snap-start shrink-0 flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group relative cursor-pointer" onclick="window.location='{{ $product->available_for_preorder ? route('preorder.create', $product) : route('product.show', $product) }}'">
                     <!-- Product Image -->
                     <div class="aspect-square md:aspect-[4/5] relative flex items-center justify-center p-3 md:p-8 bg-gradient-to-b from-[#1a1a1a] to-[#111111]">
                         @if ($product->image_path)
@@ -72,10 +72,9 @@
                                     </span>
                                 @endif
                             </div>
-                            <a href="{{ $product->available_for_preorder ? route('preorder.create', $product) : route('product.show', $product) }}" 
-                               class="w-7 h-7 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center text-black hover:bg-slate-200 transition-all hover:scale-110 active:scale-95 shadow-xl after:absolute after:inset-0 after:z-10">
+                            <div class="w-7 h-7 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center text-black hover:bg-slate-200 transition-all hover:scale-110 active:scale-95 shadow-xl">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 md:w-[18px] md:h-[18px]"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-                            </a>
+                            </div>
                         </div>
                     </div>
                 </div>

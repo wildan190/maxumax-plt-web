@@ -3,12 +3,12 @@
 @endphp
 
 <!-- Announcement Bar -->
-<div x-show="!showSplash" class="bg-white text-black py-2 px-4 text-center text-[10px] md:text-xs font-black uppercase tracking-widest relative z-50">
-    Local Sportswear Brand from Kota Kinabalu, Sabah | Ready Stock and Custom Teamwear Available
+<div class="bg-white text-black py-2 px-4 text-center text-[10px] md:text-xs font-black uppercase tracking-widest relative z-50">
+    SPORTSWEAR CUSTOMIZATION EXPERT | SABAH, MALAYSIA
 </div>
 
 <!-- NAVBAR -->
-<nav x-show="!showSplash" x-data="{ mobileMenuOpen: false }" class="bg-black py-3 sticky top-0 z-50 border-b border-white/5">
+<nav x-data="{ mobileMenuOpen: false }" class="bg-black py-3 sticky top-0 z-50 border-b border-white/5">
     <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
 
         <!-- BRAND -->
@@ -20,15 +20,24 @@
 
         <!-- DESKTOP NAV (CENTER) -->
         <div class="hidden lg:flex flex-1 items-center justify-center gap-2.5 text-[9px] xl:text-[10px] font-bold tracking-[0.12em] uppercase text-white/80">
-            <a href="{{ route('products.index') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">SHOP</a>
+            <a href="/" class="{{ request()->is('/') ? 'text-white underline underline-offset-8 decoration-2' : 'hover:text-white' }} transition-all duration-200 py-2 inline-block px-1">HOME</a>
+
+            <div class="relative group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                <a href="{{ route('products.index') }}" class="{{ request()->is('products*') && request('category') != 'SALE' ? 'text-white underline underline-offset-8 decoration-2' : 'hover:text-white' }} transition-all duration-200 py-2 inline-block px-1 flex items-center gap-1">
+                    ALL PRODUCTS
+                </a>
+                <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" 
+                    class="absolute left-0 mt-0 w-48 bg-black border border-white/10 rounded-xl shadow-2xl py-2 z-50">
+                    <a href="{{ route('products.index') }}?shop_by=sport" class="block px-4 py-2 hover:bg-white/5 transition-colors text-[9px] font-bold tracking-widest">Shop by Sport</a>
+                    <a href="{{ route('products.index') }}?shop_by=product" class="block px-4 py-2 hover:bg-white/5 transition-colors text-[9px] font-bold tracking-widest">Shop by Product</a>
+                </div>
+            </div>
             
-            <a href="{{ route('pages.customization') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">CUSTOM TEAMWEAR</a>
+            <a href="{{ route('pages.customization') }}" class="{{ request()->is('customization*') ? 'text-white underline underline-offset-8 decoration-2' : 'hover:text-white' }} transition-all duration-200 py-2 inline-block px-1">TEAMWEAR CUSTOMIZATION</a>
 
-            <a href="{{ route('pages.projects') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">PROJECTS</a>
+            <a href="{{ route('products.index', ['category' => 'SALE']) }}" class="{{ request('category') == 'SALE' ? 'text-white underline underline-offset-8 decoration-2' : 'hover:text-white' }} transition-all duration-200 py-2 inline-block px-1">SALE</a>
 
-            <a href="{{ route('pages.size-guide') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">SIZE GUIDE</a>
-
-            <a href="{{ route('pages.contact-us') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">CONTACT</a>
+            <a href="{{ route('pages.contact-us') }}" class="{{ request()->is('contact-us*') ? 'text-white underline underline-offset-8 decoration-2' : 'hover:text-white' }} transition-all duration-200 py-2 inline-block px-1">CONTACT US</a>
         </div>
 
         <!-- DESKTOP RIGHT (ICONS) -->
@@ -108,20 +117,27 @@
         class="lg:hidden bg-[#0a0a0a] border-t border-white/10 shadow-2xl overflow-y-auto max-h-[80vh]">
         <div class="flex flex-col p-6 space-y-4">
 
-            <a @click="mobileMenuOpen=false" href="{{ route('products.index') }}"
-                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Shop</a>
+            <a @click="mobileMenuOpen=false" href="/"
+                class="{{ request()->is('/') ? 'text-white' : 'text-white/60' }} font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Home</a>
+
+            <div x-data="{ productsOpen: {{ request()->is('products*') && request('category') != 'SALE' ? 'true' : 'false' }} }">
+                <button @click="productsOpen = !productsOpen" class="w-full flex items-center justify-between {{ request()->is('products*') && request('category') != 'SALE' ? 'text-white' : 'text-white/60' }} font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">
+                    ALL PRODUCTS
+                </button>
+                <div x-show="productsOpen" class="pl-4 space-y-2 py-2 border-b border-white/5">
+                    <a @click="mobileMenuOpen=false" href="{{ route('products.index') }}?shop_by=sport" class="block text-white/60 hover:text-white font-bold uppercase tracking-widest text-[10px] py-2">Shop by Sport</a>
+                    <a @click="mobileMenuOpen=false" href="{{ route('products.index') }}?shop_by=product" class="block text-white/60 hover:text-white font-bold uppercase tracking-widest text-[10px] py-2">Shop by Product</a>
+                </div>
+            </div>
             
             <a @click="mobileMenuOpen=false" href="{{ route('pages.customization') }}"
-                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Custom Teamwear</a>
+                class="{{ request()->is('customization*') ? 'text-white' : 'text-white/60' }} font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Teamwear Customization</a>
 
-            <a @click="mobileMenuOpen=false" href="{{ route('pages.projects') }}"
-                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Projects</a>
-
-            <a @click="mobileMenuOpen=false" href="{{ route('pages.size-guide') }}"
-                class="text-white font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Size Guide</a>
+            <a @click="mobileMenuOpen=false" href="{{ route('products.index', ['category' => 'SALE']) }}"
+                class="{{ request('category') == 'SALE' ? 'text-white' : 'text-white/60' }} font-black uppercase tracking-widest text-sm py-2 border-b border-white/5">Sale</a>
 
             <a @click="mobileMenuOpen=false" href="{{ route('pages.contact-us') }}"
-                class="text-white font-black uppercase tracking-widest text-sm py-2">Contact</a>
+                class="{{ request()->is('contact-us*') ? 'text-white' : 'text-white/60' }} font-black uppercase tracking-widest text-sm py-2">Contact Us</a>
 
             <!-- Currency Mobile -->
             <div class="pt-6 border-t border-white/10">

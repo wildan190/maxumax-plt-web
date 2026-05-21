@@ -275,7 +275,7 @@
             <div id="products-grid" class="grid gap-3 md:gap-8 grid-cols-2 lg:grid-cols-4">
                 @if(isset($products) && $products->count())
                     @foreach($products as $product)
-                        <div class="flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group relative">
+                        <div class="flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group relative cursor-pointer" onclick="window.location='{{ route('product.show', $product) }}'">
                             <!-- Product Image -->
                             <div class="aspect-square md:aspect-[4/5] relative flex items-center justify-center p-3 md:p-8 bg-gradient-to-b from-[#1a1a1a] to-[#111111]">
                                 @if ($product->image_path)
@@ -322,10 +322,9 @@
                                             </span>
                                         @endif
                                     </div>
-                                    <a href="{{ route('product.show', $product) }}" 
-                                       class="w-7 h-7 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center text-black hover:bg-slate-200 transition-all hover:scale-110 active:scale-95 shadow-xl after:absolute after:inset-0 after:z-10">
+                                    <div class="w-7 h-7 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center text-black hover:bg-slate-200 transition-all hover:scale-110 active:scale-95 shadow-xl">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 md:w-[18px] md:h-[18px]"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                    </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>

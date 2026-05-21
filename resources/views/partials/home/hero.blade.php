@@ -1,18 +1,12 @@
 <!-- 1. Hero Banner -->
 <section class="bg-black relative">
-    <div class="relative w-full h-screen min-h-[600px] overflow-hidden">
-        <!-- Desktop Background Image -->
-        <div class="hidden md:block absolute inset-0 w-full h-full">
-            <img src="{{ $heroSlides[0]['img'] }}" alt="Maxumax Hero Banner" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-black/70"></div>
-        </div>
-
-        <!-- Mobile Background Video -->
-        <div class="md:hidden absolute inset-0 w-full h-full z-0">
+    <div class="relative w-full h-[60vh] md:h-[85vh] min-h-[400px] md:min-h-[600px] overflow-hidden">
+        <!-- Background Video (Sync for Mobile & Desktop) -->
+        <div class="absolute inset-0 w-full h-full z-0">
             <video autoplay loop muted playsinline class="w-full h-full object-cover">
                 <source src="{{ asset('assets/mp4/herovid.mp4') }}" type="video/mp4">
             </video>
-            <div class="absolute inset-0 bg-black/70"></div>
+            <div class="absolute inset-0 bg-black/60 md:bg-black/50"></div>
         </div>
 
         <!-- Hero Content -->
