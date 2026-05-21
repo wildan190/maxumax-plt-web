@@ -2,6 +2,55 @@
 
 @section('title', 'Contact Us - Maxumax')
 
+@push('schema')
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": "Contact Us - Maxumax",
+  "description": "Get in touch with Maxumax for custom teamwear, sportswear inquiries, and support. Based in Kota Kinabalu, Sabah.",
+  "url": "{{ url()->current() }}",
+  "mainEntity": {
+    "@type": "LocalBusiness",
+    "name": "Maxumax Malaysia",
+    "image": "{{ asset('assets/img/logo.png') }}",
+    "telephone": "+601131614760",
+    "email": "maxumax.my@gmail.com",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Lot 27, Ground Floor, Block D, Plaza 333, Penampang",
+      "addressLocality": "Kota Kinabalu",
+      "addressRegion": "Sabah",
+      "postalCode": "88300",
+      "addressCountry": "MY"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 5.9189,
+      "longitude": 116.0717
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+      ],
+      "opens": "09:00",
+      "closes": "18:00"
+    },
+    "sameAs": [
+      "https://www.facebook.com/maxumax.my",
+      "https://www.instagram.com/maxumax.my"
+    ]
+  }
+}
+</script>
+@endpush
+
 @section('content')
 <div class="bg-black min-h-screen pt-32 pb-40 px-6 overflow-hidden relative flex items-center justify-center">
     <!-- Background Accents -->

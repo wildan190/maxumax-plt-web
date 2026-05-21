@@ -39,18 +39,20 @@
       "image": "{{ asset('assets/img/logo.png') }}",
       "@id": "https://maxumax.my",
       "url": "https://maxumax.my",
-      "telephone": "+60XXXXXXXX",
+      "telephone": "+601131614760",
+      "email": "maxumax.my@gmail.com",
       "address": {
         "@type": "PostalAddress",
-        "streetAddress": "Main Street",
-        "addressLocality": "Kuala Lumpur",
-        "postalCode": "XXXXX",
+        "streetAddress": "Lot 27, Ground Floor, Block D, Plaza 333, Penampang",
+        "addressLocality": "Kota Kinabalu",
+        "addressRegion": "Sabah",
+        "postalCode": "88300",
         "addressCountry": "MY"
       },
       "geo": {
         "@type": "GeoCoordinates",
-        "latitude": 3.1390,
-        "longitude": 101.6869
+        "latitude": 5.9189,
+        "longitude": 116.0717
       },
       "openingHoursSpecification": {
         "@type": "OpeningHoursSpecification",
@@ -60,12 +62,15 @@
           "Wednesday",
           "Thursday",
           "Friday",
-          "Saturday",
-          "Sunday"
+          "Saturday"
         ],
-        "opens": "00:00",
-        "closes": "23:59"
-      }
+        "opens": "09:00",
+        "closes": "18:00"
+      },
+      "sameAs": [
+        "https://www.facebook.com/maxumax.my",
+        "https://www.instagram.com/maxumax.my"
+      ]
     }
     </script>
 
