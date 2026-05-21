@@ -28,8 +28,8 @@
                 <p class="text-blue-100/70 font-medium leading-relaxed mb-8 flex-grow">
                     Built from the ground up for your specific team, school, or event. Choose your fabrics, designs, logos, and finishing. Bulk orders welcome, supported by our local production team.
                 </p>
-                <a href="{{ route('preorder.landing') }}" class="px-8 py-4 bg-blue-600 text-white font-black text-sm tracking-[0.1em] rounded-full uppercase transition-all duration-300 hover:bg-blue-500 hover:scale-105 active:scale-95 text-center shadow-xl">
-                    Start Custom Order
+                <a href="https://wa.me/60143436496?text=Hi%20MAXUMAX,%20I%20am%20interested%20to%20make%20custom%20teamwear.%0AProduct:%0AQuantity:%0ADeadline:%0ADesign%20idea:%0ALocation:%0ACan%20you%20help%20me%20with%20quotation?" class="px-8 py-4 bg-blue-600 text-white font-black text-sm tracking-[0.1em] rounded-full uppercase transition-all duration-300 hover:bg-blue-500 hover:scale-105 active:scale-95 text-center shadow-xl">
+                    Get Team Quotation
                 </a>
             </div>
         </div>

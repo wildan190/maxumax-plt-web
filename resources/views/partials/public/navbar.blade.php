@@ -58,8 +58,6 @@
                 </div>
             </div>
 
-            <a href="{{ route('preorder.landing') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">TEAMWEAR</a>
-
             <a href="{{ route('pages.customization') }}" class="hover:text-white transition-all duration-200 py-2 inline-block px-1">CUSTOMIZATION</a>
 
             <a href="{{ route('products.index', ['filter' => 'sale']) }}" class="text-red-500 hover:text-red-400 transition-all duration-200 py-2 inline-block px-1">SALE</a>

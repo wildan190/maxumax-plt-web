@@ -16,7 +16,6 @@ class LandingPageDefaults
                 'text' => 'Ready stock apparel and fully customized teamwear for athletes, clubs, schools, companies, events, and sports organizations.',
                 'btns' => [
                     ['label' => 'Shop Ready Stock', 'url' => route('products.index'), 'primary' => true],
-                    ['label' => 'Start Custom Order', 'url' => route('preorder.landing'), 'primary' => false],
                 ],
             ],
             [

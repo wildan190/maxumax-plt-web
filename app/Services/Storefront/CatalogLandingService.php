@@ -45,23 +45,4 @@ class CatalogLandingService
             'featuredCollectionItems',
         );
     }
-
-    /**
-     * @return array{products: \Illuminate\Database\Eloquent\Collection, highlightedGallery: \Illuminate\Support\Collection, currency: string, currencyConfig: array}
-     */
-    public function preorderLandingDataset(Request $request): array
-    {
-        $products = Product::where('available_for_preorder', true)
-            ->where('is_active', true)
-            ->orderBy('position', 'asc')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $highlightedGallery = Gallery::where('is_highlight', true)->latest()->take(6)->get();
-
-        $currency = $this->currencyService->resolveCurrency($request);
-        $currencyConfig = $this->currencyService->getCurrencyConfig($currency);
-
-        return compact('products', 'highlightedGallery', 'currency', 'currencyConfig');
-    }
 }

@@ -203,7 +203,7 @@ class PaymentCheckoutApplicationService
     {
         $sessionId = $request->query('session_id');
         if (!$sessionId) {
-            return redirect()->route('preorder.landing')->withErrors(['payment' => 'Invalid payment session']);
+            return redirect()->route('products.index')->withErrors(['payment' => 'Invalid payment session']);
         }
 
         $existingOrder = Preorder::where('stripe_session_id', $sessionId)->first();
@@ -219,14 +219,14 @@ class PaymentCheckoutApplicationService
         try {
             $checkoutSession = $this->stripeService->retrieveSession($sessionId);
             if ($checkoutSession->payment_status !== 'paid') {
-                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Payment not completed']);
+                return redirect()->route('products.index')->withErrors(['payment' => 'Payment not completed']);
             }
 
             $checkoutData = session()->get('stripe_preorder_checkout');
             if (!$checkoutData || $checkoutData['session_id'] !== $sessionId) {
                 $this->stripeService->refundPayment($checkoutSession->payment_intent);
 
-                return redirect()->route('preorder.landing')->withErrors(['payment' => 'Session expired or invalid. Payment refunded automatically.']);
+                return redirect()->route('products.index')->withErrors(['payment' => 'Session expired or invalid. Payment refunded automatically.']);
             }
 
             $orders = $this->orderService->createOrdersFromStripe(
@@ -245,7 +245,7 @@ class PaymentCheckoutApplicationService
         } catch (\Exception $e) {
             Log::error('Preorder success handling failed: ' . $e->getMessage());
 
-            return redirect()->route('preorder.landing')->withErrors(['payment' => 'Error verifying payment: ' . $e->getMessage()]);
+            return redirect()->route('products.index')->withErrors(['payment' => 'Error verifying payment: ' . $e->getMessage()]);
         }
     }
 
@@ -253,6 +253,6 @@ class PaymentCheckoutApplicationService
     {
         session()->forget('stripe_preorder_checkout');
 
-        return redirect()->route('preorder.landing')->with('error', 'Payment was cancelled');
+        return redirect()->route('products.index')->with('error', 'Payment was cancelled');
     }
 }
