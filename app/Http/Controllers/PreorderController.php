@@ -14,11 +14,6 @@ use Illuminate\Http\Request;
 
 class PreorderController extends Controller
 {
-    public function showLanding(Request $request, CatalogLandingService $catalogLandingService)
-    {
-        return view('preorder.landing', $catalogLandingService->preorderLandingDataset($request));
-    }
-
     public function create(Request $request, Product $product, CurrencyService $currencyService)
     {
         if (!($product->is_active || $product->available_for_preorder)) {

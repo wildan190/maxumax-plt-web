@@ -59,7 +59,7 @@ class CartRaceConditionTest extends TestCase
         $resp2->assertSessionHas('success');
 
         $cart = app('session')->get('cart', []);
-        $key = (string) $product->id;
+        $key = $product->id . '-M'; // Key format: productId-size (no variant)
         $this->assertArrayHasKey($key, $cart);
         $this->assertSame(2, (int) $cart[$key]['quantity']);
     }

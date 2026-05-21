@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth')->prefix('admin')->group(function () {
+    require __DIR__.'/admin/landing_page.php';
+    require __DIR__.'/admin/size_guides.php';
     require __DIR__.'/admin/shipping_integrations.php';
     require __DIR__.'/admin/preorders.php';
     require __DIR__.'/admin/orders.php';

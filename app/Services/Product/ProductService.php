@@ -27,6 +27,10 @@ class ProductService
             $attrs['image_path'] = $this->imageStorage->storeUploaded($request->file('image'));
         }
 
+        if ($request->hasFile('size_guide')) {
+            $attrs['size_guide'] = $this->imageStorage->storeUploaded($request->file('size_guide'));
+        }
+
         if ($request->hasFile('images')) {
             $files = $request->file('images');
             if (is_array($files)) {
@@ -42,7 +46,12 @@ class ProductService
         }
 
         if (!isset($attrs['image_path']) && $gallery !== []) {
-            $attrs['image_path'] = $gallery[0]['path'];
+            $main = array_shift($gallery);
+            $attrs['image_path'] = $main['path'];
+            // Re-index gallery positions
+            foreach ($gallery as $idx => &$g) {
+                $g['position'] = $idx;
+            }
         }
 
         $product = $this->products->create($attrs);
@@ -65,11 +74,25 @@ class ProductService
 
         if ($request->hasFile('image')) {
             $attrs['image_path'] = $this->imageStorage->storeUploaded($request->file('image'));
+        } elseif ($request->shouldDeleteMainImage()) {
+            $attrs['image_path'] = null;
+        }
+
+        if ($request->hasFile('size_guide')) {
+            $attrs['size_guide'] = $this->imageStorage->storeUploaded($request->file('size_guide'));
+        } elseif ($request->boolean('delete_size_guide')) {
+            $attrs['size_guide'] = null;
+        }
+
+        $this->products->update($product, $attrs);
+
+        // Handle gallery image deletions
+        $deletedIds = $request->deletedImageIds();
+        if (!empty($deletedIds)) {
+            $this->images->deleteMany($product, $deletedIds);
         }
 
         $existingImageCount = (int) $product->images()->count();
-
-        $this->products->update($product, $attrs);
 
         // Handle image position updates for existing images
         $imagePositions = $request->imagePositions();
@@ -91,6 +114,23 @@ class ProductService
 
         if ($request->has('variants')) {
             $this->variants->syncFromForm($product, $request->variantsInput());
+        }
+
+        // --- Post-Update Image Consolidation ---
+        $product->refresh();
+        
+        // 1. If main image is missing, promote the first gallery image
+        if (!$product->image_path) {
+            $firstGallery = $product->images()->orderBy('position', 'asc')->first();
+            if ($firstGallery) {
+                $this->products->update($product, ['image_path' => $firstGallery->path]);
+                $firstGallery->delete();
+            }
+        }
+        
+        // 2. Ensure no duplicates (gallery image with same path as main image)
+        if ($product->image_path) {
+            $product->images()->where('path', $product->image_path)->delete();
         }
     }
 

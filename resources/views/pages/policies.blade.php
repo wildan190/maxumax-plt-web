@@ -18,8 +18,7 @@
                     Policies <span class="text-blue-500">& Terms.</span>
                 </h1>
                 <p class="text-white/40 max-w-2xl mx-auto font-black uppercase tracking-widest text-[11px] leading-relaxed">
-                    Welcome to maxumax.my. By accessing our website and placing an order with us, you agree to the following
-                    terms and policies.
+                    By accessing our website and placing an order with us, you agree to the following terms and policies:
                 </p>
             </div>
 
@@ -36,7 +35,7 @@
 
                     <div class="prose prose-invert prose-blue max-w-none space-y-10">
                         <p class="text-white/60 font-medium leading-relaxed">
-                            We respects your privacy and is committed to protecting your personal data in accordance with
+                            We respect your privacy and are committed to protecting your personal data in accordance with
                             applicable laws and regulations.
                         </p>
 
@@ -166,14 +165,13 @@
                                 <h3 class="text-white font-black uppercase tracking-widest text-xs mb-4">Return Period</h3>
                                 <p class="text-emerald-500 font-black text-3xl italic tracking-tighter mb-2">3 – 5 DAYS</p>
                                 <p class="text-white/30 text-[10px] font-black uppercase tracking-widest">From the date you
-                                    receive your order.</p>
+                                    received your order.</p>
                             </div>
                             <div class="flex-1 bg-black/40 border border-white/5 rounded-3xl p-8">
                                 <h3 class="text-white font-black uppercase tracking-widest text-xs mb-4">Eligibility</h3>
                                 <p
                                     class="text-white/60 text-[11px] font-bold uppercase tracking-widest leading-relaxed m-0">
-                                    Items must be unused, unworn, original condition, intact labels/tags, and proof of
-                                    purchase required.
+                                    Items must be unused, unworn, in original condition, labels/tags intact with proof of purchase.
                                 </p>
                             </div>
                         </div>
@@ -207,7 +205,7 @@
                                     class="space-y-3 text-white/40 font-bold text-[11px] uppercase tracking-widest list-none p-0">
                                     <li class="flex items-start gap-3"><i data-feather="check-circle"
                                             class="w-3 h-3 text-emerald-500 mt-1"></i> <span>Items inspected upon
-                                            receipt</span></li>
+                                            return</span></li>
                                     <li class="flex items-start gap-3"><i data-feather="check-circle"
                                             class="w-3 h-3 text-emerald-500 mt-1"></i> <span>Issued to original payment
                                             method</span></li>

@@ -7,7 +7,6 @@ use App\Http\Controllers\PreorderController;
 use Illuminate\Support\Facades\Route;
 
 $preorderOrderWebRoutes = function () {
-    Route::get('/preorder', [PreorderController::class, 'showLanding'])->name('preorder.landing');
     Route::get('/preorder/create/{product}', [PreorderController::class, 'create'])->name('preorder.create');
     Route::post('/preorder', [PreorderController::class, 'store'])->name('preorder.store');
     Route::get('/preorder/thank-you/{uuid}', [PreorderController::class, 'thankyou'])->name('preorder.thankyou');

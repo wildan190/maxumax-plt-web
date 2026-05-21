@@ -71,13 +71,6 @@
                 </div>
 
                 <div class="max-w-7xl mx-auto">
-                    <!-- Breadcrumb -->
-                    @if (isset($breadcrumbs))
-                        <div class="mb-6">
-                            @include('layouts.partials.breadcrumb')
-                        </div>
-                    @endif
-
                     <!-- Page Header -->
                     @unless (View::hasSection('hide-page-header'))
                         <div class="mb-8">
@@ -107,6 +100,7 @@
             }
         });
     </script>
+    @stack('scripts')
 </body>
 
 </html>

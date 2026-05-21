@@ -56,6 +56,15 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Product updated');
     }
 
+    public function toggleHomepage(\Illuminate\Http\Request $request, Product $product)
+    {
+        $product->update([
+            'add_to_homepage' => $request->boolean('add_to_homepage')
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     public function destroy(Product $product)
     {
         $this->productService->delete($product);
@@ -89,5 +98,25 @@ class ProductController extends Controller
             $result['created'] > 0 ? 'success' : 'error',
             $msg
         );
+    }
+
+    public function reorder()
+    {
+        $products = Product::orderBy('position', 'asc')->get();
+        page_breadcrumbs(breadcrumbs(...ProductAdminViewModel::indexBreadcrumbTrail()));
+
+        return view('admin.products.reorder', compact('products'));
+    }
+
+    public function updateOrder(\Illuminate\Http\Request $request)
+    {
+        $order = $request->input('order');
+        if (is_array($order)) {
+            foreach ($order as $index => $id) {
+                Product::where('id', $id)->update(['position' => $index]);
+            }
+        }
+
+        return response()->json(['success' => true]);
     }
 }

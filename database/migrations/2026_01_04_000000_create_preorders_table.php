@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
-            $table->string('jersey_type');
+            $table->string('jersey_type')->nullable();
             $table->string('size')->nullable();
             $table->boolean('long_sleeve')->default(false);
             $table->boolean('nameset')->default(false);

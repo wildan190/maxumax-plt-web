@@ -87,11 +87,11 @@ class PreorderStorefrontFlowService
 
     public function thankYouView(string $uuid)
     {
-        $preorders = Preorder::where('uuid', $uuid)->get();
+        $preorders = Preorder::with('product')->where('uuid', $uuid)->get();
 
         if ($preorders->isEmpty()) {
             if (is_numeric($uuid)) {
-                $pre = Preorder::find($uuid);
+                $pre = Preorder::with('product')->find($uuid);
                 if ($pre) {
                     $preorders = collect([$pre]);
                 } else {
@@ -154,6 +154,16 @@ class PreorderStorefrontFlowService
         $query = Product::where('is_active', true)
             ->where('available_for_preorder', false);
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('category', 'like', "%{$search}%")
+                  ->orWhere('collection', 'like', "%{$search}%");
+            });
+        }
+
         if ($request->filled('category')) {
             $query->where('category', $request->category);
         }
@@ -188,10 +198,10 @@ class PreorderStorefrontFlowService
                 $query->orderBy('price', 'desc');
             }
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->orderBy('position', 'asc')->orderBy('created_at', 'desc');
         }
 
-        $products = $query->get();
+        $products = $query->paginate(12)->withQueryString();
 
         $currency = $this->currencyService->resolveCurrency($request);
         $currencyConfig = $this->currencyService->getCurrencyConfig($currency);
@@ -302,7 +312,7 @@ class PreorderStorefrontFlowService
                     'product_variant_id' => $variant ? $variant->id : null,
                     'name' => $product->name,
                     'jersey_type' => $product->jersey_type,
-                    'price' => (float) $product->price,
+                    'price' => (float) ($product->on_sale && $product->discounted_price !== null ? $product->discounted_price : $product->price),
                     'quantity' => (int) $data['quantity'],
                     'size' => $data['size'] ?? ($variant ? $variant->name : null),
                     'long_sleeve' => $request->boolean('long_sleeve'),
@@ -404,12 +414,14 @@ class PreorderStorefrontFlowService
                 continue;
             }
 
+            $variantKey = $it['product_variant_id'] ?? null;
             $itemsData = [
-                $it['product_variant_id'] ?? 'legacy' => [
+                ($variantKey ?? 'no_variant') => [
                     'quantity_ss' => $it['long_sleeve'] ? 0 : $it['quantity'],
                     'quantity_ls' => $it['long_sleeve'] ? $it['quantity'] : 0,
                     'namesets_ss' => [],
                     'namesets_ls' => [],
+                    '_variant_id_override' => $variantKey,
                 ],
             ];
 

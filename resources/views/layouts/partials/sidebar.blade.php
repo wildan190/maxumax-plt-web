@@ -95,11 +95,32 @@
                         <span>Gallery</span>
                     </a>
 
+                    <a href="{{ route('admin.landing-page.edit') }}"
+                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.landing-page.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                        <i data-feather="layout" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.landing-page.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                        <span>Landing Page</span>
+                    </a>
+
+                    <a href="{{ route('admin.size-guides.index') }}"
+                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.size-guides.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                        <i data-feather="maximize" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.size-guides.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                        <span>Size Guides</span>
+                    </a>
+
                     <a href="{{ route('admin.complaints.index') }}"
                         class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.complaints.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
                         <i data-feather="message-square" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.complaints.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
                         <span class="flex-1">Complaints</span>
                         @if(auth()->user()->unreadNotifications->where('data.type', 'new_complaint')->count() > 0)
+                            <span class="flex-shrink-0 w-2 h-2 bg-rose-500 rounded-full"></span>
+                        @endif
+                    </a>
+
+                    <a href="{{ route('admin.inquiries.index') }}"
+                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.inquiries.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                        <i data-feather="mail" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.inquiries.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                        <span class="flex-1">Inquiries</span>
+                        @if(\App\Models\Inquiry::where('is_read', false)->exists())
                             <span class="flex-shrink-0 w-2 h-2 bg-rose-500 rounded-full"></span>
                         @endif
                     </a>

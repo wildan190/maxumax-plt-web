@@ -24,5 +24,10 @@ class DatabaseSeeder extends Seeder
                 'role' => 'admin',
             ]
         );
+
+        $this->call([
+            LandingPageSeeder::class,
+            SizeGuideSeeder::class,
+        ]);
     }
 }

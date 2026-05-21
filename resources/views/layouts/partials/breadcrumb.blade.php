@@ -1,5 +1,5 @@
 <!-- Breadcrumb Partial -->
-<nav class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar" aria-label="Breadcrumb">
+<nav class="flex items-center gap-2 overflow-x-auto no-scrollbar" aria-label="Breadcrumb">
     <a href="{{ route('dashboard') }}" class="flex-shrink-0 p-2 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all shadow-sm">
         <i data-feather="home" class="w-4 h-4"></i>
     </a>

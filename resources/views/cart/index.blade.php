@@ -28,7 +28,7 @@
                     @if(session('success'))
                         <div
                             class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-2xl flex items-center gap-3 font-bold text-xs">
-                            <i data-feather="check-circle" style="width:16px;height:16px;"></i>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                             {{ session('success') }}
                         </div>
                     @endif
@@ -37,7 +37,7 @@
                             class="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl font-bold text-xs space-y-2">
                             @if(session('error'))
                                 <div class="flex items-center gap-3">
-                                    <i data-feather="alert-circle" style="width:16px;height:16px;"></i>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                                     {{ session('error') }}
                                 </div>
                             @endif
@@ -57,7 +57,7 @@
                 <div class="py-40 text-center border-2 border-dashed border-white/5 rounded-[3rem] animate-fade-in">
                     <div
                         class="w-32 h-32 bg-white/5 rounded-full flex items-center justify-center text-white/10 mx-auto mb-10 border border-white/5">
-                        <i data-feather="shopping-bag" style="width:48px;height:48px;"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                     </div>
                     <h2 class="text-3xl font-black text-white mb-4 tracking-tight uppercase italic">Inventory Empty.</h2>
                     <p class="text-white/20 font-medium mb-12 max-w-sm mx-auto text-sm">No items currently queued for
@@ -81,7 +81,7 @@
                                         <img src="{{ asset('storage/' . $it['image']) }}" alt="{{ $it['name'] }}"
                                             class="w-full h-full object-contain drop-shadow-2xl group-hover:scale-110 transition-transform duration-700">
                                     @else
-                                        <i data-feather="image" class="text-white/5" style="width:60px;height:60px;"></i>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white/5" style="width:60px;height:60px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                                     @endif
                                 </div>
 
@@ -129,7 +129,7 @@
                                                 class="w-16 bg-transparent text-center font-black text-white focus:outline-none text-sm appearance-none">
                                             <button type="submit"
                                                 class="p-3 bg-white text-black rounded-xl hover:bg-zinc-200 transition-all active:scale-95">
-                                                <i data-feather="refresh-cw" style="width:16px;height:16px;"></i>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                                             </button>
                                         </div>
                                     </form>
