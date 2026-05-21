@@ -21,8 +21,13 @@ class CatalogLandingService
      */
     public function homeDataset(Request $request): array
     {
-        // Fetch latest active products (can be preorder or ready stock)
-        $products = Product::where('is_active', true)->latest()->take(4)->get();
+        // Fetch active products selected for homepage, ordered by custom position ascending
+        $products = Product::where('is_active', true)
+            ->where('add_to_homepage', true)
+            ->orderBy('position', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->take(8)
+            ->get();
         $highlightedGallery = Gallery::where('is_highlight', true)->latest()->take(6)->get();
         $currency = $this->currencyService->resolveCurrency($request);
         $currencyConfig = $this->currencyService->getCurrencyConfig($currency);
@@ -47,6 +52,8 @@ class CatalogLandingService
     public function preorderLandingDataset(Request $request): array
     {
         $products = Product::where('available_for_preorder', true)
+            ->where('is_active', true)
+            ->orderBy('position', 'asc')
             ->orderBy('created_at', 'desc')
             ->get();
 

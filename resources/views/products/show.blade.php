@@ -48,7 +48,7 @@
 @endpush
 
 @section('content')
-    <div class="bg-black min-h-screen pt-24 pb-32 px-6">
+    <div class="bg-black min-h-screen pt-24 pb-32 px-6" x-data="{ showSizeModal: false }">
         <div class="max-w-7xl mx-auto">
             <!-- Product Main Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
@@ -68,14 +68,14 @@
                             
                             <!-- Internal Controls -->
                             <button type="button" id="prevBtn" class="absolute left-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-black transition-all opacity-0 group-hover:opacity-100">
-                                <i data-feather="chevron-left" style="width:20px;height:20px"></i>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><polyline points="15 18 9 12 15 6"></polyline></svg>
                             </button>
                             <button type="button" id="nextBtn" class="absolute right-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-black transition-all opacity-0 group-hover:opacity-100">
-                                <i data-feather="chevron-right" style="width:20px;height:20px"></i>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><polyline points="9 18 15 12 9 6"></polyline></svg>
                             </button>
                         @else
                             <div class="text-white/10 flex flex-col items-center gap-4">
-                                <i data-feather="image" style="width:80px;height:80px"></i>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:80px;height:80px"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                                 <span class="text-[10px] uppercase font-black tracking-widest">No Image Asset</span>
                             </div>
                         @endif
@@ -109,7 +109,7 @@
                             <div class="flex items-center gap-1">
                                 @php $rounded = (int) round($feedbackAvg ?? 0); @endphp
                                 @for ($i = 1; $i <= 5; $i++)
-                                    <i data-feather="star" style="width:12px;height:12px" class="{{ $i <= $rounded ? 'fill-yellow-500 text-yellow-500' : 'text-white/10' }}"></i>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px" class="{{ $i <= $rounded ? 'fill-yellow-500 text-yellow-500' : 'text-white/10' }}"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                                 @endfor
                                 <span class="text-[10px] font-bold text-white/70 ml-2">({{ $feedbackCount ?? 0 }})</span>
                             </div>
@@ -172,11 +172,23 @@
                         <!-- Price Section -->
                         <div class="bg-[#111111] rounded-3xl p-8 border border-white/5 mb-12 flex items-center justify-between">
                             <div>
-                                <span class="text-[10px] font-black text-white/70 uppercase tracking-widest block mb-2" id="currencyLabel">{{ $currency }} INVESTMENT</span>
-                                <div class="flex items-baseline gap-2">
-                                    <span id="priceDisplay" class="text-5xl font-black text-white tracking-tight">
-                                        {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
-                                    </span>
+                                <span class="text-[10px] font-black text-white/70 uppercase tracking-widest block mb-2" id="currencyLabel">{{ $currency }}</span>
+                                <div class="flex flex-col gap-1">
+                                    @if($product->on_sale && $product->discounted_price !== null)
+                                        <div class="flex items-center gap-3 mb-1">
+                                            <span id="originalPriceDisplay" class="text-lg font-bold text-white/30 line-through">
+                                                {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
+                                            </span>
+                                            <span class="bg-rose-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">SALE</span>
+                                        </div>
+                                        <span id="priceDisplay" class="text-5xl font-black text-rose-500 tracking-tight">
+                                            {{ number_format($product->discounted_price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
+                                        </span>
+                                    @else
+                                        <span id="priceDisplay" class="text-5xl font-black text-white tracking-tight">
+                                            {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                             <div id="longSleevePrice" class="hidden text-right border-l border-white/5 pl-8">
@@ -192,10 +204,18 @@
                             <div class="p-8 bg-blue-500/10 border border-blue-500/20 rounded-3xl mb-8">
                                 <h3 class="text-blue-400 font-black text-xs uppercase tracking-widest mb-4">Limited Pre-order Event</h3>
                                 <p class="text-blue-400/60 text-sm mb-6">This item is currently in production. Reserve yours now for guaranteed priority deployment.</p>
-                                <a href="{{ route('preorder.create', $product) }}" class="w-full bg-white text-black py-5 rounded-2xl font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
-                                    <i data-feather="zap" style="width:18px;height:18px"></i>
-                                    Reserve Now
-                                </a>
+                                <div class="flex flex-col sm:flex-row gap-3">
+                                    <a href="{{ route('preorder.create', $product) }}" class="flex-grow bg-white text-black py-5 rounded-2xl font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                                        Reserve Now
+                                    </a>
+                                    @if($product->size_guide)
+                                        <button type="button" @click="showSizeModal = true" class="bg-white/5 text-white border border-white/10 px-6 py-5 rounded-2xl font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-white/10 hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                            Size Guide
+                                        </button>
+                                    @endif
+                                </div>
                             </div>
                         @elseif($product->is_active)
                             <form id="activeAddToCartForm" method="POST" action="{{ route('cart.add') }}" class="space-y-8">
@@ -207,13 +227,13 @@
                                     <div class="animate-fade-in">
                                         @if($errors->any())
                                             <div class="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-xs font-bold flex items-center gap-3">
-                                                <i data-feather="alert-circle" style="width:14px;height:14px"></i>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                                                 {{ $errors->first() }}
                                             </div>
                                         @endif
                                         @if(session('success'))
                                             <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-2xl text-xs font-bold flex items-center gap-3">
-                                                <i data-feather="check-circle" style="width:14px;height:14px"></i>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                                                 {{ session('success') }}
                                             </div>
                                         @endif
@@ -223,8 +243,13 @@
                                 <!-- Size Selection -->
                                 <div class="space-y-5">
                                     <div class="flex justify-between items-end">
-                                        <label class="text-[10px] font-black text-white/70 uppercase tracking-widest">Select Deployment Size</label>
-                                        <button type="button" class="text-[10px] font-black text-white/60 uppercase tracking-widest hover:text-white transition-colors">Size Guide</button>
+                                        <label class="text-[10px] font-black text-white/70 uppercase tracking-widest">SIZE</label>
+                                        @if($product->size_guide)
+                                            <button type="button" @click="showSizeModal = true" class="text-[10px] font-black text-amber-400 hover:text-amber-300 uppercase tracking-widest transition-colors flex items-center gap-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                                Size Guide
+                                            </button>
+                                        @endif
                                     </div>
                                     
                                     @if($product->hasVariants())
@@ -249,7 +274,7 @@
                                         </div>
                                     @else
                                         <div class="relative">
-                                            <i data-feather="layers" class="absolute left-6 top-1/2 -translate-y-1/2 text-white/50" style="width:18px;height:18px"></i>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-6 top-1/2 -translate-y-1/2 text-white/50" style="width:18px;height:18px"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
                                             <select id="sizeSelect" name="size" required class="w-full bg-white/10 border border-white/20 rounded-2xl pl-16 pr-8 py-5 text-white font-black uppercase tracking-widest focus:outline-none focus:border-white transition-all appearance-none">
                                                 <option value="" class="bg-zinc-900 text-white">Select Frame</option>
                                                 @foreach(['S', 'M', 'L', 'XL', 'XXL'] as $s)
@@ -260,27 +285,18 @@
                                     @endif
                                 </div>
 
-                                <!-- Quantity and Addon -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div class="space-y-4">
-                                        <label class="text-[10px] font-black text-white/70 uppercase tracking-widest">Quantity</label>
-                                        <div class="relative">
-                                            <input type="number" id="qtyInput" name="quantity" value="1" min="1" required 
-                                                   class="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-5 text-white font-black focus:outline-none focus:border-white transition-all">
-                                        </div>
-                                    </div>
-                                    <div class="space-y-4">
-                                        <label class="text-[10px] font-black text-white/70 uppercase tracking-widest">Specifications</label>
-                                        <label class="flex items-center gap-4 bg-white/10 border border-white/20 rounded-2xl px-6 py-5 cursor-pointer hover:bg-white/15 transition-all">
-                                            <input type="checkbox" id="longSleeveCheckbox" name="long_sleeve" value="1" class="w-5 h-5 rounded-md bg-black border-white/10 checked:bg-white checked:border-white transition-all appearance-none cursor-pointer border-2 relative checked:after:content-['✓'] checked:after:absolute checked:after:left-1/2 checked:after:top-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2 checked:after:text-black checked:after:font-black checked:after:text-[10px]">
-                                            <span class="text-white font-black text-xs uppercase tracking-widest">Extended Sleeve</span>
-                                        </label>
+                                <!-- Quantity -->
+                                <div class="space-y-4">
+                                    <label class="text-[10px] font-black text-white/70 uppercase tracking-widest">Quantity</label>
+                                    <div class="relative">
+                                        <input type="number" id="qtyInput" name="quantity" value="1" min="1" required 
+                                               class="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-5 text-white font-black focus:outline-none focus:border-white transition-all">
                                     </div>
                                 </div>
 
                                 <button type="submit" class="w-full bg-white text-black py-6 rounded-2xl font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-zinc-200 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl">
-                                    <i data-feather="shopping-bag" style="width:20px;height:20px"></i>
-                                    Add To Deployment
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                                    Add To Cart
                                 </button>
                             </form>
                         @endif
@@ -288,101 +304,39 @@
                 </div>
             </div>
 
-            <!-- Detailed Specs & Feedback -->
-            <div class="mt-40 grid grid-cols-1 lg:grid-cols-3 gap-16">
-                <!-- Feedback Form -->
-                <div class="lg:col-span-1">
-                    <div class="sticky top-32">
-                        <span class="text-white/70 font-black uppercase tracking-[0.3em] text-[10px] mb-4 block text-center lg:text-left">Performance Review</span>
-                        <h2 class="text-4xl font-black text-white tracking-tighter uppercase italic mb-10 text-center lg:text-left">Submit <span class="text-white/70">Feedback.</span></h2>
-                        
-                        <div class="bg-[#111111] border border-white/5 rounded-[2.5rem] p-10 shadow-3xl">
-                            <form method="POST" action="{{ route('feedback.store') }}" enctype="multipart/form-data" class="space-y-8">
-                                @csrf
-                                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                
-                                <div class="space-y-6">
-                                    <div class="flex justify-center mb-4">
-                                        <div class="flex items-center gap-2" id="ratingStars">
-                                            @for ($r = 1; $r <= 5; $r++)
-                                                <button type="button" class="star-btn text-3xl text-white/30 hover:text-yellow-500 transition-colors cursor-pointer" data-rating="{{ $r }}">★</button>
-                                            @endfor
-                                        </div>
-                                        <input type="hidden" name="rating" id="ratingInput" value="" required />
-                                    </div>
 
-                                    <div class="space-y-4">
-                                        <input type="text" name="name" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white text-sm placeholder-white/50 focus:outline-none focus:border-white transition-all uppercase tracking-widest font-black" placeholder="Identifier (Optional)" />
-                                        <textarea name="comment" rows="4" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white text-sm placeholder-white/50 focus:outline-none focus:border-white transition-all" placeholder="Strategic feedback details..."></textarea>
-                                    </div>
-
-                                    <div class="space-y-4">
-                                        <label class="text-[10px] font-black text-white/70 uppercase tracking-widest mb-2 block">Upload Intel (Max 2)</label>
-                                        <input type="file" name="images[]" id="feedbackImages" accept="image/*" multiple class="hidden" />
-                                        <button type="button" onclick="document.getElementById('feedbackImages').click()" class="w-full border-2 border-dashed border-white/20 rounded-2xl py-8 flex flex-col items-center gap-3 text-white/60 hover:text-white hover:border-white/40 transition-all">
-                                            <i data-feather="upload-cloud" style="width:24px;height:24px"></i>
-                                            <span class="text-[10px] font-black uppercase tracking-widest">Select Image Assets</span>
-                                        </button>
-                                        <div id="imagePreview" class="flex gap-4 flex-wrap"></div>
-                                    </div>
-
-                                    <button type="submit" class="w-full bg-white/10 border border-white/20 text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-white hover:text-black transition-all">Transmitting Review</button>
-                                </div>
-                            </form>
-                        </div>
+    <!-- Size Guide Modal -->
+    @if($product->size_guide)
+        <div x-show="showSizeModal" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+             x-cloak>
+            <div class="bg-[#111111] border border-white/10 rounded-[2rem] max-w-2xl w-full overflow-hidden shadow-2xl relative" @click.away="showSizeModal = false">
+                <div class="p-8 border-b border-white/5 flex justify-between items-center bg-[#1a1a1a]">
+                    <div>
+                        <h3 class="text-white font-black text-lg uppercase tracking-widest">Size Reference Guide</h3>
+                        <p class="text-xs text-white/40 mt-1">Compare body measurements to choose your ideal fit.</p>
                     </div>
+                    <button type="button" @click="showSizeModal = false" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
                 </div>
-
-                <!-- Feedback Feed -->
-                <div class="lg:col-span-2">
-                    <div class="flex items-center justify-between mb-12">
-                        <h3 class="text-2xl font-black text-white tracking-widest uppercase">Field Reports</h3>
-                        <div class="h-px bg-white/5 flex-grow mx-8"></div>
-                        <span class="text-white/70 font-black text-xs uppercase tracking-widest">{{ $feedbackCount ?? 0 }} Reports</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        @forelse ($latestFeedback ?? [] as $fb)
-                            @php 
-                                /** @var \App\Models\Feedback|null $fb */
-                                $rr = ($fb instanceof \App\Models\Feedback) ? (int) $fb->rating : 0; 
-                            @endphp
-                            <div class="bg-[#111111] border border-white/5 rounded-[2rem] p-8 shadow-xl transition-all hover:bg-white/[0.02]">
-                                <div class="flex items-center justify-between mb-6">
-                                    <div class="pointer-events-none">
-                                        <span class="text-white font-black text-xs uppercase tracking-widest block mb-1">{{ ($fb instanceof \App\Models\Feedback) ? $fb->name : 'ANONYMOUS OPERATIVE' }}</span>
-                                        <span class="text-white/50 text-[9px] font-black uppercase tracking-widest">{{ ($fb instanceof \App\Models\Feedback && $fb->created_at) ? $fb->created_at->diffForHumans() : 'RECENTLY' }}</span>
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        @for ($i = 1; $i <= 5; $i++)
-                                            <i data-feather="star" style="width:10px;height:10px" class="{{ $i <= $rr ? 'fill-yellow-500 text-yellow-500' : 'text-white/10' }}"></i>
-                                        @endfor
-                                    </div>
-                                </div>
-                                <p class="text-white/80 text-sm leading-relaxed mb-6 italic">"{{ ($fb instanceof \App\Models\Feedback) ? ($fb->comment ?? 'No additional logistics notes provided.') : 'LOGISTICS NOTE ENCRYPTED.' }}"</p>
-                                
-                                @if($fb instanceof \App\Models\Feedback && $fb->images && is_array($fb->images) && count($fb->images))
-                                    <div class="flex gap-3">
-                                        @foreach(array_slice($fb->images, 0, 2) as $img)
-                                            <a href="{{ asset('storage/' . $img) }}" target="_blank" class="block w-20 h-20 rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all">
-                                                <img src="{{ asset('storage/' . $img) }}" alt="Intel" class="w-full h-full object-cover">
-                                            </a>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
-                        @empty
-                            <div class="col-span-full py-24 text-center border-2 border-dashed border-white/20 rounded-[2.5rem]">
-                                <i data-feather="inbox" class="mx-auto text-white/30 mb-6" style="width:48px;height:48px"></i>
-                                <h4 class="text-white font-black uppercase tracking-widest mb-2">No Reports Filed</h4>
-                                <p class="text-white/60 text-sm font-medium">This product awaits its first evaluation.</p>
-                            </div>
-                        @endforelse
-                    </div>
+                <div class="p-8 flex items-center justify-center bg-black/50">
+                    <img src="{{ asset('storage/' . $product->size_guide) }}" alt="Size Chart" class="max-w-full max-h-[70vh] object-contain rounded-2xl border border-white/5 shadow-2xl" />
+                </div>
+                <div class="p-6 border-t border-white/5 bg-[#1a1a1a] flex justify-end">
+                    <button type="button" @click="showSizeModal = false" class="px-6 py-3 bg-white text-black font-black text-xs uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all">
+                        Close Guide
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 
     <script>
         // Gallery Functionality
@@ -494,7 +448,7 @@
             };
             
             const currentCurrency = '{{ $currency }}';
-            const basePrice = parseFloat('{{ $product->price }}');
+            const basePrice = parseFloat('{{ ($product->on_sale && $product->discounted_price !== null) ? $product->discounted_price : $product->price }}');
             const longSleeveCheckbox = document.getElementById('longSleeveCheckbox');
             const priceDisplay = document.getElementById('priceDisplay');
             const longSleevePriceRow = document.getElementById('longSleevePrice');
@@ -670,7 +624,7 @@
         };
         
         let currentCurrency = '{{ $currency ?? 'MYR' }}';
-        const basePrice = parseFloat('{{ $product->price }}');
+        const basePrice = parseFloat('{{ ($product->on_sale && $product->discounted_price !== null) ? $product->discounted_price : $product->price }}');
         
         function getCurrencySymbol() {
             return currencies[currentCurrency].symbol;

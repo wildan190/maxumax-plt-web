@@ -27,6 +27,7 @@ class HomepageTest extends TestCase
             'price' => 100,
             'is_active' => true,
             'available_for_preorder' => false,
+            'add_to_homepage' => true,
             'stock' => 10,
         ]);
 

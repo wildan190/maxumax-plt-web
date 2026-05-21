@@ -87,11 +87,11 @@ class PreorderStorefrontFlowService
 
     public function thankYouView(string $uuid)
     {
-        $preorders = Preorder::where('uuid', $uuid)->get();
+        $preorders = Preorder::with('product')->where('uuid', $uuid)->get();
 
         if ($preorders->isEmpty()) {
             if (is_numeric($uuid)) {
-                $pre = Preorder::find($uuid);
+                $pre = Preorder::with('product')->find($uuid);
                 if ($pre) {
                     $preorders = collect([$pre]);
                 } else {
@@ -198,7 +198,7 @@ class PreorderStorefrontFlowService
                 $query->orderBy('price', 'desc');
             }
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->orderBy('position', 'asc')->orderBy('created_at', 'desc');
         }
 
         $products = $query->get();
@@ -312,7 +312,7 @@ class PreorderStorefrontFlowService
                     'product_variant_id' => $variant ? $variant->id : null,
                     'name' => $product->name,
                     'jersey_type' => $product->jersey_type,
-                    'price' => (float) $product->price,
+                    'price' => (float) ($product->on_sale && $product->discounted_price !== null ? $product->discounted_price : $product->price),
                     'quantity' => (int) $data['quantity'],
                     'size' => $data['size'] ?? ($variant ? $variant->name : null),
                     'long_sleeve' => $request->boolean('long_sleeve'),

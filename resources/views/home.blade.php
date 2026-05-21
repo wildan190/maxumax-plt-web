@@ -1,20 +1,28 @@
 @extends('layouts.public')
 
-@section('title', 'Maxumax - Elevated Sports Performance')
+@section('title', 'Maxumax - Born in Sabah. Built for Performance.')
 
 @section('content')
 
+    {{-- 1. Hero --}}
     @include('partials.home.hero')
-    @include('partials.home.shop-by-sport')
-    @include('partials.home.shop-by-product')
-    @include('partials.home.custom-process')
-    @include('partials.home.trust-boxes')
-    @include('partials.home.featured-collections')
-    @include('partials.home.new-arrivals')
+
+    {{-- 2. Two Ways to Shop --}}
     @include('partials.home.ways-to-shop')
-    @include('partials.home.brand-story')
+
+    {{-- 3. Main Categories --}}
+    @include('partials.home.shop-by-sport')
+
+    {{-- 4. Featured Products --}}
+    @include('partials.home.new-arrivals')
+
+    {{-- 5. Trusted Projects --}}
     @include('partials.home.trusted-projects')
-    @include('partials.home.customizable-items')
+
+    {{-- 6. Why Choose Maxumax --}}
+    @include('partials.home.why-choose')
+
+    {{-- 7. Final CTA --}}
     @include('partials.home.whatsapp-cta')
 
 @endsection

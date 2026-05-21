@@ -25,13 +25,16 @@ class StoreProductRequest extends FormRequest
             'gender' => 'nullable|string|max:100',
             'fit' => 'nullable|string|max:100',
             'color' => 'nullable|string|max:100',
-            'jersey_type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
             'stock' => 'sometimes|integer|min:0',
             'is_active' => 'sometimes|boolean',
             'available_for_preorder' => 'sometimes|boolean',
+            'add_to_homepage' => 'sometimes|boolean',
+            'on_sale' => 'sometimes|boolean',
+            'discounted_price' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|max:2048',
             'images.*' => 'nullable|image|max:4096',
+            'size_guide' => 'nullable|image|max:2048',
             'variants.*.name' => 'nullable|string|max:100',
             'variants.*.stock' => 'nullable|integer|min:0',
         ];
@@ -56,7 +59,7 @@ class StoreProductRequest extends FormRequest
     public function toPersistableAttributes(): array
     {
         $validated = collect($this->validated())
-            ->except(['image', 'images', 'variants'])
+            ->except(['image', 'images', 'size_guide', 'variants'])
             ->all();
 
         return array_merge($validated, [
@@ -64,6 +67,8 @@ class StoreProductRequest extends FormRequest
             'uuid' => (string) Str::uuid(),
             'is_active' => $this->boolean('is_active'),
             'available_for_preorder' => $this->boolean('available_for_preorder'),
+            'add_to_homepage' => $this->boolean('add_to_homepage'),
+            'on_sale' => $this->boolean('on_sale'),
             'stock' => (int) $this->input('stock', 0),
             'collections' => $this->input('collections', []),
         ]);

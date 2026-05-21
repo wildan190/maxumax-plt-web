@@ -110,6 +110,15 @@
                         @endif
                     </a>
 
+                    <a href="{{ route('admin.inquiries.index') }}"
+                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.inquiries.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                        <i data-feather="mail" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.inquiries.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                        <span class="flex-1">Inquiries</span>
+                        @if(\App\Models\Inquiry::where('is_read', false)->exists())
+                            <span class="flex-shrink-0 w-2 h-2 bg-rose-500 rounded-full"></span>
+                        @endif
+                    </a>
+
                     @if(auth()->user()->isAdmin())
                         <a href="{{ route('admin.users.index') }}"
                             class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.users.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'hover:bg-slate-800 hover:text-white' }}">

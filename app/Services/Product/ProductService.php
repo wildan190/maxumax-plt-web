@@ -27,6 +27,10 @@ class ProductService
             $attrs['image_path'] = $this->imageStorage->storeUploaded($request->file('image'));
         }
 
+        if ($request->hasFile('size_guide')) {
+            $attrs['size_guide'] = $this->imageStorage->storeUploaded($request->file('size_guide'));
+        }
+
         if ($request->hasFile('images')) {
             $files = $request->file('images');
             if (is_array($files)) {
@@ -72,6 +76,12 @@ class ProductService
             $attrs['image_path'] = $this->imageStorage->storeUploaded($request->file('image'));
         } elseif ($request->shouldDeleteMainImage()) {
             $attrs['image_path'] = null;
+        }
+
+        if ($request->hasFile('size_guide')) {
+            $attrs['size_guide'] = $this->imageStorage->storeUploaded($request->file('size_guide'));
+        } elseif ($request->boolean('delete_size_guide')) {
+            $attrs['size_guide'] = null;
         }
 
         $this->products->update($product, $attrs);

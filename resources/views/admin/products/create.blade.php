@@ -115,15 +115,11 @@
                             </div>
 
                             <div style="margin-bottom: 1.5rem;">
-                                <label style="display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Jersey Type (Optional)</label>
-                                <select name="jersey_type" 
-                                        style="width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; color: #111827; font-weight: 500; background: #f9fafb; cursor: pointer;">
-                                    <option value="">-- Select Type --</option>
-                                    <option value="Player Home" {{ old('jersey_type') == 'Player Home' ? 'selected' : '' }}>Player Home</option>
-                                    <option value="Player Away" {{ old('jersey_type') == 'Player Away' ? 'selected' : '' }}>Player Away</option>
-                                    <option value="GK Home" {{ old('jersey_type') == 'GK Home' ? 'selected' : '' }}>GK Home</option>
-                                    <option value="GK Away" {{ old('jersey_type') == 'GK Away' ? 'selected' : '' }}>GK Away</option>
-                                </select>
+                                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                                    <input type="checkbox" name="add_to_homepage" value="1" {{ old('add_to_homepage') ? 'checked' : '' }} 
+                                           style="width: 1.125rem; height: 1.125rem; border-radius: 0.375rem; cursor: pointer;" />
+                                    <span style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; color: #374151; letter-spacing: 0.05em;">Add to Homepage</span>
+                                </label>
                             </div>
 
                             <div style="margin-bottom: 0;">
@@ -206,6 +202,36 @@
                         </div>
                     </div>
 
+                    <!-- Size Guide Card -->
+                    <div style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                        <div style="padding: 1.25rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-feather="crop" style="width: 18px; height: 18px; color: #6b7280;"></i>
+                            <h2 style="font-size: 0.875rem; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">Size Guide</h2>
+                        </div>
+                        <div style="padding: 1.25rem;">
+                            <div id="dropzoneSizeGuide" 
+                                 style="border: 2px dashed #e5e7eb; border-radius: 1rem; padding: 2rem 1rem; text-align: center; cursor: pointer; transition: all 0.2s; background: #f9fafb;"
+                                 onmouseover="this.style.borderColor='#3b82f6'; this.style.background='#eff6ff';"
+                                 onmouseout="this.style.borderColor='#e5e7eb'; this.style.background='#f9fafb';"
+                                 onclick="document.getElementById('sizeGuideInput').click()">
+                                <div style="width: 3rem; height: 3rem; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                                    <i data-feather="upload-cloud" style="width: 20px; height: 20px; color: #3b82f6;"></i>
+                                </div>
+                                <p style="font-size: 0.875rem; font-weight: 700; color: #111827; margin: 0;">Upload Size Chart</p>
+                                <p style="font-size: 0.75rem; color: #6b7280; margin: 0.25rem 0 0 0;">PNG or JPG format</p>
+                            </div>
+                            <input type="file" name="size_guide" accept="image/png,image/jpeg" id="sizeGuideInput" style="display:none;" />
+                            
+                            <div id="sizeGuidePreviewContainer" style="margin-top:1.25rem; display: none; position: relative;">
+                                <img id="sizeGuidePreview" src="#" alt="Size Guide Preview" style="width: 100%; max-height: 200px; object-fit: contain; border-radius: 0.75rem; border: 1px solid #e5e7eb; padding: 0.25rem; background: white;" />
+                                <button type="button" id="removeSizeGuideBtn" 
+                                        style="position: absolute; top: -0.5rem; right: -0.5rem; background: #ef4444; color: white; border: none; border-radius: 50%; width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10;">
+                                    &times;
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Pricing Card -->
                     <div style="background: white; border-radius: 1.25rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
                         <div style="padding: 1.25rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.5rem;">
@@ -218,6 +244,23 @@
                                 <div style="position: relative;">
                                     <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: #9ca3af; font-size: 0.875rem;">RM</span>
                                     <input type="number" step="0.01" name="price" value="{{ old('price', '40.00') }}" required 
+                                           style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 3rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; font-weight: 700; color: #111827;" />
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 1.25rem;">
+                                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                                    <input type="checkbox" name="on_sale" id="onSaleCheckbox" value="1" {{ old('on_sale') ? 'checked' : '' }} 
+                                           style="width: 1.125rem; height: 1.125rem; border-radius: 0.375rem; cursor: pointer;" />
+                                    <span style="font-size: 0.875rem; font-weight: 600; color: #374151;">On Sale</span>
+                                </label>
+                            </div>
+
+                            <div style="margin-bottom: 1.25rem; display: none;" id="discountedPriceField">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b7280; margin-bottom: 0.375rem; letter-spacing: 0.05em;">Discounted Price (MYR)</label>
+                                <div style="position: relative;">
+                                    <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: #9ca3af; font-size: 0.875rem;">RM</span>
+                                    <input type="number" step="0.01" name="discounted_price" value="{{ old('discounted_price') }}" 
                                            style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 3rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; font-weight: 700; color: #111827;" />
                                 </div>
                             </div>
@@ -557,6 +600,44 @@
             }
             if (categorySelect) categorySelect.addEventListener('change', toggleCollection);
             toggleCollection(); // Run on init
+
+            // Sale Toggle Logic
+            const onSaleCheckbox = document.getElementById('onSaleCheckbox');
+            const discountedPriceField = document.getElementById('discountedPriceField');
+            if (onSaleCheckbox && discountedPriceField) {
+                const toggleDiscount = () => {
+                    discountedPriceField.style.display = onSaleCheckbox.checked ? 'block' : 'none';
+                };
+                onSaleCheckbox.addEventListener('change', toggleDiscount);
+                toggleDiscount();
+            }
+
+            // Size Guide Preview Logic
+            const sizeGuideInput = document.getElementById('sizeGuideInput');
+            const sizeGuidePreviewContainer = document.getElementById('sizeGuidePreviewContainer');
+            const sizeGuidePreview = document.getElementById('sizeGuidePreview');
+            const removeSizeGuideBtn = document.getElementById('removeSizeGuideBtn');
+
+            if (sizeGuideInput) {
+                sizeGuideInput.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(evt) {
+                            sizeGuidePreview.src = evt.target.result;
+                            sizeGuidePreviewContainer.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+            }
+            if (removeSizeGuideBtn) {
+                removeSizeGuideBtn.onclick = function() {
+                    if (sizeGuideInput) sizeGuideInput.value = '';
+                    sizeGuidePreview.src = '#';
+                    sizeGuidePreviewContainer.style.display = 'none';
+                };
+            }
         })();
     </script>
 @endsection

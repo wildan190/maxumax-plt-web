@@ -27,6 +27,11 @@ class Product extends Model
         'is_active',
         'available_for_preorder',
         'stock',
+        'add_to_homepage',
+        'on_sale',
+        'discounted_price',
+        'size_guide',
+        'position',
     ];
 
     protected $casts = [
@@ -35,6 +40,10 @@ class Product extends Model
         'available_for_preorder' => 'boolean',
         'stock' => 'integer',
         'collections' => 'array',
+        'add_to_homepage' => 'boolean',
+        'on_sale' => 'boolean',
+        'discounted_price' => 'decimal:2',
+        'position' => 'integer',
     ];
 
     public function getRouteKeyName()

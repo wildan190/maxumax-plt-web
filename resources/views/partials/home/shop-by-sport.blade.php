@@ -1,9 +1,9 @@
-<!-- 2. Shop By Sport -->
+<!-- 3. Main Categories -->
 <section class="bg-[#050505] py-24 px-6 border-b border-white/5">
     <div class="max-w-7xl mx-auto">
         <div class="text-center mb-16">
-            <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight">Shop By Sport</h2>
-            <p class="text-slate-400 font-medium mt-4">Precision-engineered gear for every discipline.</p>
+            <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight">Main Categories</h2>
+            <p class="text-slate-400 font-medium mt-4">Football, Golf, Fishing, Run & Training, Outdoor, Lifestyle.</p>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             @foreach ($shopBySportItems as $sportItem)

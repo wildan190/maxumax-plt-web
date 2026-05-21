@@ -7,11 +7,10 @@
         <div class="max-w-4xl mx-auto">
             <div class="text-center mb-16">
                 <span class="text-white/40 font-black uppercase tracking-[0.3em] text-[10px] mb-4 inline-block">Order
-                    Logistics</span>
+                    Status</span>
                 <h1 class="text-4xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-none mb-6">
                     Track <span class="text-white/40">Shipment.</span></h1>
-                <p class="text-white/40 font-medium text-lg max-w-xl mx-auto">Identify the current deployment status of
-                    your Maxumax performance gear.</p>
+                <p class="text-white/40 font-medium text-lg max-w-xl mx-auto">Stay updated as your order makes its way to you.</p>
             </div>
 
             <!-- Search Form -->

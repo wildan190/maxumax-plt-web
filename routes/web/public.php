@@ -11,3 +11,8 @@ Route::post('/shipping/rates', [ShippingController::class, 'checkRates'])->name(
 
 Route::get('/gallery', [PageController::class, 'gallery'])->name('gallery.index');
 Route::get('/policies', [PageController::class, 'policies'])->name('pages.policies');
+Route::get('/size-guide', [PageController::class, 'sizeGuide'])->name('pages.size-guide');
+Route::get('/customization', [PageController::class, 'customization'])->name('pages.customization');
+Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');
+Route::get('/contact-us', [PageController::class, 'contactUs'])->name('pages.contact-us');
+Route::post('/contact-us', [PageController::class, 'submitContactUs'])->name('pages.contact-us.submit');

@@ -12,7 +12,7 @@ class LandingPageDefaults
         return [
             [
                 'img' => asset('assets/img/banner1.jpeg'),
-                'title' => 'PERFORMANCE SPORTSWEAR AND CUSTOM TEAMWEAR FROM SABAH',
+                'title' => 'BORN IN SABAH. BUILT FOR PERFORMANCE.',
                 'text' => 'Ready stock apparel and fully customized teamwear for athletes, clubs, schools, companies, events, and sports organizations.',
                 'btns' => [
                     ['label' => 'Shop Ready Stock', 'url' => route('products.index'), 'primary' => true],

@@ -12,6 +12,10 @@
                 <i data-feather="plus" class="w-4 h-4"></i>
                 Add Product
             </a>
+            <a href="{{ route('admin.products.reorder') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20 gap-2">
+                <i data-feather="sliders" class="w-4 h-4"></i>
+                Reorder Products
+            </a>
             <div class="h-8 w-px bg-slate-200 mx-1 hidden md:block"></div>
             <a href="{{ route('admin.products.template') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-all gap-2">
                 <i data-feather="download" class="w-4 h-4"></i>
@@ -59,7 +63,6 @@
                 <thead class="bg-slate-50/50 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
                     <tr>
                         <th class="px-6 py-4">Product</th>
-                        <th class="px-6 py-4">Type</th>
                         <th class="px-6 py-4">Price</th>
                         <th class="px-6 py-4">Stock</th>
                         <th class="px-6 py-4">Status</th>
@@ -71,9 +74,6 @@
                         <tr class="hover:bg-slate-50/50 transition-colors group">
                             <td class="px-6 py-4">
                                 <span class="font-bold text-slate-900">{{ $p->name }}</span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="text-xs font-medium text-slate-600">{{ $p->jersey_type }}</span>
                             </td>
                             <td class="px-6 py-4">
                                 <span class="text-xs font-bold text-slate-400 mr-0.5">RM</span>

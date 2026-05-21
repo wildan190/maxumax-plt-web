@@ -94,7 +94,8 @@ class OrderService
                     if ($typeData['ls'])
                         $hasLongSleeveGlobal = true;
 
-                    $unitBase = (float) $product->price * $config['rate'];
+                    $priceToUse = ($product->on_sale && $product->discounted_price !== null) ? $product->discounted_price : $product->price;
+                    $unitBase = (float) $priceToUse * $config['rate'];
                     $unitSurcharge = $typeData['ls'] ? $config['longSleeve'] : 0;
 
                     $validNamesets = array_filter($typeData['namesets'], fn($ns) => !empty($ns['key']) || !empty($ns['value']));

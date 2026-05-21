@@ -1,7 +1,7 @@
 <!-- Footer -->
 <footer x-show="!showSplash" class="bg-slate-900 border-t border-white/5 pt-24 pb-12 px-6 overflow-hidden">
     <div class="max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 mb-20">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8 mb-20">
             <!-- 1. Shop -->
             <div>
                 <h4 class="text-white font-black uppercase tracking-widest text-sm mb-8">Shop</h4>
@@ -22,50 +22,36 @@
             <div>
                 <h4 class="text-white font-black uppercase tracking-widest text-sm mb-8">Products</h4>
                 <ul class="space-y-4">
-                    @foreach(['Jerseys', 'Pro Jerseys', 'Polos', 'Shirts', 'Windbreakers', 'Tracksuits', 'Jackets', 'Pants', 'Socks', 'Accessories'] as $item)
+                    @foreach(['Jerseys', 'Polos', 'Shirts', 'Windbreakers', 'Tracksuits', 'Jackets', 'Pants', 'Socks', 'Accessories'] as $item)
                     <li><a href="{{ route('products.index', ['category' => $item]) }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">{{ $item }}</a></li>
                     @endforeach
                 </ul>
             </div>
 
-            <!-- 3. Custom Teamwear -->
-            <div>
-                <h4 class="text-white font-black uppercase tracking-widest text-sm mb-8">Custom Teamwear</h4>
-                <ul class="space-y-4">
-                    <li><a href="{{ route('preorder.landing') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Custom Jersey</a></li>
-                    <li><a href="{{ route('preorder.landing') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Custom Polo</a></li>
-                    <li><a href="{{ route('preorder.landing') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Custom Tracksuit</a></li>
-                    <li><a href="{{ route('preorder.landing') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Custom Fishing Jersey</a></li>
-                    <li><a href="{{ route('preorder.landing') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Custom Running Apparel</a></li>
-                    <li><a href="https://wa.me/60143436496" target="_blank" class="text-blue-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Request Quotation</a></li>
-                    <li><a href="#" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Size Guide</a></li>
-                </ul>
-            </div>
-
-            <!-- 4. Support -->
+            <!-- 3. Support -->
             <div>
                 <h4 class="text-white font-black uppercase tracking-widest text-sm mb-8">Support</h4>
                 <ul class="space-y-4">
+                    <li><a href="{{ route('pages.customization') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Teamwear Customization</a></li>
                     <li><a href="{{ route('order.track') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Track Order</a></li>
-                    <li><a href="{{ route('pages.policies') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Shipping Info</a></li>
-                    <li><a href="#" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Size Guide</a></li>
-                    <li><a href="{{ route('pages.policies') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Return Policy</a></li>
-                    <li><a href="{{ route('order.track') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">FAQ</a></li>
-                    <li><a href="#footer-contact" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Contact Us</a></li>
+                    <li><a href="{{ route('pages.size-guide') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Size Guide</a></li>
+                    <li><a href="{{ route('pages.policies') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Policies & Terms</a></li>
+                    <li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">FAQ</a></li>
+                    <li><a href="{{ route('pages.contact-us') }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Contact Us</a></li>
                 </ul>
             </div>
 
-            <!-- 5. Contact -->
+            <!-- 4. Contact -->
             <div id="footer-contact">
                 <a href="/" class="inline-block mb-6">
                     <img src="{{ asset('assets/img/logo.png') }}" alt="Maxumax Logo" class="h-8 w-auto invert brightness-0">
                 </a>
                 <ul class="space-y-6">
-                    <!-- Showroom -->
+                    <!-- Outlet -->
                     <li class="flex items-start gap-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400 mt-1 shrink-0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                         <div class="flex flex-col">
-                            <strong class="text-white font-bold text-xs uppercase tracking-widest mb-1">Showroom</strong>
+                            <strong class="text-white font-bold text-xs uppercase tracking-widest mb-1">Outlet</strong>
                             <span class="text-slate-400 text-xs leading-relaxed">
                                 Unit No. 1-35, 1st Floor,<br>Suria Sabah Shopping Mall,<br>Jalan Tun Fuad Stephens,<br>88000 Kota Kinabalu, Sabah
                             </span>

@@ -12,6 +12,7 @@ class PreorderListingRepository
     public function retailOrdersQuery(): Builder
     {
         return Preorder::query()
+            ->with(['product', 'variant'])
             ->whereHas('product', function ($q) {
                 $q->where('available_for_preorder', false)
                     ->where('is_active', true);
@@ -22,6 +23,7 @@ class PreorderListingRepository
     public function preorderOnlyQuery(): Builder
     {
         return Preorder::query()
+            ->with(['product', 'variant'])
             ->whereHas('product', function ($q) {
                 $q->where('available_for_preorder', true);
             })
