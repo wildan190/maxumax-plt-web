@@ -170,7 +170,10 @@ class PreorderStorefrontFlowService
             if ($request->category === 'SALE') {
                 $query->where('on_sale', true);
             } else {
-                $query->where('category', $request->category);
+                $category = $request->category;
+                $query->where(function ($q) use ($category) {
+                    $q->where('category', 'like', "%{$category}%");
+                });
             }
         }
 
