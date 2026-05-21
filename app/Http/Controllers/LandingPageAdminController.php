@@ -65,4 +65,36 @@ class LandingPageAdminController extends Controller
 
         return redirect()->route('admin.landing-page.edit')->with('success', 'Trusted projects dikembalikan ke default situs.');
     }
+
+    public function partialHero(): View
+    {
+        return view('admin.landing-page.partials.hero-row', [
+            'index' => request('index', 0),
+            'slide' => null
+        ]);
+    }
+
+    public function partialShop(): View
+    {
+        return view('admin.landing-page.partials.shop-row', [
+            'index' => request('index', 0),
+            'item' => null
+        ]);
+    }
+
+    public function partialFeatured(): View
+    {
+        return view('admin.landing-page.partials.featured-row', [
+            'index' => request('index', 0),
+            'item' => null
+        ]);
+    }
+
+    public function partialProject(): View
+    {
+        return view('admin.landing-page.partials.project-row', [
+            'index' => request('index', 0),
+            'item' => null
+        ]);
+    }
 }

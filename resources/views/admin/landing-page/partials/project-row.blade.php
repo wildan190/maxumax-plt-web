@@ -1,46 +1,65 @@
-<div data-project-row style="border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.25rem; margin-bottom: 1rem; background: #fafafa;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <span style="font-weight: 700; color: #374151;">Item trusted project</span>
-        <button type="button" onclick="removeProjectRow(this)" style="font-size: 0.8rem; color: #b91c1c; background: none; border: none; cursor: pointer; font-weight: 600;">Hapus baris</button>
+<div data-project-row class="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-4 relative group transition-all hover:border-slate-300">
+    <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-3">
+            <span class="w-7 h-7 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center font-bold text-xs">{{ (int)$index + 1 }}</span>
+            <h3 class="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Project Item</h3>
+        </div>
+        <button type="button" onclick="removeProjectRow(this)" class="text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-widest transition-colors">
+            Remove
+        </button>
     </div>
+
     @if ($item)
         <input type="hidden" name="projects[{{ $index }}][id]" value="{{ $item->id }}">
     @endif
-    <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 600; margin-bottom: 0.35rem;">Category</label>
-        <input type="text" name="projects[{{ $index }}][category]" value="{{ old('projects.'.$index.'.category', $item?->category) }}"
-            style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem;">
-        @error('projects.'.$index.'.category')
-            <p style="color: #b91c1c; font-size: 0.85rem; margin-top: 0.35rem;">{{ $message }}</p>
-        @enderror
-    </div>
-    <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 600; margin-bottom: 0.35rem;">Title</label>
-        <input type="text" name="projects[{{ $index }}][title]" value="{{ old('projects.'.$index.'.title', $item?->title) }}"
-            style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem;">
-        @error('projects.'.$index.'.title')
-            <p style="color: #b91c1c; font-size: 0.85rem; margin-top: 0.35rem;">{{ $message }}</p>
-        @enderror
-    </div>
-    <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 600; margin-bottom: 0.35rem;">Description</label>
-        <textarea name="projects[{{ $index }}][description]" rows="2"
-            style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem;">{{ old('projects.'.$index.'.description', $item?->description) }}</textarea>
-        @error('projects.'.$index.'.description')
-            <p style="color: #b91c1c; font-size: 0.85rem; margin-top: 0.35rem;">{{ $message }}</p>
-        @enderror
-    </div>
-    <div>
-        <label style="display: block; font-weight: 600; margin-bottom: 0.35rem;">Gambar .webp (maks 2MB)</label>
-        @if ($item?->image_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($item->image_path))
-            <div style="margin-bottom: 0.5rem;">
-                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($item->image_path) }}" alt="" style="max-height: 100px; border-radius: 0.35rem;">
+
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+        <div class="md:col-span-3">
+            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Image (.webp)</label>
+            <div class="relative aspect-square bg-white border-2 border-dashed border-slate-200 rounded-xl overflow-hidden flex flex-col items-center justify-center transition-all hover:border-indigo-300">
+                @if ($item?->image_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($item->image_path))
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($item->image_path) }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+                @else
+                    <i data-feather="image" class="w-5 h-5 text-slate-300"></i>
+                @endif
+                <input type="file" name="projects[{{ $index }}][image]" accept=".webp,image/webp"
+                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
             </div>
-        @endif
-        <input type="file" name="projects[{{ $index }}][image]" accept=".webp,image/webp"
-            style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background: #fff;">
-        @error('projects.'.$index.'.image')
-            <p style="color: #b91c1c; font-size: 0.85rem; margin-top: 0.35rem;">{{ $message }}</p>
-        @enderror
+            @error('projects.'.$index.'.image')
+                <p class="text-rose-500 text-[9px] font-bold mt-1 uppercase">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div class="md:col-span-9 grid grid-cols-1 gap-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Category</label>
+                    <input type="text" name="projects[{{ $index }}][category]" value="{{ old('projects.'.$index.'.category', $item?->category) }}"
+                        placeholder="e.g. Football"
+                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold focus:outline-none focus:border-indigo-500 transition-all">
+                    @error('projects.'.$index.'.category')
+                        <p class="text-rose-500 text-[9px] font-bold mt-1 uppercase">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Title</label>
+                    <input type="text" name="projects[{{ $index }}][title]" value="{{ old('projects.'.$index.'.title', $item?->title) }}"
+                        placeholder="e.g. Sabah FA"
+                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold focus:outline-none focus:border-indigo-500 transition-all">
+                    @error('projects.'.$index.'.title')
+                        <p class="text-rose-500 text-[9px] font-bold mt-1 uppercase">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+            <div>
+                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Description</label>
+                <textarea name="projects[{{ $index }}][description]" rows="2"
+                    placeholder="Brief description of the project..."
+                    class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold focus:outline-none focus:border-indigo-500 transition-all">{{ old('projects.'.$index.'.description', $item?->description) }}</textarea>
+                @error('projects.'.$index.'.description')
+                    <p class="text-rose-500 text-[9px] font-bold mt-1 uppercase">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
     </div>
 </div>

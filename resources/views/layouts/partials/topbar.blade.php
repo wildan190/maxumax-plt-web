@@ -1,6 +1,6 @@
 <!-- Topbar/Navigation Partial -->
 <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
-    <div class="flex items-center">
+    <div class="flex items-center gap-4">
         <button 
             type="button" 
             class="p-2 -ml-2 text-slate-500 hover:text-slate-900 md:hidden transition-colors"
@@ -8,6 +8,13 @@
             aria-label="Toggle sidebar">
             <i data-feather="menu" class="w-6 h-6"></i>
         </button>
+
+        <!-- Breadcrumb -->
+        @if (isset($breadcrumbs))
+            <div class="hidden md:block">
+                @include('layouts.partials.breadcrumb')
+            </div>
+        @endif
     </div>
 
     <div class="flex items-center gap-2 md:gap-4">

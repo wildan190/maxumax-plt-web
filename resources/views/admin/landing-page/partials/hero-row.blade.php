@@ -3,61 +3,92 @@
     /** @var \App\Models\LandingHeroSlide|null $slide */
     $buttons = $slide?->buttons ?? [];
 @endphp
-<div data-hero-row style="border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.25rem; margin-bottom: 1rem; background: #fafafa;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <span style="font-weight: 700; color: #374151;">Slide hero</span>
-        <button type="button" onclick="removeHeroRow(this)" style="font-size: 0.8rem; color: #b91c1c; background: none; border: none; cursor: pointer; font-weight: 600;">Hapus baris</button>
+<div data-hero-row class="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-6 relative group">
+    <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-3">
+            <span class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center font-bold text-sm">{{ (int)$index + 1 }}</span>
+            <h3 class="font-bold text-slate-800 uppercase tracking-wider text-xs">Hero Slide</h3>
+        </div>
+        <button type="button" onclick="removeHeroRow(this)" class="text-rose-500 hover:text-rose-700 font-bold text-xs uppercase tracking-widest transition-colors">
+            Remove Slide
+        </button>
     </div>
+
     @if ($slide)
         <input type="hidden" name="hero[{{ $index }}][id]" value="{{ $slide->id }}">
     @endif
-    <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 600; margin-bottom: 0.35rem;">Judul</label>
-        <input type="text" name="hero[{{ $index }}][title]" value="{{ old('hero.'.$index.'.title', $slide?->title) }}"
-            style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem;">
-        @error('hero.'.$index.'.title')
-            <p style="color: #b91c1c; font-size: 0.85rem; margin-top: 0.35rem;">{{ $message }}</p>
-        @enderror
-    </div>
-    <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 600; margin-bottom: 0.35rem;">Teks</label>
-        <textarea name="hero[{{ $index }}][body]" rows="3"
-            style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem;">{{ old('hero.'.$index.'.body', $slide?->body) }}</textarea>
-        @error('hero.'.$index.'.body')
-            <p style="color: #b91c1c; font-size: 0.85rem; margin-top: 0.35rem;">{{ $message }}</p>
-        @enderror
-    </div>
-    <div style="margin-bottom: 1rem;">
-        <label style="display: block; font-weight: 600; margin-bottom: 0.35rem;">Gambar .webp (maks 2MB)</label>
-        @if ($slide?->image_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($slide->image_path))
-            <div style="margin-bottom: 0.5rem;">
-                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($slide->image_path) }}" alt="" style="max-height: 120px; border-radius: 0.35rem;">
-            </div>
-        @endif
-        <input type="file" name="hero[{{ $index }}][image]" accept=".webp,image/webp"
-            style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background: #fff;">
-        @error('hero.'.$index.'.image')
-            <p style="color: #b91c1c; font-size: 0.85rem; margin-top: 0.35rem;">{{ $message }}</p>
-        @enderror
-    </div>
-    @for ($b = 0; $b < 3; $b++)
-        @php $btn = $buttons[$b] ?? []; @endphp
-        <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 0.5rem; align-items: end; margin-bottom: 0.5rem;">
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="space-y-4">
             <div>
-                <label style="font-size: 0.75rem; color: #6b7280;">Tombol {{ $b + 1 }} — label</label>
-                <input type="text" name="hero[{{ $index }}][buttons][{{ $b }}][label]" value="{{ old('hero.'.$index.'.buttons.'.$b.'.label', $btn['label'] ?? '') }}"
-                    style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem;">
+                <label class="block text-xs font-black uppercase tracking-widest text-slate-500 mb-1.5">Slide Title</label>
+                <input type="text" name="hero[{{ $index }}][title]" value="{{ old('hero.'.$index.'.title', $slide?->title) }}"
+                    class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500 transition-all">
+                @error('hero.'.$index.'.title')
+                    <p class="text-rose-500 text-[10px] font-bold mt-1 uppercase">{{ $message }}</p>
+                @enderror
             </div>
             <div>
-                <label style="font-size: 0.75rem; color: #6b7280;">URL</label>
-                <input type="text" name="hero[{{ $index }}][buttons][{{ $b }}][url]" value="{{ old('hero.'.$index.'.buttons.'.$b.'.url', $btn['url'] ?? '') }}"
-                    style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem;">
+                <label class="block text-xs font-black uppercase tracking-widest text-slate-500 mb-1.5">Description Body</label>
+                <textarea name="hero[{{ $index }}][body]" rows="3"
+                    class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500 transition-all">{{ old('hero.'.$index.'.body', $slide?->body) }}</textarea>
+                @error('hero.'.$index.'.body')
+                    <p class="text-rose-500 text-[10px] font-bold mt-1 uppercase">{{ $message }}</p>
+                @enderror
             </div>
-            <label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; white-space: nowrap;">
-                <input type="hidden" name="hero[{{ $index }}][buttons][{{ $b }}][primary]" value="0">
-                <input type="checkbox" name="hero[{{ $index }}][buttons][{{ $b }}][primary]" value="1" @checked(old('hero.'.$index.'.buttons.'.$b.'.primary', !empty($btn['primary'])))>
-                Primary
-            </label>
         </div>
-    @endfor
+
+        <div>
+            <label class="block text-xs font-black uppercase tracking-widest text-slate-500 mb-1.5">Background Image (.webp, max 2MB)</label>
+            <div class="relative group/img aspect-[16/7] bg-white border-2 border-dashed border-slate-200 rounded-2xl overflow-hidden flex flex-col items-center justify-center transition-all hover:border-indigo-300">
+                @if ($slide?->image_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($slide->image_path))
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($slide->image_path) }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                        <span class="text-white text-[10px] font-black uppercase tracking-widest">Change Image</span>
+                    </div>
+                @else
+                    <div class="flex flex-col items-center text-slate-400">
+                        <i data-feather="image" class="w-8 h-8 mb-2"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest">Upload .webp</span>
+                    </div>
+                @endif
+                <input type="file" name="hero[{{ $index }}][image]" accept=".webp,image/webp"
+                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+            </div>
+            @error('hero.'.$index.'.image')
+                <p class="text-rose-500 text-[10px] font-bold mt-1 uppercase">{{ $message }}</p>
+            @enderror
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-100 p-5">
+        <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Call to Action Buttons</h4>
+        <div class="space-y-3">
+            @for ($b = 0; $b < 3; $b++)
+                @php $btn = $buttons[$b] ?? []; @endphp
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end border-b border-slate-50 pb-3 last:border-0 last:pb-0">
+                    <div class="md:col-span-4">
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Button {{ $b + 1 }} Label</label>
+                        <input type="text" name="hero[{{ $index }}][buttons][{{ $b }}][label]" value="{{ old('hero.'.$index.'.buttons.'.$b.'.label', $btn['label'] ?? '') }}"
+                            placeholder="e.g. Shop Now"
+                            class="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-indigo-500 transition-all">
+                    </div>
+                    <div class="md:col-span-6">
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">URL / Link</label>
+                        <input type="text" name="hero[{{ $index }}][buttons][{{ $b }}][url]" value="{{ old('hero.'.$index.'.buttons.'.$b.'.url', $btn['url'] ?? '') }}"
+                            placeholder="/products or https://..."
+                            class="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-indigo-500 transition-all">
+                    </div>
+                    <div class="md:col-span-2 flex items-center justify-center pb-1.5">
+                        <label class="flex items-center gap-2 cursor-pointer group/check">
+                            <input type="hidden" name="hero[{{ $index }}][buttons][{{ $b }}][primary]" value="0">
+                            <input type="checkbox" name="hero[{{ $index }}][buttons][{{ $b }}][primary]" value="1" @checked(old('hero.'.$index.'.buttons.'.$b.'.primary', !empty($btn['primary'])))
+                                class="w-4 h-4 rounded border-slate-200 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                            <span class="text-[10px] font-black uppercase text-slate-500 group-hover/check:text-indigo-600 transition-colors">Primary</span>
+                        </label>
+                    </div>
+                </div>
+            @endfor
+        </div>
+    </div>
 </div>
