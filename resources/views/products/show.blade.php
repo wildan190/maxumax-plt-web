@@ -2,6 +2,43 @@
 
 @section('title', $product->name . ' — Product Detail')
 
+@push('schema')
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": "{{ $product->name }}",
+      "image": [
+        "{{ $product->image_path ? asset('storage/' . $product->image_path) : asset('assets/img/logo.png') }}"
+        @foreach ($product->images as $img)
+            , "{{ asset('storage/' . $img->path) }}"
+        @endforeach
+      ],
+      "description": "{{ str_replace(["\r", "\n", '"'], ['', ' ', '\"'], $product->description ?: 'Precision-engineered performance apparel. Designed for the elite who demand absolute excellence on and off the field.') }}",
+      "sku": "{{ $product->uuid }}",
+      "brand": {
+        "@type": "Brand",
+        "name": "MAXUMAX"
+      },
+      @if($product->category)
+      "category": "{{ $product->category }}",
+      @endif
+      "offers": {
+        "@type": "Offer",
+        "url": "{{ url()->current() }}",
+        "priceCurrency": "MYR",
+        "price": "{{ $product->on_sale && $product->discounted_price !== null ? $product->discounted_price : $product->price }}",
+        "itemCondition": "https://schema.org/NewCondition",
+        "availability": "{{ $product->available_for_preorder ? 'https://schema.org/PreOrder' : ($product->stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock') }}",
+        "seller": {
+          "@type": "Organization",
+          "name": "MAXUMAX"
+        }
+      }
+    }
+    </script>
+@endpush
+
 @push('styles')
     <style>
         .prod-container { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }

@@ -81,6 +81,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
+    @stack('schema')
 </head>
 
 <body class="public-body bg-black text-white" x-data="{ 
