@@ -8,29 +8,57 @@
     $subhead = "Precision-engineered athletic wear, available for immediate dispatch. Join the elite.";
 
     $sportMap = [
+        'football' => [
+            'headline' => 'FOOTBALL SERIES',
+            'subhead' => 'Official apparel for football teams and associations'
+        ],
         'football series' => [
             'headline' => 'FOOTBALL SERIES',
             'subhead' => 'Official apparel for football teams and associations'
+        ],
+        'golf' => [
+            'headline' => 'GOLF SERIES',
+            'subhead' => 'Premium performance apparel for golfers on and off the course'
         ],
         'golf series' => [
             'headline' => 'GOLF SERIES',
             'subhead' => 'Premium performance apparel for golfers on and off the course'
         ],
+        'fishing' => [
+            'headline' => 'FISHING SERIES',
+            'subhead' => 'Technical apparel designed for comfort and protection on every expedition'
+        ],
         'fishing series' => [
             'headline' => 'FISHING SERIES',
             'subhead' => 'Technical apparel designed for comfort and protection on every expedition'
+        ],
+        'basketball' => [
+            'headline' => 'BASKETBALL SERIES',
+            'subhead' => 'High-performance apparel for basketball training and competition'
         ],
         'basketball series' => [
             'headline' => 'BASKETBALL SERIES',
             'subhead' => 'High-performance apparel for basketball training and competition'
         ],
+        'outdoor' => [
+            'headline' => 'OUTDOOR SERIES',
+            'subhead' => 'Breatheable performance wear for outdoor pursuits'
+        ],
         'outdoor series' => [
             'headline' => 'OUTDOOR SERIES',
             'subhead' => 'Breatheable performance wear for outdoor pursuits'
         ],
+        'run & training' => [
+            'headline' => 'RUN & TRAINING SERIES',
+            'subhead' => 'Performance apparel designed for running and intensive training'
+        ],
         'run & training series' => [
             'headline' => 'RUN & TRAINING SERIES',
             'subhead' => 'Performance apparel designed for running and intensive training'
+        ],
+        'lifestyle' => [
+            'headline' => 'CASUAL/LIFESTYLE',
+            'subhead' => 'Modern essentials for everyday comfort and style'
         ],
         'casual / lifestyle' => [
             'headline' => 'CASUAL/LIFESTYLE',
@@ -102,6 +130,10 @@
         'accessories' => [
             'headline' => 'ACCESSORIES',
             'subhead' => 'Official merchandise and accessories for everyday use'
+        ],
+        'sale' => [
+            'headline' => 'EXCLUSIVE DEALS',
+            'subhead' => 'Premium performance gear at special prices. Limited stock available.'
         ]
     ];
 
@@ -127,18 +159,35 @@
         </div>
 
         <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
-            @if($headline === 'Season Inventory')
+            @if(request('shop_by') === 'sport')
+                <h1 class="text-white font-black text-5xl md:text-7xl mb-6 tracking-tighter uppercase italic leading-none">
+                    Shop by <span class="text-white/40">Sport.</span>
+                </h1>
+                <p class="text-white/40 text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+                    Select your discipline to find specialized performance gear.
+                </p>
+            @elseif(request('shop_by') === 'product')
+                <h1 class="text-white font-black text-5xl md:text-7xl mb-6 tracking-tighter uppercase italic leading-none">
+                    Shop by <span class="text-white/40">Product.</span>
+                </h1>
+                <p class="text-white/40 text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+                    Browse our full range of technical apparel by category.
+                </p>
+            @elseif($headline === 'Season Inventory')
                 <h1 class="text-white font-black text-5xl md:text-7xl mb-6 tracking-tighter uppercase italic leading-none">
                     Season <span class="text-white/40">Inventory.</span>
                 </h1>
+                <p class="text-white/40 text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+                    {{ $subhead }}
+                </p>
             @else
                 <h1 class="text-white font-black text-5xl md:text-7xl mb-6 tracking-tighter uppercase italic leading-none">
                     {{ $headline }}
                 </h1>
+                <p class="text-white/40 text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+                    {{ $subhead }}
+                </p>
             @endif
-            <p class="text-white/40 text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
-                {{ $subhead }}
-            </p>
         </div>
     </section>
 
@@ -151,6 +200,34 @@
         filterFit: '{{ request('fit', '') }}'
     }">
         <div class="max-w-7xl mx-auto">
+            
+            @if(request('shop_by') === 'sport' && !request('sport'))
+                <!-- Shop by Sport Selection Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
+                    @foreach ($shopBySportItems as $sportItem)
+                        <a href="{{ $sportItem['href'] }}" class="group relative aspect-[16/9] rounded-2xl overflow-hidden bg-[#111] border border-white/5 block">
+                            <img src="{{ $sportItem['img'] }}" alt="{{ $sportItem['label'] }}" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+                            <div class="absolute bottom-6 left-6 right-6">
+                                <h3 class="text-white font-black text-xl md:text-2xl uppercase tracking-widest leading-tight group-hover:text-blue-400 transition-colors">{{ $sportItem['label'] }}</h3>
+                                <div class="mt-2 inline-flex items-center gap-2 text-xs font-bold text-white/60 uppercase tracking-widest group-hover:text-white transition-colors">
+                                    Explore <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            @elseif(request('shop_by') === 'product' && !request('category'))
+                <!-- Shop by Product Selection Grid -->
+                <div class="flex flex-wrap justify-center gap-4 mb-24">
+                    @foreach(['Jerseys', 'Polos', 'Shirts', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Cotton', 'Socks', 'Sleeve Socks', 'Caps', 'Accessories'] as $cat)
+                        <a href="{{ route('products.index', ['category' => $cat]) }}" class="px-8 py-4 bg-[#111] hover:bg-white hover:text-black border border-white/10 text-white rounded-full font-black text-sm uppercase tracking-widest transition-all duration-300 hover:scale-105 shadow-xl">
+                            {{ $cat }}
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+
             <!-- Filter Bar -->
             <div class="flex flex-wrap gap-4 justify-center items-center mb-16 relative z-20">
                 
@@ -275,7 +352,7 @@
             <div id="products-grid" class="grid gap-3 md:gap-8 grid-cols-2 lg:grid-cols-4">
                 @if(isset($products) && $products->count())
                     @foreach($products as $product)
-                        <div class="flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group relative">
+                        <div class="flex flex-col bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-300 group relative cursor-pointer" onclick="window.location='{{ route('product.show', $product) }}'">
                             <!-- Product Image -->
                             <div class="aspect-square md:aspect-[4/5] relative flex items-center justify-center p-3 md:p-8 bg-gradient-to-b from-[#1a1a1a] to-[#111111]">
                                 @if ($product->image_path)
@@ -322,10 +399,9 @@
                                             </span>
                                         @endif
                                     </div>
-                                    <a href="{{ route('product.show', $product) }}" 
-                                       class="w-7 h-7 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center text-black hover:bg-slate-200 transition-all hover:scale-110 active:scale-95 shadow-xl after:absolute after:inset-0 after:z-10">
+                                    <div class="w-7 h-7 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center text-black hover:bg-slate-200 transition-all hover:scale-110 active:scale-95 shadow-xl">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 md:w-[18px] md:h-[18px]"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                    </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>

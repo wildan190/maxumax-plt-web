@@ -25,50 +25,6 @@
                        style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem; outline: none;">
             </div>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 1rem;">Table Data</label>
-                
-                <div id="table-builder" x-data="tableBuilder()">
-                    <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
-                        <button type="button" @click="addColumn()" style="background: #f3f4f6; padding: 0.4rem 0.8rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600;">+ Add Column</button>
-                        <button type="button" @click="addRow()" style="background: #f3f4f6; padding: 0.4rem 0.8rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600;">+ Add Row</button>
-                    </div>
-
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
-                            <thead>
-                                <tr>
-                                    <template x-for="(header, hIndex) in headers" :key="'h-'+hIndex">
-                                        <th style="padding: 0.5rem;">
-                                            <div style="display: flex; gap: 0.25rem;">
-                                                <input type="text" :name="'headers['+hIndex+']'" x-model="headers[hIndex]" 
-                                                       style="width: 100%; padding: 0.4rem; border: 1px solid #d1d5db; border-radius: 0.25rem; font-size: 0.8rem;">
-                                                <button type="button" @click="removeColumn(hIndex)" style="color: #ef4444; font-size: 1.2rem;">&times;</button>
-                                            </div>
-                                        </th>
-                                    </template>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template x-for="(row, rIndex) in rows" :key="'r-'+rIndex">
-                                    <tr>
-                                        <template x-for="(cell, cIndex) in row" :key="'r-'+rIndex+'-c-'+cIndex">
-                                            <td style="padding: 0.5rem;">
-                                                <input type="text" :name="'rows['+rIndex+']['+cIndex+']'" x-model="rows[rIndex][cIndex]"
-                                                       style="width: 100%; padding: 0.4rem; border: 1px solid #f3f4f6; border-radius: 0.25rem; font-size: 0.8rem;">
-                                            </td>
-                                        </template>
-                                        <td style="padding: 0.5rem; width: 40px;">
-                                            <button type="button" @click="removeRow(rIndex)" style="color: #ef4444; font-size: 1.2rem;">&times;</button>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
             <div style="margin-bottom: 2rem;">
                 <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
                     <input type="checkbox" name="is_active" value="1" {{ $sizeGuide->is_active ? 'checked' : '' }}
@@ -88,31 +44,3 @@
         </form>
     </div>
 @endsection
-
-@push('scripts')
-<script>
-    function tableBuilder() {
-        return {
-            headers: {!! json_encode($sizeGuide->data['headers'] ?? ['Size', 'Chest Width', 'Body Length']) !!},
-            rows: {!! json_encode($sizeGuide->data['rows'] ?? [['XS', '', ''], ['S', '', '']]) !!},
-            addColumn() {
-                this.headers.push('New Column');
-                this.rows.forEach(row => row.push(''));
-            },
-            removeColumn(index) {
-                if (this.headers.length <= 1) return;
-                this.headers.splice(index, 1);
-                this.rows.forEach(row => row.splice(index, 1));
-            },
-            addRow() {
-                const newRow = new Array(this.headers.length).fill('');
-                this.rows.push(newRow);
-            },
-            removeRow(index) {
-                if (this.rows.length <= 1) return;
-                this.rows.splice(index, 1);
-            }
-        }
-    }
-</script>
-@endpush

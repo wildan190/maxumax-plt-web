@@ -14,7 +14,7 @@
                     <li><a href="{{ route('products.index', ['sport' => 'Outdoor Series']) }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Outdoor Series</a></li>
                     <li><a href="{{ route('products.index', ['sport' => 'Run and Training Series']) }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Run & Training</a></li>
                     <li><a href="{{ route('products.index', ['sport' => 'Casual / Lifestyle']) }}" class="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Casual / Lifestyle</a></li>
-                    <li><a href="{{ route('products.index', ['filter' => 'sale']) }}" class="text-red-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Sale</a></li>
+                    <li><a href="https://maxumax.my/products?category=SALE" class="text-red-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Sale</a></li>
                 </ul>
             </div>
 
@@ -53,7 +53,7 @@
                         <div class="flex flex-col">
                             <strong class="text-white font-bold text-xs uppercase tracking-widest mb-1">Outlet</strong>
                             <span class="text-slate-400 text-xs leading-relaxed">
-                                Unit No. 1-35, 1st Floor,<br>Suria Sabah Shopping Mall,<br>Jalan Tun Fuad Stephens,<br>88000 Kota Kinabalu, Sabah
+                                Maxumax Store, Unit No. 1-35, 1st Floor,<br>Suria Sabah Shopping Mall, Jalan Tun Fuad Stephens,<br>88000 Kota Kinabalu, Sabah, Malaysia
                             </span>
                         </div>
                     </li>
@@ -63,7 +63,7 @@
                         <div class="flex flex-col">
                             <strong class="text-white font-bold text-xs uppercase tracking-widest mb-1">Office / HQ</strong>
                             <span class="text-slate-400 text-xs leading-relaxed">
-                                Kepayan Perdana, No. A2-2,<br>First Floor, Block A,<br>88200 Kota Kinabalu, Sabah
+                                Maxumax PLT, No. A3-2, 1st Floor, Block A,<br>Kepayan Perdana, 88200 Kota Kinabalu,<br>Sabah, Malaysia
                             </span>
                         </div>
                     </li>

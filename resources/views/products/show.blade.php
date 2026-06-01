@@ -120,10 +120,6 @@
                                 <span class="text-[10px] uppercase font-black tracking-widest">No Image Asset</span>
                             </div>
                         @endif
-
-                        <div class="absolute top-8 left-8">
-                            <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">Premium Edition</span>
-                        </div>
                     </div>
 
                     <!-- Thumbnails -->
@@ -147,13 +143,6 @@
                             @if($product->jersey_type)
                                 <span class="text-white/70 font-black uppercase tracking-[0.3em] text-[10px] px-4 py-1.5 border border-white/10 rounded-full">{{ $product->jersey_type }}</span>
                             @endif
-                            <div class="flex items-center gap-1">
-                                @php $rounded = (int) round($feedbackAvg ?? 0); @endphp
-                                @for ($i = 1; $i <= 5; $i++)
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px" class="{{ $i <= $rounded ? 'fill-yellow-500 text-yellow-500' : 'text-white/10' }}"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                                @endfor
-                                <span class="text-[10px] font-bold text-white/70 ml-2">({{ $feedbackCount ?? 0 }})</span>
-                            </div>
                         </div>
 
                         <h1 class="text-5xl md:text-7xl font-black text-white italic uppercase tracking-tighter leading-[0.9] mb-8">
