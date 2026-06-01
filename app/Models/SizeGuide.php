@@ -10,13 +10,11 @@ class SizeGuide extends Model
         'name',
         'slug',
         'image_path',
-        'data',
         'sort_order',
         'is_active',
     ];
 
     protected $casts = [
-        'data' => 'array',
         'is_active' => 'boolean',
     ];
 }

@@ -35,46 +35,22 @@
 
             <!-- Tab Content Area -->
             <div class="w-full md:w-2/3 lg:w-3/4">
-                <div class="bg-white/5 border border-white/10 rounded-xl p-6 md:p-10 min-h-[500px]">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-10 min-h-[500px]">
                     @foreach($sizeGuides as $guide)
-                        <div x-show="activeTab === '{{ $guide->slug }}'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+                        <div x-show="activeTab === '{{ $guide->slug }}'" 
+                             x-transition:enter="transition ease-out duration-300" 
+                             x-transition:enter-start="opacity-0 translate-y-4" 
+                             x-transition:enter-end="opacity-100 translate-y-0" 
+                             style="display: none;">
                             
-                            <h2 class="text-2xl font-black uppercase mb-6">{{ $guide->name }}</h2>
-                            
-                            <div class="mb-8 text-white/60 text-sm">
-                                <p>Please note that all measurements are in centimeters (cm). Allow a tolerance of +/- 1-2cm for manufacturing variations.</p>
-                            </div>
+                            <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tight mb-8 border-b border-white/10 pb-4">{{ $guide->name }}</h2>
 
-                            @if($guide->data && isset($guide->data['headers']) && isset($guide->data['rows']))
-                            <div class="overflow-x-auto rounded-lg border border-white/10">
-                                <table class="w-full text-left border-collapse min-w-[600px]">
-                                    <thead>
-                                        <tr class="bg-white/10">
-                                            @foreach($guide->data['headers'] as $header)
-                                                <th class="py-4 px-6 font-bold uppercase text-sm border-b border-white/10">{{ $header }}</th>
-                                            @endforeach
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-white/5">
-                                        @foreach($guide->data['rows'] as $row)
-                                            <tr class="hover:bg-white/5 transition-colors">
-                                                @foreach($row as $index => $cell)
-                                                    <td class="py-4 px-6 {{ $index === 0 ? 'font-bold' : 'text-white/80' }}">{{ $cell }}</td>
-                                                @endforeach
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                            @endif
-                            
                             @if($guide->image_path)
-                            <div class="mt-8">
+                            <div class="mt-4">
                                 <img src="{{ asset('storage/' . $guide->image_path) }}" alt="{{ $guide->name }} Chart" class="w-full h-auto rounded-xl border border-white/10 shadow-2xl">
                             </div>
                             @else
-                            <!-- Placeholder for Image representation if needed -->
-                            <div class="mt-8 bg-black border border-white/5 rounded-xl p-8 flex flex-col items-center justify-center text-center">
+                            <div class="mt-4 bg-black border border-white/5 rounded-xl p-8 flex flex-col items-center justify-center text-center">
                                 <svg class="w-12 h-12 text-white/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path>
                                 </svg>

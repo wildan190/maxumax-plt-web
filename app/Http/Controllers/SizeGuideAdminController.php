@@ -25,8 +25,6 @@ class SizeGuideAdminController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'image' => 'nullable|image|mimes:webp,png|max:2048',
-            'headers' => 'required|array',
-            'rows' => 'required|array',
             'is_active' => 'boolean',
         ]);
 
@@ -39,10 +37,6 @@ class SizeGuideAdminController extends Controller
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
             'image_path' => $imagePath,
-            'data' => [
-                'headers' => $validated['headers'],
-                'rows' => $this->processRows($validated['rows']),
-            ],
             'is_active' => $request->boolean('is_active', true),
             'sort_order' => SizeGuide::count(),
         ]);
@@ -60,18 +54,12 @@ class SizeGuideAdminController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'image' => 'nullable|image|mimes:webp,png|max:2048',
-            'headers' => 'required|array',
-            'rows' => 'required|array',
             'is_active' => 'boolean',
         ]);
 
         $data = [
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
-            'data' => [
-                'headers' => $validated['headers'],
-                'rows' => $this->processRows($validated['rows']),
-            ],
             'is_active' => $request->boolean('is_active', true),
         ];
 
@@ -94,13 +82,5 @@ class SizeGuideAdminController extends Controller
         }
         $sizeGuide->delete();
         return redirect()->route('admin.size-guides.index')->with('success', 'Size guide deleted.');
-    }
-
-    private function processRows($rows)
-    {
-        // Simple processing to ensure we have a clean array of arrays
-        return array_values(array_map(function($row) {
-            return array_values($row);
-        }, $rows));
     }
 }
