@@ -76,13 +76,13 @@ class LandingPageDefaults
                 'img' => asset('assets/img/banner1.jpeg'),
             ],
             [
-                'category' => 'Government',
+                'category' => 'Corporate',
                 'title' => 'JKR Sabah',
                 'description' => 'Teamwear apparel including trackset for Sukan JKR Se-Malaysia 2024.',
                 'img' => asset('assets/img/banner1.jpeg'),
             ],
             [
-                'category' => 'Government',
+                'category' => 'Corporate',
                 'title' => 'Lembaga Sukan Negeri Sabah',
                 'description' => 'Fully customized windbreaker, cap, and polo shirt for official event.',
                 'img' => asset('assets/img/banner2.jpeg'),

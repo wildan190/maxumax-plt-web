@@ -12,15 +12,15 @@
         </div>
         <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-2 gap-6">
             @foreach ($trustedProjectItems as $item)
-            <div class="w-[85vw] md:w-auto snap-start shrink-0 group relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#111] {{ (count($trustedProjectItems) % 2 !== 0 && $loop->last) ? 'md:col-span-2 md:aspect-[21/9]' : '' }}">
+            <a href="{{ route('pages.projects.detail', \Illuminate\Support\Str::slug($item['title'])) }}" class="w-[85vw] md:w-auto snap-start shrink-0 group relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#111] {{ (count($trustedProjectItems) % 2 !== 0 && $loop->last) ? 'md:col-span-2 md:aspect-[21/9]' : '' }}">
                 <img src="{{ $item['img'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
                 <div class="absolute bottom-6 left-6 right-6">
-                    <p class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">{{ $item['category'] }}</p>
+                    <p class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1 group-hover:text-white transition-colors underline decoration-blue-400/30 underline-offset-4">{{ $item['category'] }}</p>
                     <h4 class="text-white font-black text-lg mb-2 leading-tight group-hover:text-blue-400 transition-colors">{{ $item['title'] }}</h4>
                     <p class="text-slate-300 text-xs font-medium line-clamp-2 max-w-2xl">{{ $item['description'] }}</p>
                 </div>
-            </div>
+            </a>
             @endforeach
         </div>
     </div>

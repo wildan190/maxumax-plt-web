@@ -95,12 +95,12 @@ class LandingPageSeeder extends Seeder
                 'description' => 'Teamwear apparel and equipment for Liga Wanita Nasional projects.',
             ],
             [
-                'category' => 'Government',
+                'category' => 'Corporate',
                 'title' => 'JKR Sabah',
                 'description' => 'Teamwear apparel including trackset for Sukan JKR Se-Malaysia 2024.',
             ],
             [
-                'category' => 'Government',
+                'category' => 'Corporate',
                 'title' => 'Lembaga Sukan Negeri Sabah',
                 'description' => 'Fully customized windbreaker, cap, and polo shirt for official event.',
             ],

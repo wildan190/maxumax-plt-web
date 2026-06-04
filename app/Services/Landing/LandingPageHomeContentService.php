@@ -122,6 +122,7 @@ class LandingPageHomeContentService
             $description = trim((string) $row->description) !== '' ? $row->description : $def['description'];
 
             return [
+                'id' => $row->id,
                 'category' => $category,
                 'title' => $title,
                 'description' => $description,

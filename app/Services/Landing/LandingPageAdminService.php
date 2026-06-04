@@ -246,23 +246,55 @@ class LandingPageAdminService
                     'sort_order' => $order,
                     'category' => $row['category'] ?? null,
                     'title' => $row['title'],
+                    'headline' => $row['headline'] ?? null,
+                    'subhead' => $row['subhead'] ?? null,
                     'description' => $row['description'] ?? null,
                 ];
                 if ($request->hasFile("projects.$index.image")) {
                     $this->deleteStoredIfExists($item->image_path);
                     $data['image_path'] = $request->file("projects.$index.image")->store('landing/projects', 'public');
                 }
+
+                // Handle Gallery
+                $gallery = $item->gallery ?? [];
+                // Remove selected images
+                if (isset($row['remove_gallery']) && is_array($row['remove_gallery'])) {
+                    foreach ($row['remove_gallery'] as $pathToRemove) {
+                        $this->deleteStoredIfExists($pathToRemove);
+                        $gallery = array_values(array_filter($gallery, fn($p) => $p !== $pathToRemove));
+                    }
+                }
+                // Add new images
+                if ($request->hasFile("projects.$index.gallery")) {
+                    foreach ($request->file("projects.$index.gallery") as $file) {
+                        $gallery[] = $file->store('landing/projects/gallery', 'public');
+                    }
+                }
+                $data['gallery'] = $gallery;
+
                 $item->update($data);
             } else {
                 $itemData = [
                     'sort_order' => $order,
                     'category' => $row['category'] ?? null,
                     'title' => $row['title'],
+                    'headline' => $row['headline'] ?? null,
+                    'subhead' => $row['subhead'] ?? null,
                     'description' => $row['description'] ?? null,
                 ];
                 if ($request->hasFile("projects.$index.image")) {
                     $itemData['image_path'] = $request->file("projects.$index.image")->store('landing/projects', 'public');
                 }
+
+                // Handle Gallery
+                $gallery = [];
+                if ($request->hasFile("projects.$index.gallery")) {
+                    foreach ($request->file("projects.$index.gallery") as $file) {
+                        $gallery[] = $file->store('landing/projects/gallery', 'public');
+                    }
+                }
+                $itemData['gallery'] = $gallery;
+
                 LandingProjectItem::query()->create($itemData);
             }
         }
@@ -331,7 +363,10 @@ class LandingPageAdminService
             && trim((string) ($row['title'] ?? '')) === ''
             && trim((string) ($row['category'] ?? '')) === ''
             && trim((string) ($row['description'] ?? '')) === ''
-            && ! $request->hasFile("projects.$index.image");
+            && trim((string) ($row['headline'] ?? '')) === ''
+            && trim((string) ($row['subhead'] ?? '')) === ''
+            && ! $request->hasFile("projects.$index.image")
+            && ! $request->hasFile("projects.$index.gallery");
     }
 
     private function deleteStoredIfExists(?string $path): void
@@ -369,6 +404,11 @@ class LandingPageAdminService
     {
         LandingProjectItem::query()->get()->each(function (LandingProjectItem $item) {
             $this->deleteStoredIfExists($item->image_path);
+            if (is_array($item->gallery)) {
+                foreach ($item->gallery as $path) {
+                    $this->deleteStoredIfExists($path);
+                }
+            }
             $item->delete();
         });
     }

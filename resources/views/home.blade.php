@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Maxumax - Born in Sabah. Built for Performance.')
+@section('title', 'Maxumax – Sportswear Customization Expert')
 
 @section('content')
 

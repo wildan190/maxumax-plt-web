@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'MAXUMAX | Sportswear and Custom Teamwear in Kota Kinabalu, Sabah')</title>
+    <title>@yield('title', 'Maxumax – Sportswear Customization Expert')</title>
 
     <!-- SEO Meta Tags -->
     <meta name="description"
