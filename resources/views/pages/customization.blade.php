@@ -14,6 +14,43 @@
 
     @include('partials.home.customizable-items')
 
+    <!-- Gallery Section -->
+    @if($galleries->count() > 0)
+        <section class="py-24 px-6 border-t border-white/10">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16">
+                    <span class="text-blue-500 font-black uppercase tracking-[0.4em] text-[10px] mb-6 inline-block">Visual Archive</span>
+                    <h2 class="text-4xl md:text-5xl font-black text-white tracking-tight uppercase italic">Our <span class="text-blue-500">Craftsmanship.</span></h2>
+                    <p class="text-white/60 text-lg mt-4 font-medium max-w-2xl mx-auto">Explore our portfolio of precision craftsmanship and high-performance teamwear.</p>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+                    @foreach($galleries as $gallery)
+                        <div class="group relative bg-[#111111] border border-white/5 rounded-3xl overflow-hidden transition-all duration-500 hover:border-blue-500/30">
+                            <div class="relative aspect-square overflow-hidden bg-black/40 flex items-center justify-center p-4">
+                                <img src="{{ Storage::url($gallery->image_path) }}" alt="{{ $gallery->title }}"
+                                    class="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                            </div>
+                            <div class="p-4 border-t border-white/5 text-center">
+                                <h3 class="font-black text-white text-[10px] md:text-xs uppercase italic tracking-tighter">
+                                    {{ $gallery->title }}
+                                </h3>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="text-center mt-16">
+                    <a href="{{ route('gallery.index') }}" class="inline-flex items-center gap-2 text-white/40 hover:text-white font-bold uppercase tracking-widest text-xs transition-colors">
+                        View Full Gallery
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+    @endif
+
     <!-- FAQ Section -->
     <section class="py-24 px-6 border-t border-white/10">
         <div class="max-w-4xl mx-auto">

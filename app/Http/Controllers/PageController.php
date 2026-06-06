@@ -27,9 +27,11 @@ class PageController extends Controller
         return view('pages.size-guide', compact('sizeGuides'));
     }
 
-    public function customization()
+    public function customization(PublicGalleryQueryService $publicGallery)
     {
-        return view('pages.customization');
+        $galleries = $publicGallery->paginatePublicGallery(12);
+
+        return view('pages.customization', compact('galleries'));
     }
 
     public function projects()

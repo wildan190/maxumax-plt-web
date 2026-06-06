@@ -13,16 +13,23 @@ class GalleryAdminService
         protected GalleryRepository $galleries,
     ) {}
 
-    public function storeFromRequest(Request $request): Gallery
+    public function storeFromRequest(Request $request): void
     {
-        $path = $request->file('image')->store('gallery', 'public');
+        $items = $request->input('items', []);
+        $files = $request->file('items', []);
 
-        return $this->galleries->create([
-            'title' => $request->title,
-            'image_path' => $path,
-            'is_highlight' => $request->boolean('is_highlight'),
-            'description' => $request->description,
-        ]);
+        foreach ($items as $index => $item) {
+            if (!isset($files[$index]['image'])) continue;
+
+            $path = $files[$index]['image']->store('gallery', 'public');
+
+            $this->galleries->create([
+                'title' => $item['title'],
+                'image_path' => $path,
+                'is_highlight' => isset($item['is_highlight']) && $item['is_highlight'],
+                'description' => $item['description'] ?? null,
+            ]);
+        }
     }
 
     public function updateFromRequest(Request $request, Gallery $gallery): void

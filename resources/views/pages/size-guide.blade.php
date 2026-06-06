@@ -13,54 +13,40 @@
     </section>
 
     @if($sizeGuides->isNotEmpty())
-    <!-- Size Guide Tabs Section using Alpine.js -->
-    <section class="max-w-6xl mx-auto px-6 mb-24" x-data="{ activeTab: '{{ $sizeGuides->first()->slug }}' }">
-        <div class="flex flex-col md:flex-row gap-8">
-            <!-- Sidebar / Tab Navigation -->
-            <div class="w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
-                <div class="sticky top-24 bg-white/5 border border-white/10 rounded-xl p-4 overflow-y-auto max-h-[70vh] custom-scrollbar">
-                    <nav class="flex flex-col gap-1 space-y-1">
-                        @foreach($sizeGuides as $guide)
-                            <button 
-                                @click="activeTab = '{{ $guide->slug }}'"
-                                :class="activeTab === '{{ $guide->slug }}' ? 'bg-white text-black font-bold' : 'text-white/70 hover:bg-white/10 hover:text-white'"
-                                class="text-left px-4 py-3 text-sm tracking-wide rounded-lg transition-colors duration-200"
-                            >
-                                {{ $guide->name }}
-                            </button>
-                        @endforeach
-                    </nav>
-                </div>
-            </div>
-
-            <!-- Tab Content Area -->
-            <div class="w-full md:w-2/3 lg:w-3/4">
-                <div class="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-10 min-h-[500px]">
-                    @foreach($sizeGuides as $guide)
-                        <div x-show="activeTab === '{{ $guide->slug }}'" 
-                             x-transition:enter="transition ease-out duration-300" 
-                             x-transition:enter-start="opacity-0 translate-y-4" 
-                             x-transition:enter-end="opacity-100 translate-y-0" 
-                             style="display: none;">
-                            
-                            <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tight mb-8 border-b border-white/10 pb-4">{{ $guide->name }}</h2>
-
-                            @if($guide->image_path)
-                            <div class="mt-4">
-                                <img src="{{ asset('storage/' . $guide->image_path) }}" alt="{{ $guide->name }} Chart" class="w-full h-auto rounded-xl border border-white/10 shadow-2xl">
+    <!-- Size Guide List Section -->
+    <section class="max-w-4xl mx-auto px-6 mb-24">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @foreach($sizeGuides as $guide)
+                <div class="group bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
+                                <i data-feather="file-text" class="w-6 h-6"></i>
                             </div>
-                            @else
-                            <div class="mt-4 bg-black border border-white/5 rounded-xl p-8 flex flex-col items-center justify-center text-center">
-                                <svg class="w-12 h-12 text-white/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path>
-                                </svg>
-                                <p class="text-white/40 text-sm">Visual size chart representation will be available soon.</p>
+                            <div>
+                                <h3 class="text-lg font-black uppercase tracking-tight text-white group-hover:text-red-400 transition-colors">{{ $guide->name }}</h3>
+                                <p class="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">PDF Document</p>
                             </div>
-                            @endif
                         </div>
-                    @endforeach
+                        
+                        @php
+                            $isPdf = $guide->image_path && str_ends_with(strtolower($guide->image_path), '.pdf');
+                        @endphp
+                        
+                        @if($isPdf)
+                            <a href="{{ asset('storage/' . $guide->image_path) }}" target="_blank" class="inline-flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg">
+                                <span>Download</span>
+                                <i data-feather="download" class="w-3 h-3"></i>
+                            </a>
+                        @elseif($guide->image_path)
+                            <a href="{{ asset('storage/' . $guide->image_path) }}" target="_blank" class="inline-flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-500 hover:text-white transition-all active:scale-95 shadow-lg">
+                                <span>View Image</span>
+                                <i data-feather="image" class="w-3 h-3"></i>
+                            </a>
+                        @endif
+                    </div>
                 </div>
-            </div>
+            @endforeach
         </div>
     </section>
     @else
