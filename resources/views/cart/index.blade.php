@@ -3,21 +3,21 @@
 @section('title', 'Your Collection - Maxumax')
 
 @section('content')
-    <div class="bg-black min-h-screen pt-24 pb-32 px-6">
-        <div class="max-w-7xl mx-auto">
+    <div class="bg-white min-h-screen pt-24 pb-32 px-6">
+        <div style="max-width: 1280px; margin: 0 auto;">
             <!-- Header section -->
             <div class="flex flex-col md:flex-row items-end justify-between mb-16 gap-8 animate-fade-in">
                 <div>
-                    <span class="text-white/70 font-black uppercase tracking-[0.3em] text-[10px] mb-4 inline-block">Order
+                    <span class="text-[#666666] font-black uppercase tracking-[0.3em] text-[10px] mb-4 inline-block">Order
                         Configuration</span>
-                    <h1 class="text-4xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-[0.9]">
-                        Review <span class="text-white/70">Inventory.</span>
+                    <h1 class="text-4xl md:text-7xl font-black text-[#111111] tracking-tighter uppercase italic leading-[0.9]">
+                        Review <span class="text-[#666666]">Inventory.</span>
                     </h1>
                 </div>
                 @if(count($items))
-                    <div class="flex items-center gap-4 border-l border-white/5 pl-6 pb-2">
-                        <span class="text-white/70 font-black text-[10px] uppercase tracking-widest">Active Batch</span>
-                        <span class="text-white font-black text-xl italic">{{ count($items) }} Units</span>
+                    <div class="flex items-center gap-4 border-l border-[#E8E8E3] pl-6 pb-2">
+                        <span class="text-[#666666] font-black text-[10px] uppercase tracking-widest">Active Batch</span>
+                        <span class="text-[#111111] font-black text-xl italic">{{ count($items) }} Units</span>
                     </div>
                 @endif
             </div>
@@ -27,14 +27,14 @@
                 <div class="mb-12 space-y-4 animate-fade-in">
                     @if(session('success'))
                         <div
-                            class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-2xl flex items-center gap-3 font-bold text-xs">
+                            class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-2xl flex items-center gap-3 font-bold text-xs">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                             {{ session('success') }}
                         </div>
                     @endif
                     @if(session('error') || $errors->any())
                         <div
-                            class="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl font-bold text-xs space-y-2">
+                            class="p-4 bg-red-500/10 border border-red-500/20 text-red-600 rounded-2xl font-bold text-xs space-y-2">
                             @if(session('error'))
                                 <div class="flex items-center gap-3">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
@@ -54,16 +54,16 @@
             @endif
 
             @if(!count($items))
-                <div class="py-40 text-center border-2 border-dashed border-white/5 rounded-[3rem] animate-fade-in">
+                <div class="py-40 text-center border-2 border-dashed border-[#E8E8E3] rounded-[3rem] animate-fade-in">
                     <div
-                        class="w-32 h-32 bg-white/5 rounded-full flex items-center justify-center text-white/10 mx-auto mb-10 border border-white/5">
+                        class="w-32 h-32 bg-[#F7F7F5] rounded-full flex items-center justify-center text-[#E8E8E3] mx-auto mb-10 border border-[#E8E8E3]">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                     </div>
-                    <h2 class="text-3xl font-black text-white mb-4 tracking-tight uppercase italic">Inventory Empty.</h2>
-                    <p class="text-white/20 font-medium mb-12 max-w-sm mx-auto text-sm">No items currently queued for
+                    <h2 class="text-3xl font-black text-[#111111] mb-4 tracking-tight uppercase italic">Inventory Empty.</h2>
+                    <p class="text-[#666666] font-medium mb-12 max-w-sm mx-auto text-sm">No items currently queued for
                         deployment.</p>
                     <a href="{{ route('products.index') }}"
-                        class="px-12 py-6 bg-white text-black font-black rounded-2xl hover:bg-zinc-200 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest text-xs">
+                        class="px-12 py-6 bg-[#155EEF] text-white font-black rounded-2xl hover:bg-[#0D4BC3] transition-all hover:scale-105 active:scale-95 uppercase tracking-widest text-xs">
                         Browse Collection
                     </a>
                 </div>
@@ -73,15 +73,15 @@
                     <div class="lg:col-span-8 space-y-8 animate-fade-in-up">
                         @foreach($items as $it)
                             <div
-                                class="bg-[#111111] rounded-[2.5rem] p-8 md:p-10 border border-white/5 shadow-2xl flex flex-col md:flex-row gap-10 items-center group transition-all hover:bg-white/[0.02]">
+                                class="bg-white rounded-[2.5rem] p-8 md:p-10 border border-[#E8E8E3] shadow-2xl flex flex-col md:flex-row gap-10 items-center group transition-all hover:bg-[#F7F7F5]">
                                 <!-- Product Visual -->
                                 <div
-                                    class="w-full md:w-48 aspect-square bg-gradient-to-b from-white/[0.03] to-transparent rounded-[2rem] flex items-center justify-center p-8 flex-shrink-0 relative overflow-hidden">
+                                    class="w-full md:w-48 aspect-square bg-gradient-to-b from-[#F7F7F5] to-white rounded-[2rem] flex items-center justify-center p-8 flex-shrink-0 relative overflow-hidden">
                                     @if($it['image'])
                                         <img src="{{ asset('storage/' . $it['image']) }}" alt="{{ $it['name'] }}"
                                             class="w-full h-full object-contain drop-shadow-2xl group-hover:scale-110 transition-transform duration-700">
                                     @else
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white/5" style="width:60px;height:60px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#E8E8E3]" style="width:60px;height:60px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                                     @endif
                                 </div>
 
@@ -89,46 +89,46 @@
                                 <div class="flex-grow text-center md:text-left space-y-6">
                                     <div>
                                         <span
-                                            class="text-[10px] font-black text-white/60 uppercase tracking-[0.3em] block mb-2">{{ $it['jersey_type'] ?? 'ELITE PERFORMANCE' }}</span>
+                                            class="text-[10px] font-black text-[#666666] uppercase tracking-[0.3em] block mb-2">{{ $it['jersey_type'] ?? 'ELITE PERFORMANCE' }}</span>
                                         <h3
-                                            class="text-2xl font-black text-white italic uppercase tracking-tighter truncate max-w-sm">
+                                            class="text-2xl font-black text-[#111111] italic uppercase tracking-tighter truncate max-w-sm">
                                             {{ $it['name'] }}
                                         </h3>
                                     </div>
 
                                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-3">
                                         <div
-                                            class="px-4 py-2 bg-white/10 rounded-full text-[9px] font-black text-white/70 uppercase tracking-widest border border-white/10">
+                                            class="px-4 py-2 bg-[#F7F7F5] rounded-full text-[9px] font-black text-[#666666] uppercase tracking-widest border border-[#E8E8E3]">
                                             Size {{ $it['size'] ?? 'VLD' }}
                                         </div>
                                         @if(!empty($it['long_sleeve']))
                                             <div
-                                                class="px-4 py-2 bg-amber-500/10 rounded-full text-[9px] font-black text-amber-500 uppercase tracking-widest border border-amber-500/20 italic">
+                                                class="px-4 py-2 bg-amber-500/10 rounded-full text-[9px] font-black text-amber-700 uppercase tracking-widest border border-amber-500/20 italic">
                                                 EXT-SLEEVE ENHANCED
                                             </div>
                                         @endif
                                     </div>
 
                                     <div class="flex items-baseline justify-center md:justify-start gap-2">
-                                        <span class="text-[10px] font-black text-white/60 uppercase">{{ $it['currency'] }} UNIT
+                                        <span class="text-[10px] font-black text-[#666666] uppercase">{{ $it['currency'] }} UNIT
                                             PRICE</span>
                                         <span
-                                            class="text-2xl font-black text-white tracking-tight">{{ number_format($it['line_total'], 2) }}</span>
+                                            class="text-2xl font-black text-[#111111] tracking-tight">{{ number_format($it['line_total'], 2) }}</span>
                                     </div>
                                 </div>
 
                                 <!-- Actions -->
                                 <div
-                                    class="flex flex-col gap-4 w-full md:w-auto border-t md:border-t-0 md:border-l border-white/5 pt-8 md:pt-0 md:pl-10">
+                                    class="flex flex-col gap-4 w-full md:w-auto border-t md:border-t-0 md:border-l border-[#E8E8E3] pt-8 md:pt-0 md:pl-10">
                                     <form method="POST" action="{{ route('cart.update') }}" class="flex items-center gap-3">
                                         @csrf
                                         <input type="hidden" name="key" value="{{ $it['key'] ?? $it['product_id'] }}">
                                         <div
-                                            class="flex items-center bg-white/5 rounded-2xl border border-white/10 p-2 group-focus-within:border-white transition-colors">
+                                            class="flex items-center bg-[#F7F7F5] rounded-2xl border border-[#E8E8E3] p-2 group-focus-within:border-[#155EEF] transition-colors">
                                             <input type="number" name="quantity" value="{{ $it['quantity'] }}" min="1"
-                                                class="w-16 bg-transparent text-center font-black text-white focus:outline-none text-sm appearance-none">
+                                                class="w-16 bg-transparent text-center font-black text-[#111111] focus:outline-none text-sm appearance-none">
                                             <button type="submit"
-                                                class="p-3 bg-white text-black rounded-xl hover:bg-zinc-200 transition-all active:scale-95">
+                                                class="p-3 bg-[#155EEF] text-white rounded-xl hover:bg-[#0D4BC3] transition-all active:scale-95">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                                             </button>
                                         </div>
@@ -137,7 +137,7 @@
                                         @csrf
                                         <input type="hidden" name="key" value="{{ $it['key'] ?? $it['product_id'] }}">
                                         <button type="submit"
-                                            class="w-full px-6 py-4 bg-red-500/5 border border-red-500/10 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all">
+                                            class="w-full px-6 py-4 bg-red-500/5 border border-red-500/10 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all">
                                             Remove
                                         </button>
                                     </form>
@@ -148,27 +148,27 @@
 
                     <!-- Summary Sidebar -->
                     <div class="lg:col-span-4 lg:sticky lg:top-32 animate-fade-in-right">
-                        <div class="bg-white border border-white/5 rounded-[3rem] p-12 text-black shadow-3xl">
+                        <div class="bg-white border border-[#E8E8E3] rounded-[3rem] p-12 text-[#111111] shadow-3xl">
                             <h2 class="text-3xl font-black mb-10 uppercase italic tracking-tighter">Logistics.</h2>
 
                             <!-- Totals -->
                             <div class="space-y-8 mb-12">
                                 <div class="flex justify-between items-center">
-                                    <span class="text-xs font-bold text-black/70 uppercase tracking-wide">Subtotal</span>
-                                    <span id="display-subtotal" class="text-lg font-black">{{ $currency }} {{ number_format($total, 2) }}</span>
+                                    <span class="text-xs font-bold text-[#666666] uppercase tracking-wide">Subtotal</span>
+                                    <span id="display-subtotal" class="text-lg font-black text-[#111111]">{{ $currency }} {{ number_format($total, 2) }}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-xs font-bold text-black/70 uppercase tracking-wide">Shipping</span>
-                                    <span id="display-shipping" class="text-lg font-black text-black/50">—</span>
+                                    <span class="text-xs font-bold text-[#666666] uppercase tracking-wide">Shipping</span>
+                                    <span id="display-shipping" class="text-lg font-black text-[#999999]">—</span>
                                 </div>
-                                <div class="pt-10 border-t border-black/5 flex justify-between items-end">
+                                <div class="pt-10 border-t border-[#E8E8E3] flex justify-between items-end">
                                     <span
-                                        class="font-black text-3xl uppercase italic tracking-tighter leading-none">Total</span>
+                                        class="font-black text-3xl uppercase italic tracking-tighter leading-none text-[#111111]">Total</span>
                                     <div class="text-right">
-                                        <div class="text-xs font-bold text-black/60 uppercase tracking-wide mb-1">
+                                        <div class="text-xs font-bold text-[#666666] uppercase tracking-wide mb-1">
                                             {{ $currency }}
                                         </div>
-                                        <div id="display-total" class="text-5xl font-black leading-[0.8] tracking-tighter italic">
+                                        <div id="display-total" class="text-5xl font-black leading-[0.8] tracking-tighter italic text-[#111111]">
                                             {{ number_format($total, 2) }}
                                         </div>
                                     </div>

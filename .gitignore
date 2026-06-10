@@ -26,3 +26,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 public/assets/mp4/*
+resources/views/partials/home/trusted-projects.blade.php
+resources/views/Archive.zip

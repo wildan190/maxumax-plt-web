@@ -89,7 +89,7 @@
     @stack('schema')
 </head>
 
-<body class="public-body bg-black text-white">
+<body class="public-body bg-white text-[#111111]">
 
     @include('partials.public.navbar')
 
