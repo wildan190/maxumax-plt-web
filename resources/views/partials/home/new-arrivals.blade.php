@@ -12,7 +12,7 @@
             </a>
         </div>
 
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-5">
             @foreach ($products as $product)
                 <div class="group cursor-pointer" onclick="window.location='{{ $product->available_for_preorder ? route('preorder.create', $product) : route('product.show', $product) }}'">
                     <!-- Product Card -->
