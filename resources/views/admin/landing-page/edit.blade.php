@@ -199,6 +199,21 @@
             }
         });
 
+        // Scoped icon initialization to avoid race conditions
+        function initRowIcons(row) {
+            if (typeof feather === 'undefined') return;
+            const icons = row.querySelectorAll('[data-feather]');
+            icons.forEach(icon => {
+                const name = icon.getAttribute('data-feather');
+                if (feather.icons[name]) {
+                    const svg = feather.icons[name].toSvg({
+                        class: icon.getAttribute('class')
+                    });
+                    icon.outerHTML = svg;
+                }
+            });
+        }
+
         function addHeroRow() {
             const container = document.getElementById('hero-container');
             const index = container.querySelectorAll('[data-hero-row]').length;
@@ -206,9 +221,7 @@
                 .then(res => res.text())
                 .then(html => {
                     container.insertAdjacentHTML('beforeend', html);
-                    if (typeof feather !== 'undefined') {
-                        feather.replace();
-                    }
+                    initRowIcons(container.lastElementChild);
                 });
         }
 
@@ -223,7 +236,8 @@
             const container = document.getElementById('hero-container');
             const rows = container.querySelectorAll('[data-hero-row]');
             rows.forEach((row, i) => {
-                row.querySelector('.font-bold.text-sm').textContent = i + 1;
+                const badge = row.querySelector('.font-bold.text-sm');
+                if (badge) badge.textContent = i + 1;
                 // re-index inputs if necessary for validation
                 row.querySelectorAll('input, textarea').forEach(input => {
                     input.name = input.name.replace(/hero\[\d+\]/, `hero[${i}]`);
@@ -238,9 +252,7 @@
                 .then(res => res.text())
                 .then(html => {
                     container.insertAdjacentHTML('beforeend', html);
-                    if (typeof feather !== 'undefined') {
-                        feather.replace();
-                    }
+                    initRowIcons(container.lastElementChild);
                 });
         }
 
@@ -255,7 +267,8 @@
             const container = document.getElementById('shop-container');
             const rows = container.querySelectorAll('[data-shop-row]');
             rows.forEach((row, i) => {
-                row.querySelector('.font-bold.text-xs').textContent = i + 1;
+                const badge = row.querySelector('.font-bold.text-xs');
+                if (badge) badge.textContent = i + 1;
                 row.querySelectorAll('input').forEach(input => {
                     input.name = input.name.replace(/shop\[\d+\]/, `shop[${i}]`);
                 });
@@ -269,9 +282,7 @@
                 .then(res => res.text())
                 .then(html => {
                     container.insertAdjacentHTML('beforeend', html);
-                    if (typeof feather !== 'undefined') {
-                        feather.replace();
-                    }
+                    initRowIcons(container.lastElementChild);
                 });
         }
 
@@ -286,7 +297,8 @@
             const container = document.getElementById('featured-container');
             const rows = container.querySelectorAll('[data-featured-row]');
             rows.forEach((row, i) => {
-                row.querySelector('.font-bold.text-xs').textContent = i + 1;
+                const badge = row.querySelector('.font-bold.text-xs');
+                if (badge) badge.textContent = i + 1;
                 row.querySelectorAll('input').forEach(input => {
                     input.name = input.name.replace(/featured\[\d+\]/, `featured[${i}]`);
                 });
@@ -300,9 +312,7 @@
                 .then(res => res.text())
                 .then(html => {
                     container.insertAdjacentHTML('beforeend', html);
-                    if (typeof feather !== 'undefined') {
-                        feather.replace();
-                    }
+                    initRowIcons(container.lastElementChild);
                 });
         }
 
@@ -317,11 +327,66 @@
             const container = document.getElementById('projects-container');
             const rows = container.querySelectorAll('[data-project-row]');
             rows.forEach((row, i) => {
-                row.querySelector('.font-bold.text-xs').textContent = i + 1;
-                row.querySelectorAll('input, textarea').forEach(input => {
+                const badge = row.querySelector('.font-bold.text-xs');
+                if (badge) badge.textContent = i + 1;
+                row.querySelectorAll('input, textarea, select').forEach(input => {
                     input.name = input.name.replace(/projects\[\d+\]/, `projects[${i}]`);
                 });
             });
         }
+
+        // Handle image previews (Main image and Gallery)
+        document.addEventListener('change', function(e) {
+            // 1. Single Image Preview (Cover)
+            if (e.target.matches('input[type="file"][name*="[image]"]')) {
+                const input = e.target;
+                const container = input.parentElement;
+                const file = input.files[0];
+                
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        let img = container.querySelector('img');
+                        if (!img) {
+                            img = document.createElement('img');
+                            img.className = 'absolute inset-0 w-full h-full object-cover';
+                            container.insertBefore(img, input);
+                        }
+                        img.src = event.target.result;
+                        
+                        // Hide the icon
+                        const icon = container.querySelector('[data-feather="image"], svg');
+                        if (icon) icon.style.display = 'none';
+                    }
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            // 2. Multiple Gallery Preview
+            if (e.target.matches('input[type="file"][name*="[gallery]"]')) {
+                const input = e.target;
+                const grid = input.closest('.grid');
+                const files = Array.from(input.files);
+                
+                // Remove any previous temporary previews in this row
+                grid.querySelectorAll('.temp-preview').forEach(el => el.remove());
+                
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const div = document.createElement('div');
+                        div.className = 'temp-preview relative aspect-square rounded-lg overflow-hidden border-2 border-indigo-200';
+                        div.innerHTML = `
+                            <img src="${event.target.result}" class="w-full h-full object-cover opacity-70">
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">New</span>
+                            </div>
+                        `;
+                        grid.insertBefore(div, input.parentElement);
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
     </script>
 @endpush

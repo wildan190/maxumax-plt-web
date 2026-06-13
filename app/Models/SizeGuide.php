@@ -10,6 +10,7 @@ class SizeGuide extends Model
         'name',
         'slug',
         'image_path',
+        'file_path',
         'sort_order',
         'is_active',
     ];

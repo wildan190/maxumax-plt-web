@@ -14,6 +14,8 @@ Route::get('/policies', [PageController::class, 'policies'])->name('pages.polici
 Route::get('/size-guide', [PageController::class, 'sizeGuide'])->name('pages.size-guide');
 Route::get('/customization', [PageController::class, 'customization'])->name('pages.customization');
 Route::get('/projects', [PageController::class, 'projects'])->name('pages.projects');
+Route::get('/projects/{slug}', [PageController::class, 'projectDetail'])->name('pages.projects.detail');
+Route::get('/projects/category/{category}', [PageController::class, 'projectCategory'])->name('pages.projects.category');
 Route::get('/about', [PageController::class, 'about'])->name('pages.about');
 Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');
 Route::get('/contact-us', [PageController::class, 'contactUs'])->name('pages.contact-us');

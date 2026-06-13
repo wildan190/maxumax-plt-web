@@ -27,9 +27,11 @@ class PageController extends Controller
         return view('pages.size-guide', compact('sizeGuides'));
     }
 
-    public function customization()
+    public function customization(PublicGalleryQueryService $publicGallery)
     {
-        return view('pages.customization');
+        $galleries = $publicGallery->paginatePublicGallery(12);
+
+        return view('pages.customization', compact('galleries'));
     }
 
     public function projects()
@@ -37,31 +39,56 @@ class PageController extends Controller
         $trustedProjects = \App\Models\LandingProjectItem::query()
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->get()
-            ->map(function ($row) {
-                $service = app(\App\Services\Landing\LandingPageHomeContentService::class);
-                $defaults = \App\Services\Landing\LandingPageDefaults::trustedProjects();
-                
-                // We don't have an index here easily, but we can find by title or just use first default as fallback
-                // A better way is to use the service logic but the service is built for homepage (take 4).
-                // Let's just manually resolve the URL for now.
-                $path = $row->image_path;
-                $img = null;
-                if ($path && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
-                    /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-                    $disk = \Illuminate\Support\Facades\Storage::disk('public');
-                    $img = $disk->url($path);
-                }
-
-                return [
-                    'category' => $row->category,
-                    'title' => $row->title,
-                    'description' => $row->description,
-                    'img' => $img ?? asset('assets/img/banner1.jpeg'), // Fallback to a generic default
-                ];
-            });
+            ->get();
 
         return view('pages.projects', compact('trustedProjects'));
+    }
+
+    public function projectDetail($slug)
+    {
+        // Try to find by ID first
+        if (is_numeric($slug)) {
+            $project = \App\Models\LandingProjectItem::find($slug);
+            if ($project) {
+                return view('pages.project-detail', compact('project'));
+            }
+        }
+
+        // Try to find by slugified title
+        $project = \App\Models\LandingProjectItem::all()->first(function ($p) use ($slug) {
+            return \Illuminate\Support\Str::slug($p->title) === $slug;
+        });
+
+        if ($project) {
+            return view('pages.project-detail', compact('project'));
+        }
+
+        // Fallback to category if it matches
+        return $this->projectCategory($slug);
+    }
+
+    public function projectCategory($category)
+    {
+        // Support both lowercase and title case
+        $validCategories = ['Futsal', 'Football', 'Corporate'];
+        $found = false;
+        foreach ($validCategories as $c) {
+            if (strtolower($c) === strtolower($category)) {
+                $category = $c;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            abort(404);
+        }
+
+        $projects = \App\Models\LandingProjectItem::where('category', $category)
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('pages.project-category', compact('projects', 'category'));
     }
 
     public function about()

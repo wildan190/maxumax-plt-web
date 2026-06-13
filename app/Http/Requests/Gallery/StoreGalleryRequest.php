@@ -14,10 +14,11 @@ class StoreGalleryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'image' => 'required|image|max:2048',
-            'is_highlight' => 'sometimes|boolean',
-            'description' => 'nullable|string',
+            'items' => 'required|array|min:1',
+            'items.*.title' => 'required|string|max:255',
+            'items.*.image' => 'required|image|max:5120', // Increased to 5MB
+            'items.*.is_highlight' => 'sometimes|boolean',
+            'items.*.description' => 'nullable|string',
         ];
     }
 }

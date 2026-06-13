@@ -22,26 +22,29 @@ class SizeGuideAdminController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:webp,png|max:2048',
-            'is_active' => 'boolean',
+        $request->validate([
+            'files' => 'required|array|min:1',
+            'files.*' => 'required|file|mimes:pdf|max:10240', // Max 10MB per PDF
         ]);
 
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('size-guides', 'public');
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $originalName = $file->getClientOriginalName();
+                $nameWithoutExtension = pathinfo($originalName, PATHINFO_FILENAME);
+                
+                $path = $file->store('size-guides/pdfs', 'public');
+
+                SizeGuide::create([
+                    'name' => $nameWithoutExtension,
+                    'slug' => Str::slug($nameWithoutExtension) . '-' . uniqid(),
+                    'image_path' => $path, // Using image_path column to store PDF path
+                    'is_active' => true,
+                    'sort_order' => SizeGuide::count(),
+                ]);
+            }
         }
 
-        SizeGuide::create([
-            'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
-            'image_path' => $imagePath,
-            'is_active' => $request->boolean('is_active', true),
-            'sort_order' => SizeGuide::count(),
-        ]);
-
-        return redirect()->route('admin.size-guides.index')->with('success', 'Size guide created successfully.');
+        return redirect()->route('admin.size-guides.index')->with('success', 'Size guides uploaded successfully.');
     }
 
     public function edit(SizeGuide $sizeGuide)
@@ -51,26 +54,31 @@ class SizeGuideAdminController extends Controller
 
     public function update(Request $request, SizeGuide $sizeGuide)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:webp,png|max:2048',
-            'is_active' => 'boolean',
+        $request->validate([
+            'file' => 'nullable|file|mimes:pdf|max:10240',
         ]);
 
-        $data = [
-            'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
-            'is_active' => $request->boolean('is_active', true),
-        ];
+        $data = [];
 
-        if ($request->hasFile('image')) {
+        if ($request->hasFile('file')) {
+            // Delete old file
             if ($sizeGuide->image_path) {
                 Storage::disk('public')->delete($sizeGuide->image_path);
             }
-            $data['image_path'] = $request->file('image')->store('size-guides', 'public');
+            
+            // Store new file
+            $file = $request->file('file');
+            $originalName = $file->getClientOriginalName();
+            $nameWithoutExtension = pathinfo($originalName, PATHINFO_FILENAME);
+            
+            $data['image_path'] = $file->store('size-guides/pdfs', 'public');
+            $data['name'] = $nameWithoutExtension;
+            $data['slug'] = Str::slug($nameWithoutExtension) . '-' . uniqid();
         }
 
-        $sizeGuide->update($data);
+        if (!empty($data)) {
+            $sizeGuide->update($data);
+        }
 
         return redirect()->route('admin.size-guides.index')->with('success', 'Size guide updated successfully.');
     }

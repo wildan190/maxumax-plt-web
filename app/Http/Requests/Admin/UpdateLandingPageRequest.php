@@ -48,8 +48,13 @@ class UpdateLandingPageRequest extends FormRequest
             'projects.*.id' => ['nullable', 'integer', 'exists:landing_project_items,id'],
             'projects.*.category' => ['nullable', 'string', 'max:255'],
             'projects.*.title' => ['nullable', 'string', 'max:255'],
+            'projects.*.headline' => ['nullable', 'string', 'max:255'],
+            'projects.*.subhead' => ['nullable', 'string', 'max:1000'],
             'projects.*.description' => ['nullable', 'string', 'max:1000'],
             'projects.*.image' => $webpFile,
+            'projects.*.gallery' => ['nullable', 'array'],
+            'projects.*.gallery.*' => ['image', 'max:5120'],
+            'projects.*.remove_gallery' => ['nullable', 'array'],
         ];
     }
 

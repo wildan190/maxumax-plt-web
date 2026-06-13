@@ -14,6 +14,13 @@ class LandingProjectItem extends Model
         'image_path',
         'category',
         'title',
+        'headline',
+        'subhead',
         'description',
+        'gallery',
+    ];
+
+    protected $casts = [
+        'gallery' => 'array',
     ];
 }
