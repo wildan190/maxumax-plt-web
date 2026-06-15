@@ -7,9 +7,16 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ProductRepository
 {
-    public function paginateForAdmin(int $perPage = 10): LengthAwarePaginator
+    public function paginateForAdmin(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
-        return Product::orderBy('created_at', 'desc')->paginate($perPage);
+        $query = Product::orderBy('created_at', 'desc');
+        
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+        }
+        
+        return $query->paginate($perPage)->appends(['search' => $search]);
     }
 
     /**

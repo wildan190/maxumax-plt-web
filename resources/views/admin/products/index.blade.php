@@ -8,6 +8,23 @@
     <!-- Header Actions -->
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div class="flex flex-wrap items-center gap-3">
+            <!-- Search Input -->
+            <form method="GET" action="{{ route('admin.products.index') }}" class="flex items-center gap-2 flex-1 min-w-[240px]">
+                <div class="relative group w-full">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-feather="search" class="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
+                    </div>
+                    <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Search products..."
+                        class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-slate-400">
+                </div>
+                @if($search)
+                    <a href="{{ route('admin.products.index') }}" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                        <i data-feather="x" class="w-4 h-4"></i>
+                    </a>
+                @endif
+            </form>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
             <a href="{{ route('admin.products.create') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 gap-2">
                 <i data-feather="plus" class="w-4 h-4"></i>
                 Add Product

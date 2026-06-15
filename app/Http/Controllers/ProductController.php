@@ -22,10 +22,11 @@ class ProductController extends Controller
 
     public function index()
     {
-        $productList = $this->productRepository->paginateForAdmin(10);
+        $search = request('search');
+        $productList = $this->productRepository->paginateForAdmin(10, $search);
         page_breadcrumbs(breadcrumbs(...ProductAdminViewModel::indexBreadcrumbTrail()));
 
-        return view('admin.products.index', ['products' => $productList]);
+        return view('admin.products.index', ['products' => $productList, 'search' => $search]);
     }
 
     public function create()
