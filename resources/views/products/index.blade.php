@@ -163,28 +163,28 @@
                 <h1 class="text-[#111111] font-black text-5xl md:text-7xl mb-6 tracking-tighter uppercase italic leading-none">
                     Shop by <span class="text-[#666666]">Sport.</span>
                 </h1>
-                <p class="text-[#666666] text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+                <p class="text-[#666666] text-sm md:text-lg max-w-2xl mx-auto font-medium leading-relaxed">
                     Select your discipline to find specialized performance gear.
                 </p>
             @elseif(request('shop_by') === 'product')
                 <h1 class="text-[#111111] font-black text-5xl md:text-7xl mb-6 tracking-tighter uppercase italic leading-none">
                     Shop by <span class="text-[#666666]">Product.</span>
                 </h1>
-                <p class="text-[#666666] text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+                <p class="text-[#666666] text-sm md:text-lg max-w-2xl mx-auto font-medium leading-relaxed">
                     Browse our full range of technical apparel by category.
                 </p>
             @elseif($headline === 'Season Inventory')
                 <h1 class="text-[#111111] font-black text-5xl md:text-7xl mb-6 tracking-tighter uppercase italic leading-none">
                     Season <span class="text-[#666666]">Inventory.</span>
                 </h1>
-                <p class="text-[#666666] text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+                <p class="text-[#666666] text-sm md:text-lg max-w-2xl mx-auto font-medium leading-relaxed">
                     {{ $subhead }}
                 </p>
             @else
                 <h1 class="text-[#111111] font-black text-5xl md:text-7xl mb-6 tracking-tighter uppercase italic leading-none">
                     {{ $headline }}
                 </h1>
-                <p class="text-[#666666] text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+                <p class="text-[#666666] text-sm md:text-lg max-w-2xl mx-auto font-medium leading-relaxed">
                     {{ $subhead }}
                 </p>
             @endif
@@ -192,8 +192,8 @@
     </section>
 
     <!-- Product Showcase Section -->
-    <section class="bg-white py-24 px-6 relative" x-data="{ 
-        filterCategory: '{{ request('category', '') }}', 
+    <section class="bg-white py-12 md:py-24 px-6 relative" x-data="{
+        filterCategory: '{{ request('category', '') }}',
         filterSport: '{{ request('sport', '') }}',
         filterMaterial: '{{ request('material', '') }}',
         filterGender: '{{ request('gender', '') }}',
@@ -203,13 +203,13 @@
             
             @if(request('shop_by') === 'sport' && !request('sport'))
                 <!-- Shop by Sport Selection Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 md:mb-20">
                     @foreach ($shopBySportItems as $sportItem)
-                        <a href="{{ $sportItem['href'] }}" class="group relative aspect-[16/9] rounded-2xl overflow-hidden bg-[#F7F7F5] border border-[#E8E8E3] block">
+                        <a href="{{ $sportItem['href'] }}" class="group relative aspect-[16/9] rounded-xl overflow-hidden bg-[#F7F7F5] border border-[#E8E8E3] block">
                             <img src="{{ $sportItem['img'] }}" alt="{{ $sportItem['label'] }}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-black/10 to-transparent"></div>
-                            <div class="absolute bottom-6 left-6 right-6">
-                                <h3 class="text-[#111111] font-black text-xl md:text-2xl uppercase tracking-widest leading-tight group-hover:text-[#155EEF] transition-colors">{{ $sportItem['label'] }}</h3>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+                            <div class="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
+                                <h3 class="text-[#111111] font-black text-lg md:text-xl uppercase tracking-widest leading-tight group-hover:text-[#155EEF] transition-colors">{{ $sportItem['label'] }}</h3>
                                 <div class="mt-2 inline-flex items-center gap-2 text-xs font-bold text-[#666666] uppercase tracking-widest group-hover:text-[#111111] transition-colors">
                                     Explore <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </div>
@@ -219,9 +219,9 @@
                 </div>
             @elseif(request('shop_by') === 'product' && !request('category'))
                 <!-- Shop by Product Selection Grid -->
-                <div class="flex flex-wrap justify-center gap-4 mb-24">
+                <div class="flex flex-wrap justify-center gap-3 mb-12 md:mb-20">
                     @foreach(['Jerseys', 'Polos', 'Shirts', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Cotton', 'Socks', 'Sleeve Socks', 'Caps', 'Accessories'] as $cat)
-                        <a href="{{ route('products.index', ['category' => $cat]) }}" class="px-8 py-4 bg-white hover:bg-[#155EEF] hover:text-white border border-[#E8E8E3] text-[#111111] rounded-full font-black text-sm uppercase tracking-widest transition-all duration-300 hover:scale-105 shadow-xl">
+                        <a href="{{ route('products.index', ['category' => $cat]) }}" class="px-6 py-3 bg-white hover:bg-[#155EEF] hover:text-white border border-[#E8E8E3] text-[#111111] rounded-full font-black text-xs uppercase tracking-widest transition-all duration-300 hover:scale-105 shadow-md">
                             {{ $cat }}
                         </a>
                     @endforeach
@@ -229,23 +229,23 @@
             @endif
 
             <!-- Filter Bar -->
-            <div class="flex flex-wrap gap-4 justify-center items-center mb-16 relative z-20">
+            <div class="flex flex-wrap gap-3 justify-center items-center mb-8 md:mb-16 relative z-20">
                 
                 <!-- Category Filter -->
                 <div class="relative w-full md:w-48" x-data="{ open: false }">
-                    <button @click="open = !open" @click.away="open = false" 
-                        class="flex items-center justify-between w-full bg-white text-[#111111] border border-[#E8E8E3] rounded-xl px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] hover:border-[#155EEF] group shadow-xl">
+                    <button @click="open = !open" @click.away="open = false"
+                        class="flex items-center justify-between w-full bg-white text-[#111111] border border-[#E8E8E3] rounded-lg px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] hover:border-[#155EEF] group shadow-md">
                         <span class="truncate pr-2" x-text="filterCategory ? filterCategory : 'Category'"></span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-[#666666] group-hover:text-[#155EEF] transition-transform" :class="{'rotate-180': open}"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     <div x-show="open" x-transition x-cloak
-                        class="absolute z-50 w-full mt-2 bg-white border border-[#E8E8E3] rounded-xl overflow-hidden shadow-2xl divide-y divide-[#E8E8E3] max-h-60 overflow-y-auto">
-                        <a href="{{ route('products.index', array_merge(request()->all(), ['category' => ''])) }}" 
+                        class="absolute z-50 w-full mt-2 bg-white border border-[#E8E8E3] rounded-lg overflow-hidden shadow-lg divide-y divide-[#E8E8E3] max-h-60 overflow-y-auto">
+                        <a href="{{ route('products.index', array_merge(request()->all(), ['category' => ''])) }}"
                             class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] {{ request('category') == '' ? 'text-[#155EEF] bg-[#F7F7F5]' : 'text-[#666666]' }}">
                             All Categories
                         </a>
                         @foreach(['Jerseys', 'Polos', 'Shirts', 'Outerwear', 'Tracksuits', 'Pants', 'Base Layer', 'Cotton', 'Socks', 'Sleeve Socks', 'Caps', 'Accessories'] as $cat)
-                            <a href="{{ route('products.index', array_merge(request()->all(), ['category' => $cat])) }}" 
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['category' => $cat])) }}"
                                 class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] {{ request('category') == $cat ? 'text-[#155EEF] bg-[#F7F7F5]' : 'text-[#666666]' }}">
                                 {{ $cat }}
                             </a>
@@ -255,19 +255,19 @@
 
                 <!-- Sport Filter -->
                 <div class="relative w-full md:w-48" x-data="{ open: false }">
-                    <button @click="open = !open" @click.away="open = false" 
-                        class="flex items-center justify-between w-full bg-white text-[#111111] border border-[#E8E8E3] rounded-xl px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] hover:border-[#155EEF] group shadow-xl">
+                    <button @click="open = !open" @click.away="open = false"
+                        class="flex items-center justify-between w-full bg-white text-[#111111] border border-[#E8E8E3] rounded-lg px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] hover:border-[#155EEF] group shadow-md">
                         <span class="truncate pr-2" x-text="filterSport ? filterSport : 'Sport'"></span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-[#666666] group-hover:text-[#155EEF] transition-transform" :class="{'rotate-180': open}"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     <div x-show="open" x-transition x-cloak
-                        class="absolute z-50 w-full mt-2 bg-white border border-[#E8E8E3] rounded-xl overflow-hidden shadow-2xl divide-y divide-[#E8E8E3] max-h-60 overflow-y-auto">
-                        <a href="{{ route('products.index', array_merge(request()->all(), ['sport' => ''])) }}" 
+                        class="absolute z-50 w-full mt-2 bg-white border border-[#E8E8E3] rounded-lg overflow-hidden shadow-lg divide-y divide-[#E8E8E3] max-h-60 overflow-y-auto">
+                        <a href="{{ route('products.index', array_merge(request()->all(), ['sport' => ''])) }}"
                             class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] {{ request('sport') == '' ? 'text-[#155EEF] bg-[#F7F7F5]' : 'text-[#666666]' }}">
                             All Sports
                         </a>
                         @foreach(['Football Series', 'Golf Series', 'Fishing Series', 'Basketball Series', 'Outdoor Series', 'Run & Training Series', 'Casual / Lifestyle'] as $sport)
-                            <a href="{{ route('products.index', array_merge(request()->all(), ['sport' => $sport])) }}" 
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['sport' => $sport])) }}"
                                 class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] {{ request('sport') == $sport ? 'text-[#155EEF] bg-[#F7F7F5]' : 'text-[#666666]' }}">
                                 {{ $sport }}
                             </a>
@@ -277,19 +277,19 @@
 
                 <!-- Material Filter -->
                 <div class="relative w-full md:w-48" x-data="{ open: false }">
-                    <button @click="open = !open" @click.away="open = false" 
-                        class="flex items-center justify-between w-full bg-white text-[#111111] border border-[#E8E8E3] rounded-xl px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] hover:border-[#155EEF] group shadow-xl">
+                    <button @click="open = !open" @click.away="open = false"
+                        class="flex items-center justify-between w-full bg-white text-[#111111] border border-[#E8E8E3] rounded-lg px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] hover:border-[#155EEF] group shadow-md">
                         <span class="truncate pr-2" x-text="filterMaterial ? filterMaterial : 'Material'"></span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-[#666666] group-hover:text-[#155EEF] transition-transform" :class="{'rotate-180': open}"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     <div x-show="open" x-transition x-cloak
-                        class="absolute z-50 w-full mt-2 bg-white border border-[#E8E8E3] rounded-xl overflow-hidden shadow-2xl divide-y divide-[#E8E8E3]">
-                        <a href="{{ route('products.index', array_merge(request()->all(), ['material' => ''])) }}" 
+                        class="absolute z-50 w-full mt-2 bg-white border border-[#E8E8E3] rounded-lg overflow-hidden shadow-lg divide-y divide-[#E8E8E3]">
+                        <a href="{{ route('products.index', array_merge(request()->all(), ['material' => ''])) }}"
                             class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] {{ request('material') == '' ? 'text-[#155EEF] bg-[#F7F7F5]' : 'text-[#666666]' }}">
                             All Materials
                         </a>
                         @foreach(['Polyester', 'Cotton', 'Dry-fit', 'Compression'] as $mat)
-                            <a href="{{ route('products.index', array_merge(request()->all(), ['material' => $mat])) }}" 
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['material' => $mat])) }}"
                                 class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] {{ request('material') == $mat ? 'text-[#155EEF] bg-[#F7F7F5]' : 'text-[#666666]' }}">
                                 {{ $mat }}
                             </a>
@@ -299,19 +299,19 @@
 
                 <!-- Gender Filter -->
                 <div class="relative w-full md:w-48" x-data="{ open: false }">
-                    <button @click="open = !open" @click.away="open = false" 
-                        class="flex items-center justify-between w-full bg-white text-[#111111] border border-[#E8E8E3] rounded-xl px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] hover:border-[#155EEF] group shadow-xl">
+                    <button @click="open = !open" @click.away="open = false"
+                        class="flex items-center justify-between w-full bg-white text-[#111111] border border-[#E8E8E3] rounded-lg px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] hover:border-[#155EEF] group shadow-md">
                         <span class="truncate pr-2" x-text="filterGender ? filterGender : 'Gender'"></span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-[#666666] group-hover:text-[#155EEF] transition-transform" :class="{'rotate-180': open}"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     <div x-show="open" x-transition x-cloak
-                        class="absolute z-50 w-full mt-2 bg-white border border-[#E8E8E3] rounded-xl overflow-hidden shadow-2xl divide-y divide-[#E8E8E3]">
-                        <a href="{{ route('products.index', array_merge(request()->all(), ['gender' => ''])) }}" 
+                        class="absolute z-50 w-full mt-2 bg-white border border-[#E8E8E3] rounded-lg overflow-hidden shadow-lg divide-y divide-[#E8E8E3]">
+                        <a href="{{ route('products.index', array_merge(request()->all(), ['gender' => ''])) }}"
                             class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] {{ request('gender') == '' ? 'text-[#155EEF] bg-[#F7F7F5]' : 'text-[#666666]' }}">
                             All Genders
                         </a>
                         @foreach(['Men', 'Women', 'Unisex'] as $gen)
-                            <a href="{{ route('products.index', array_merge(request()->all(), ['gender' => $gen])) }}" 
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['gender' => $gen])) }}"
                                 class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] {{ request('gender') == $gen ? 'text-[#155EEF] bg-[#F7F7F5]' : 'text-[#666666]' }}">
                                 {{ $gen }}
                             </a>
@@ -319,29 +319,9 @@
                     </div>
                 </div>
 
-                <!-- Price Filter -->
-                <div class="relative w-full md:w-48" x-data="{ open: false }">
-                    <button @click="open = !open" @click.away="open = false" 
-                        class="flex items-center justify-between w-full bg-white text-[#111111] border border-[#E8E8E3] rounded-xl px-4 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] hover:border-[#155EEF] group shadow-xl">
-                        <span class="truncate pr-2" x-text="'Price Range'"></span>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-[#666666] group-hover:text-[#155EEF] transition-transform" :class="{'rotate-180': open}"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </button>
-                    <div x-show="open" x-transition x-cloak
-                        class="absolute z-50 w-full mt-2 bg-white border border-[#E8E8E3] rounded-xl overflow-hidden shadow-2xl divide-y divide-[#E8E8E3]">
-                        <a href="{{ route('products.index', array_merge(request()->all(), ['sort' => 'price_low'])) }}" 
-                            class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] {{ request('sort') == 'price_low' ? 'text-[#155EEF] bg-[#F7F7F5]' : 'text-[#666666]' }}">
-                            Lowest Price
-                        </a>
-                        <a href="{{ route('products.index', array_merge(request()->all(), ['sort' => 'price_high'])) }}" 
-                            class="block w-full text-left px-5 py-3 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-[#F7F7F5] {{ request('sort') == 'price_high' ? 'text-[#155EEF] bg-[#F7F7F5]' : 'text-[#666666]' }}">
-                            Highest Price
-                        </a>
-                    </div>
-                </div>
-
                 <!-- Clear Filters -->
                 @if(request()->anyFilled(['category', 'sport', 'material', 'gender', 'fit', 'filter']))
-                    <a href="{{ route('products.index') }}" 
+                    <a href="{{ route('products.index') }}"
                         class="text-[#666666] hover:text-[#111111] font-black text-[10px] uppercase tracking-widest transition-colors flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         Clear All
@@ -349,58 +329,73 @@
                 @endif
             </div>
 
-            <div id="products-grid" class="grid gap-3 md:gap-8 grid-cols-2 lg:grid-cols-4">
+            <div id="products-grid" class="grid gap-3 md:gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
                 @if(isset($products) && $products->count())
                     @foreach($products as $product)
-                        <div class="flex flex-col bg-white rounded-2xl overflow-hidden border border-[#E8E8E3] hover:border-[#155EEF] transition-all duration-300 group relative cursor-pointer" onclick="window.location='{{ route('product.show', $product) }}'">
-                            <!-- Product Image -->
-                            <div class="aspect-square md:aspect-[4/5] relative flex items-center justify-center p-3 md:p-8 bg-gradient-to-b from-[#F7F7F5] to-white">
-                                @if ($product->image_path)
-                                    <img src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}"
-                                        class="max-w-[85%] max-h-[85%] md:max-w-full md:max-h-full object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.08)] group-hover:scale-105 transition-transform duration-700">
-                                @else
-                                    <div class="text-[#E8E8E3]"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px" class="md:w-[64px] md:h-[64px]"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
-                                @endif
-                                <span class="absolute top-3 left-3 md:top-6 md:left-6 bg-emerald-500/10 text-emerald-600 border border-emerald-200 text-[7px] md:text-[9px] font-black px-1.5 md:px-3 py-0.5 md:py-1 rounded-full uppercase tracking-widest shadow-lg">Ready Stock</span>
-                                @if($product->on_sale && $product->discounted_price !== null)
-                                    <span class="absolute top-3 right-3 md:top-6 md:right-6 bg-red-500 text-white text-[7px] md:text-[9px] font-black px-1.5 md:px-3 py-0.5 md:py-1 rounded-full uppercase tracking-widest shadow-lg animate-pulse">SALE</span>
-                                @endif
-                            </div>
-
-                            <!-- Product Info -->
-                            <div class="p-3 md:p-6 flex flex-col bg-white flex-grow">
-                                <h3 class="text-[#111111] font-black text-[9px] md:text-sm uppercase tracking-widest text-center mb-2 md:mb-4 leading-tight min-h-[1.5rem] md:min-h-[2.5rem] flex items-center justify-center">{{ $product->name }}</h3>
-                                
-                                <!-- Badges -->
-                                <div class="flex flex-wrap justify-center gap-1 mb-3 md:mb-8">
-                                    @if($product->category)
-                                        <span class="px-1.5 md:px-4 py-0.5 md:py-1.5 rounded-full border border-[#E8E8E3] text-[7px] md:text-[9px] font-black text-[#666666] uppercase tracking-widest">
-                                            {{ $product->category }}
-                                        </span>
-                                     @endif
+                        <div class="group cursor-pointer" onclick="window.location='{{ $product->available_for_preorder ? route('preorder.create', $product) : route('product.show', $product) }}'">
+                            <!-- Product Card -->
+                            <div class="flex flex-col bg-[#F7F7F5] rounded-lg overflow-hidden border border-[#E8E8E3] hover:border-[#999999] transition-all duration-300 h-full">
+                                <!-- Product Image -->
+                                <div class="aspect-square relative flex items-center justify-center p-2 md:p-3 bg-white">
+                                    @if ($product->image_path)
+                                        <img src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}"
+                                            onerror="this.onerror=null;this.src='{{ asset('assets/img/logo.png') }}';"
+                                            class="max-w-[90%] max-h-[90%] object-contain group-hover:scale-105 transition-transform duration-500">
+                                    @else
+                                        <div class="text-[#E8E8E3]">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 md:w-8 md:h-8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                        </div>
+                                    @endif
+                                    @if($product->on_sale && $product->discounted_price !== null)
+                                        <span class="absolute top-1 right-1 md:top-2 md:right-2 bg-rose-500 text-white text-[6px] md:text-[8px] font-black px-1.5 md:px-2 py-0.5 md:py-1 rounded-md uppercase tracking-widest shadow-sm">SALE</span>
+                                    @endif
                                 </div>
 
-                                <!-- Price and Action -->
-                                <div class="mt-auto pt-6 border-t border-[#E8E8E3] flex items-center justify-between">
-                                    <div class="flex flex-col">
-                                        <span class="text-[8px] md:text-[10px] font-black text-[#666666] uppercase tracking-widest mb-0.5 md:mb-1">{{ $currency }}</span>
-                                        @if($product->on_sale && $product->discounted_price !== null)
-                                            <div class="flex flex-col gap-0.5">
-                                                <span class="text-[10px] md:text-xs font-bold text-[#999999] line-through">
-                                                    {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
-                                                </span>
-                                                <span class="text-sm md:text-xl font-black text-red-600 leading-none">
-                                                    {{ number_format($product->discounted_price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
-                                                </span>
-                                            </div>
-                                        @else
-                                            <span class="text-sm md:text-xl font-black text-[#111111] leading-none">
-                                                 {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
+                                <!-- Product Info -->
+                                <div class="p-2 md:p-3 flex flex-col flex-grow bg-white border-t border-[#E8E8E3]">
+                                    <h3 class="text-[#111111] font-black text-[8px] md:text-[9px] uppercase tracking-widest text-center mb-1.5 md:mb-2 leading-tight min-h-[1rem] md:min-h-[1.5rem] flex items-center justify-center line-clamp-2">{{ $product->name }}</h3>
+                                    
+                                    <!-- Badges -->
+                                    <div class="flex flex-wrap justify-center gap-0.5 mb-2 md:mb-3">
+                                        @if($product->jersey_type)
+                                            <span class="px-1 md:px-2 py-0.5 md:py-0.5 rounded-md border border-[#E8E8E3] text-[6px] md:text-[7px] font-bold text-[#666666] uppercase tracking-widest">
+                                                {{ $product->jersey_type }}
+                                            </span>
+                                        @endif
+                                        @if($product->available_for_preorder)
+                                            <span class="px-1 md:px-2 py-0.5 md:py-0.5 rounded-md border border-amber-300 bg-amber-50 text-[6px] md:text-[7px] font-bold text-amber-700 uppercase tracking-widest">
+                                                Preorder
+                                            </span>
+                                        @endif
+                                        @if($product->category)
+                                            <span class="px-1 md:px-2 py-0.5 md:py-0.5 rounded-md border border-[#E8E8E3] text-[6px] md:text-[7px] font-bold text-[#666666] uppercase tracking-widest">
+                                                {{ $product->category }}
                                             </span>
                                         @endif
                                     </div>
-                                    <div class="w-7 h-7 md:w-10 md:h-10 bg-[#155EEF] rounded-full flex items-center justify-center text-white hover:bg-[#0D4BC3] transition-all hover:scale-110 active:scale-95 shadow-xl">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 md:w-[18px] md:h-[18px]"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+
+                                    <!-- Price and Action -->
+                                    <div class="mt-auto pt-2 md:pt-3 border-t border-[#E8E8E3] flex items-center justify-between gap-1">
+                                        <div class="flex flex-col">
+                                            <span class="text-[6px] md:text-[8px] font-bold text-[#999999] uppercase tracking-widest mb-0.5">{{ $currency }}</span>
+                                            @if($product->on_sale && $product->discounted_price !== null)
+                                                <div class="flex flex-col gap-0.5">
+                                                    <span class="text-[8px] md:text-[9px] font-bold text-[#999999] line-through">
+                                                        {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
+                                                    </span>
+                                                    <span class="text-[10px] md:text-xs font-black text-rose-500 leading-none">
+                                                        {{ number_format($product->discounted_price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
+                                                    </span>
+                                                </div>
+                                            @else
+                                                <span class="text-[10px] md:text-xs font-black text-[#111111] leading-none">
+                                                    {{ number_format($product->price * $currencyConfig['rate'], $currency == 'IDR' ? 0 : 2) }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="w-5 h-5 md:w-7 md:h-7 bg-[#155EEF] rounded-lg flex items-center justify-center text-white hover:bg-[#0d46b3] transition-all hover:scale-110 active:scale-95 shadow-sm flex-shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-2.5 h-2.5 md:w-3.5 md:h-3.5"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -415,12 +410,12 @@
             </div>
 
             @if(isset($products) && $products->hasPages())
-                <div class="mt-16 border-t border-white/5 pt-12 flex justify-center">
+                <div class="mt-12 border-t border-[#E8E8E3] pt-8 flex justify-center">
                     <div class="inline-flex items-center gap-1">
                         {{-- Custom Simple Tailwind Pagination --}}
                         @if(!$products->onFirstPage())
-                            <a href="{{ $products->previousPageUrl() }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/5">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                            <a href="{{ $products->previousPageUrl() }}" class="w-10 h-10 flex items-center justify-center rounded-lg bg-[#F7F7F5] text-[#666666] hover:bg-[#155EEF] hover:text-white transition-all border border-[#E8E8E3]">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="w-4 h-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                                 </svg>
                             </a>
@@ -428,21 +423,21 @@
 
                         @foreach ($products->getUrlRange(1, $products->lastPage()) as $page => $url)
                             @if ($page == $products->currentPage())
-                                <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-white text-black font-black text-xs shadow-lg shadow-white/10">
+                                <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-[#155EEF] text-white font-black text-xs shadow-md">
                                     {{ $page }}
                                 </span>
                             @elseif ($page == 1 || $page == $products->lastPage() || ($page >= $products->currentPage() - 1 && $page <= $products->currentPage() + 1))
-                                <a href="{{ $url }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/5 font-black text-xs">
+                                <a href="{{ $url }}" class="w-10 h-10 flex items-center justify-center rounded-lg bg-[#F7F7F5] text-[#666666] hover:bg-[#155EEF] hover:text-white transition-all border border-[#E8E8E3] font-black text-xs">
                                     {{ $page }}
                                 </a>
                             @elseif ($page == 2 || $page == $products->lastPage() - 1)
-                                <span class="w-10 h-10 flex items-center justify-center text-white/20">...</span>
+                                <span class="w-10 h-10 flex items-center justify-center text-[#999999]">...</span>
                             @endif
                         @endforeach
 
                         @if($products->hasMorePages())
-                            <a href="{{ $products->nextPageUrl() }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/5">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                            <a href="{{ $products->nextPageUrl() }}" class="w-10 h-10 flex items-center justify-center rounded-lg bg-[#F7F7F5] text-[#666666] hover:bg-[#155EEF] hover:text-white transition-all border border-[#E8E8E3]">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="w-4 h-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                                 </svg>
                             </a>
