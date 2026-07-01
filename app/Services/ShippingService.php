@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Preorder;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class ShippingService
 {
@@ -58,17 +59,31 @@ class ShippingService
 
     public function getRatesMyParcel(array $params): array
     {
+        return $this->fetchMyParcelRates($params)['rates'];
+    }
+
+    /**
+     * @return array{rates: array<int, array<string, mixed>>, message: ?string}
+     */
+    public function fetchMyParcelRates(array $params): array
+    {
         $conf = (array) config('services.myparcelasia', []);
         $senderPostcode = (string) ($conf['sender_postcode'] ?? '88000');
         $defaultWeight = (float) ($conf['default_weight'] ?? 2);
 
-        $country = strtoupper((string) ($params['country'] ?? 'MY'));
+        $country = $this->normalizeCountryCode((string) ($params['country'] ?? 'MY'));
         $postcode = preg_replace('/\D/', '', (string) ($params['postcode'] ?? ''));
-        $receiverCountryCode = strtoupper((string) ($params['receiver_country_code'] ?? $country));
+        $receiverCountryCode = $this->normalizeCountryCode((string) ($params['receiver_country_code'] ?? $country));
 
         $weight = (float) ($params['weight'] ?? 0);
-        if ($weight <= 0) $weight = $defaultWeight;
+        if ($weight <= 0) {
+            $weight = $defaultWeight;
+        }
         $weight = max(0.1, round($weight, 2));
+
+        if ($country === 'MY' && strlen($postcode) < 4) {
+            return ['rates' => [], 'message' => 'Invalid postcode for Malaysia.'];
+        }
 
         $cacheKey = implode('|', [
             'rates',
@@ -81,47 +96,110 @@ class ShippingService
         ]);
 
         return Cache::remember($cacheKey, 600, function () use ($country, $postcode, $senderPostcode, $receiverCountryCode, $weight) {
-            $payload = [
-                'sender_postcode' => $senderPostcode,
-                'declared_weight' => $weight,
-            ];
-
-            if ($country === 'MY') {
-                $payload['receiver_postcode'] = $postcode;
-            } else {
-                $payload['receiver_country_code'] = $receiverCountryCode;
-            }
-
-            $resp = $this->myParcel->checkPrice($payload);
-            if (!isset($resp['status']) || $resp['status'] !== true) {
-                return [];
-            }
-
-            $prices = $resp['data']['prices'] ?? [];
-            if (!is_array($prices)) return [];
-
-            return collect($prices)->map(function ($p) {
-                $providerCode = (string) ($p['provider_code'] ?? '');
-                $label = (string) ($p['provider_label'] ?? ($p['provider_code'] ?? 'Courier'));
-                $logo = $p['provider_logo'] ?? null;
-                $transit = (string) ($p['transit_time'] ?? '');
-                $effective = (float) ($p['effective_price'] ?? ($p['exclusive_price'] ?? ($p['normal_price'] ?? 0)));
-
-                return [
-                    'source' => 'myparcelasia',
-                    'service_id' => $providerCode,
-                    'courier_name' => $label,
-                    'courier_logo' => is_string($logo) ? $logo : null,
-                    'service_name' => trim($label . ($transit ? (' - ' . $transit) : '')),
-                    'price' => $effective,
-                    'delivery' => $transit ?: 'N/A',
-                ];
-            })
-                ->filter(fn ($r) => !empty($r['service_id']) && isset($r['price']) && (float) $r['price'] > 0)
-                ->sortBy('price')
-                ->values()
-                ->toArray();
+            return $this->requestMyParcelRates($country, $postcode, $senderPostcode, $receiverCountryCode, $weight);
         });
+    }
+
+    /**
+     * @return array{rates: array<int, array<string, mixed>>, message: ?string}
+     */
+    protected function requestMyParcelRates(
+        string $country,
+        string $postcode,
+        string $senderPostcode,
+        string $receiverCountryCode,
+        float $weight,
+    ): array {
+        $payload = [
+            'sender_postcode' => $senderPostcode,
+            'declared_weight' => $weight,
+        ];
+
+        if ($postcode !== '') {
+            $payload['receiver_postcode'] = $postcode;
+        }
+        if ($country !== 'MY') {
+            $payload['receiver_country_code'] = $receiverCountryCode;
+        }
+
+        $resp = $this->myParcel->checkPrice($payload);
+        if (!$this->isMyParcelResponseOk($resp)) {
+            $message = is_string($resp['message'] ?? null) ? $resp['message'] : 'MyParcel Asia rate check failed.';
+            Log::warning('MyParcel Asia check_price returned no rates', [
+                'payload' => $payload,
+                'response' => $resp,
+            ]);
+
+            return ['rates' => [], 'message' => $message];
+        }
+
+        $prices = $resp['data']['prices'] ?? [];
+        if (!is_array($prices)) {
+            return ['rates' => [], 'message' => 'No shipping rates returned from MyParcel Asia.'];
+        }
+
+        $rates = collect($prices)->map(function ($p) {
+            $providerCode = (string) ($p['provider_code'] ?? '');
+            $label = (string) ($p['provider_label'] ?? ($p['provider_code'] ?? 'Courier'));
+            $logo = $p['provider_logo'] ?? null;
+            $transit = (string) ($p['transit_time'] ?? '');
+            $effective = (float) ($p['effective_price'] ?? ($p['exclusive_price'] ?? ($p['normal_price'] ?? 0)));
+
+            return [
+                'source' => 'myparcelasia',
+                'service_id' => $providerCode,
+                'courier_name' => $label,
+                'courier_logo' => is_string($logo) ? $logo : null,
+                'service_name' => trim($label . ($transit ? (' - ' . $transit) : '')),
+                'price' => $effective,
+                'delivery' => $transit ?: 'N/A',
+            ];
+        })
+            ->filter(fn ($r) => !empty($r['service_id']) && isset($r['price']) && (float) $r['price'] > 0)
+            ->sortBy('price')
+            ->values()
+            ->toArray();
+
+        if ($rates === []) {
+            return ['rates' => [], 'message' => 'No shipping rates available for this location.'];
+        }
+
+        return ['rates' => $rates, 'message' => null];
+    }
+
+    protected function normalizeCountryCode(string $country): string
+    {
+        $normalized = strtoupper(trim($country));
+        if (strlen($normalized) === 2 && ctype_alpha($normalized)) {
+            return $normalized;
+        }
+
+        $map = [
+            'MALAYSIA' => 'MY',
+            'SINGAPORE' => 'SG',
+            'BRUNEI' => 'BN',
+            'BRUNEI DARUSSALAM' => 'BN',
+            'INDONESIA' => 'ID',
+        ];
+
+        return $map[$normalized] ?? $map[str_replace(' ', '', $normalized)] ?? 'MY';
+    }
+
+    protected function isMyParcelResponseOk(?array $resp): bool
+    {
+        if (!is_array($resp)) {
+            return false;
+        }
+
+        $status = $resp['status'] ?? null;
+        if ($status === true || $status === 1 || $status === '1') {
+            return true;
+        }
+        if (is_string($status) && in_array(strtolower($status), ['true', 'success', 'ok'], true)) {
+            return true;
+        }
+
+        return filter_var($resp['success'] ?? false, FILTER_VALIDATE_BOOLEAN);
     }
 
     public function bookShipment(Preorder $order, array $payload): array
@@ -270,8 +348,7 @@ class ShippingService
         }
 
         $serviceId = (string) ($preorder->shipping_service_id ?? $data['shipping_service_id'] ?? '');
-        if ($serviceId === '') {
-            \Illuminate\Support\Facades\Log::warning('MyParcel auto-create skipped: empty shipping_service_id', ['order' => $preorder->order_number]);
+        if ($serviceId === '' || $serviceId === 'self_collection') {
             return null;
         }
 

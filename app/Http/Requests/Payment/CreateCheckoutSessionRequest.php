@@ -29,7 +29,7 @@ class CreateCheckoutSessionRequest extends FormRequest
             'shipping_service_name' => 'nullable|string|max:255',
             'shipping_service_id' => 'nullable|string|max:255',
             'shipping_cost' => 'nullable|numeric|min:0',
-            'shipping_source' => 'nullable|string|in:myparcelasia,easyparcel,delyva',
+            'shipping_source' => 'nullable|string|in:myparcelasia,easyparcel,delyva,self_collection',
         ];
     }
 }

@@ -59,7 +59,7 @@ return [
     'myparcelasia' => [
         'api_key' => env('MYPA_API_KEY'),
         'api_secret' => env('MYPA_API_SECRET'),
-        'is_production' => env('MYPA_PRODUCTION', true),
+        'is_production' => filter_var(env('MYPA_PRODUCTION', true), FILTER_VALIDATE_BOOLEAN),
         'sender_postcode' => env('MYPA_SENDER_POSTCODE', '88000'),
         'sender_phone' => env('MYPA_SENDER_PHONE', '0143436496'),
         'default_weight' => env('MYPA_DEFAULT_WEIGHT', 2),

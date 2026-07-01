@@ -16,7 +16,11 @@ class PreorderAutoShipmentAfterPaidService
      */
     public function run(Preorder $preorder): ?string
     {
-        if (!empty($preorder->tracking_number) || empty($preorder->shipping_service_id)) {
+        if (
+            !empty($preorder->tracking_number)
+            || empty($preorder->shipping_service_id)
+            || $preorder->shipping_service_id === 'self_collection'
+        ) {
             return null;
         }
 

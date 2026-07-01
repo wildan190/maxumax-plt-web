@@ -245,7 +245,7 @@ class ShippingIntegrationHttpService
         ]);
 
         $postcode = (string) $request->input('postcode');
-        $country = strtoupper((string) $request->input('country', 'MY'));
+        $country = (string) $request->input('country', 'MY');
 
         $items = $request->input('items', []);
         $totalQty = 0;
@@ -263,31 +263,27 @@ class ShippingIntegrationHttpService
             $weight = $totalQty > 0 ? max(1.0, (float) $totalQty) : $defaultWeight;
         }
 
-        $myparcelKeyPresent = !empty(config('services.myparcelasia.api_key'));
-        if ($myparcelKeyPresent) {
-            $rates = $this->shipping->getRatesMyParcel([
-                'postcode' => $postcode,
-                'country' => $country,
-                'weight' => $weight,
-            ]);
-            if (!empty($rates)) {
-                return response()->json(['success' => true, 'rates' => $rates]);
-            }
-
-            return response()->json(['success' => false, 'message' => 'NO SHIPPING RATES AVAILABLE FOR THIS LOCATION.'], 200);
+        if (empty(config('services.myparcelasia.api_key'))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Shipping rates are temporarily unavailable. Please contact us.',
+            ], 200);
         }
 
-        $fallback = [[
-            'source' => 'fallback',
-            'service_id' => 'flat',
-            'courier_name' => 'Shipping',
-            'courier_logo' => null,
-            'service_name' => 'Flat Rate',
-            'price' => 12.0,
-            'delivery' => 'N/A',
-        ]];
+        $result = $this->shipping->fetchMyParcelRates([
+            'postcode' => $postcode,
+            'country' => $country,
+            'weight' => $weight,
+        ]);
 
-        return response()->json(['success' => true, 'rates' => $fallback]);
+        if (!empty($result['rates'])) {
+            return response()->json(['success' => true, 'rates' => $result['rates']]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => strtoupper((string) ($result['message'] ?? 'NO SHIPPING RATES AVAILABLE FOR THIS LOCATION.')),
+        ], 200);
     }
 
     public function envShippingCheck()

@@ -340,7 +340,7 @@ class PreorderStorefrontFlowService
             return back()->withErrors($result['error'])->withInput();
         }
 
-        return redirect()->route('cart.show')->with('success', 'Produk berhasil ditambahkan ke cart');
+        return redirect()->route('cart.show')->with('success', 'Product is successfully added to cart');
     }
 
     public function cartOverviewView(Request $request)
