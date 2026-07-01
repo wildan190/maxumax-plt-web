@@ -173,18 +173,57 @@
                                             </div>
 
                                             <div class="grid grid-cols-2 gap-4">
-                                                <input type="text" name="country" placeholder="Country (e.g. MY)" required value="MY"
-                                                    class="w-full bg-[#F7F7F5] border border-[#E8E8E3] rounded-xl px-5 py-3.5 text-[#111111] font-black placeholder-[#999999] focus:outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF]/10 transition-all uppercase tracking-widest text-xs">
-                                                <input type="text" name="region" placeholder="Region" required
-                                                    class="w-full bg-[#F7F7F5] border border-[#E8E8E3] rounded-xl px-5 py-3.5 text-[#111111] font-black placeholder-[#999999] focus:outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF]/10 transition-all uppercase tracking-widest text-xs">
-                                            </div>
+                                <select name="country" id="countrySelect" required
+                                    class="w-full bg-[#F7F7F5] border border-[#E8E8E3] rounded-xl px-5 py-3.5 text-[#111111] font-black focus:outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF]/10 transition-all uppercase tracking-widest text-xs">
+                                    <option value="MY" selected>Malaysia (MY)</option>
+                                    <option value="BN">Brunei (BN)</option>
+                                    <option value="SG">Singapore (SG)</option>
+                                    <option value="ID">Indonesia (ID)</option>
+                                </select>
+                                <select name="region" id="regionSelect" required
+                                    class="w-full bg-[#F7F7F5] border border-[#E8E8E3] rounded-xl px-5 py-3.5 text-[#111111] font-black focus:outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF]/10 transition-all uppercase tracking-widest text-xs">
+                                    <option value="Sabah" selected>Sabah</option>
+                                    <option value="Sarawak">Sarawak</option>
+                                    <option value="Johor">Johor</option>
+                                    <option value="Kedah">Kedah</option>
+                                    <option value="Kelantan">Kelantan</option>
+                                    <option value="Melaka">Melaka</option>
+                                    <option value="Negeri Sembilan">Negeri Sembilan</option>
+                                    <option value="Pahang">Pahang</option>
+                                    <option value="Perak">Perak</option>
+                                    <option value="Perlis">Perlis</option>
+                                    <option value="Pulau Pinang">Pulau Pinang</option>
+                                    <option value="Selangor">Selangor</option>
+                                    <option value="Terengganu">Terengganu</option>
+                                    <option value="Kuala Lumpur">Kuala Lumpur</option>
+                                    <option value="Labuan">Labuan</option>
+                                    <option value="Putrajaya">Putrajaya</option>
+                                </select>
+                            </div>
 
-                                            <div class="grid grid-cols-2 gap-4">
-                                                <input type="text" name="province" placeholder="State/Province" required
-                                                    class="w-full bg-[#F7F7F5] border border-[#E8E8E3] rounded-xl px-5 py-3.5 text-[#111111] font-black placeholder-[#999999] focus:outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF]/10 transition-all uppercase tracking-widest text-xs">
-                                                <input type="text" name="city" placeholder="City" required
-                                                    class="w-full bg-[#F7F7F5] border border-[#E8E8E3] rounded-xl px-5 py-3.5 text-[#111111] font-black placeholder-[#999999] focus:outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF]/10 transition-all uppercase tracking-widest text-xs">
-                                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <select name="province" id="provinceSelect" required
+                                    class="w-full bg-[#F7F7F5] border border-[#E8E8E3] rounded-xl px-5 py-3.5 text-[#111111] font-black focus:outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF]/10 transition-all uppercase tracking-widest text-xs">
+                                    <option value="Sabah" selected>Sabah</option>
+                                    <option value="Sarawak">Sarawak</option>
+                                    <option value="Johor">Johor</option>
+                                    <option value="Kedah">Kedah</option>
+                                    <option value="Kelantan">Kelantan</option>
+                                    <option value="Melaka">Melaka</option>
+                                    <option value="Negeri Sembilan">Negeri Sembilan</option>
+                                    <option value="Pahang">Pahang</option>
+                                    <option value="Perak">Perak</option>
+                                    <option value="Perlis">Perlis</option>
+                                    <option value="Pulau Pinang">Pulau Pinang</option>
+                                    <option value="Selangor">Selangor</option>
+                                    <option value="Terengganu">Terengganu</option>
+                                    <option value="Kuala Lumpur">Kuala Lumpur</option>
+                                    <option value="Labuan">Labuan</option>
+                                    <option value="Putrajaya">Putrajaya</option>
+                                </select>
+                                <input type="text" name="city" placeholder="City" required
+                                    class="w-full bg-[#F7F7F5] border border-[#E8E8E3] rounded-xl px-5 py-3.5 text-[#111111] font-black placeholder-[#999999] focus:outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF]/10 transition-all uppercase tracking-widest text-xs">
+                            </div>
                                             
                                             <input type="text" name="postal_code" placeholder="Postal code" required
                                                 class="w-full bg-[#F7F7F5] border border-[#E8E8E3] rounded-xl px-5 py-3.5 text-[#111111] font-black placeholder-[#999999] focus:outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF]/10 transition-all uppercase tracking-widest text-xs">
@@ -426,9 +465,8 @@
 
             function fetchRates() {
                 const postcode = document.querySelector('input[name="postal_code"]').value;
-                const state = document.querySelector('input[name="province"]').value;
-                const countryInput = document.querySelector('input[name="country"]');
-                const country = countryInput ? countryInput.value : 'MY';
+                const state = document.getElementById('provinceSelect').value;
+                const country = document.getElementById('countrySelect').value;
 
                 if (!postcode || !state || !country) {
                     errDiv.innerText = 'ENTER POSTCODE, STATE & COUNTRY FIRST.';
