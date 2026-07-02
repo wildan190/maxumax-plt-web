@@ -1,9 +1,9 @@
 @extends('layouts.public')
 
-@section('title', 'Deployment Confirmed - Maxumax')
+@section('title', 'Order Confirmed - Maxumax')
 
 @section('content')
-    <div class="bg-black min-h-screen pt-32 pb-40 px-6 overflow-hidden relative">
+    <div class="bg-white min-h-screen pt-32 pb-40 px-6 overflow-hidden relative">
         <!-- Background Accents -->
         <div
             class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[50vh] bg-gradient-to-b from-emerald-500/10 to-transparent pointer-events-none">
@@ -13,17 +13,16 @@
             <!-- Success Header -->
             <div class="text-center mb-20 animate-fade-in">
                 <div
-                    class="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-10 shadow-[0_0_50px_rgba(16,185,129,0.3)] group">
+                    class="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-10 shadow-lg group">
                     <i data-feather="check"
-                        class="text-black w-12 h-12 stroke-[3px] group-hover:scale-110 transition-transform"></i>
+                        class="text-white w-12 h-12 stroke-[3px] group-hover:scale-110 transition-transform"></i>
                 </div>
 
                 <span
-                    class="text-emerald-500 font-black uppercase tracking-[0.4em] text-[10px] mb-6 inline-block">Transmission
-                    Successful</span>
+                    class="text-emerald-600 font-black uppercase tracking-[0.2em] text-xs mb-6 inline-block">Thank you for your purchase</span>
 
-                <h1 class="text-5xl md:text-8xl font-black text-white tracking-tighter uppercase italic leading-[0.8] mb-8">
-                    Deployment <span class="text-emerald-500">Confirmed.</span>
+                <h1 class="text-5xl md:text-8xl font-black text-[#111111] tracking-tighter uppercase italic leading-[0.8] mb-8">
+                    Order <span class="text-emerald-500">Confirmed.</span>
                 </h1>
 
                 @php
@@ -38,112 +37,108 @@
                     }
                 @endphp
 
-                <div class="inline-flex items-center gap-4 bg-white/5 border border-white/10 rounded-full px-8 py-3">
+                <div class="inline-flex items-center gap-4 bg-emerald-50 border border-emerald-200 rounded-full px-8 py-3">
                     <div
                         class="w-2 h-2 rounded-full {{ $status === 'paid' ? 'bg-emerald-500 animate-pulse' : ($status === 'confirmed' ? 'bg-blue-500 animate-pulse' : 'bg-amber-500 animate-pulse') }}">
                     </div>
-                    <span class="text-white font-black uppercase tracking-widest text-[10px]">
+                    <span class="text-emerald-800 font-black uppercase tracking-widest text-[10px]">
                         Status:
-                        {{ $status === 'paid' ? 'FUNDING SECURED' : ($status === 'confirmed' ? 'LOGISTICS ENGAGED' : 'PENDING UPLINK') }}
+                        {{ $status === 'paid' ? 'PAYMENT RECEIVED' : ($status === 'confirmed' ? 'ORDER CONFIRMED' : 'AWAITING PAYMENT') }}
                     </span>
                 </div>
             </div>
 
             <!-- Order Cards -->
             <div class="space-y-6 animate-fade-in-up">
-                <div class="bg-[#111111] border border-white/5 rounded-[3rem] p-10 md:p-16 shadow-3xl">
-                    <div class="flex items-center justify-between mb-12 border-b border-white/5 pb-8">
-                        <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter">Inventory Details.</h2>
-                        <span class="text-white/20 font-black text-[10px] uppercase tracking-widest">{{ count($orders) }}
-                            Active Segments</span>
+                <div class="bg-white border border-gray-200 rounded-3xl p-10 md:p-16 shadow-xl">
+                    <div class="flex items-center justify-between mb-12 border-b border-gray-100 pb-8">
+                        <h2 class="text-2xl font-black text-[#111111] italic uppercase tracking-tighter">Order Details</h2>
+                        <span class="text-gray-400 font-black text-[10px] uppercase tracking-widest">{{ count($orders) }}
+                            {{ count($orders) == 1 ? 'Item' : 'Items' }}</span>
                     </div>
 
                     @if(isset($orders) && count($orders))
                         <div class="space-y-4">
                             @foreach($orders as $o)
                                 <div
-                                    class="bg-black/40 border border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 hover:bg-white/[0.02] transition-colors group">
+                                    class="bg-gray-50 border border-gray-100 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 hover:bg-gray-100 transition-colors group">
                                     <div class="flex items-center gap-8">
                                         <div
-                                            class="bg-white/5 w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                            <i data-feather="package" class="text-white/20 w-8 h-8"></i>
+                                            class="bg-emerald-100 w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                            <i data-feather="package" class="text-emerald-600 w-8 h-8"></i>
                                         </div>
                                         <div>
                                             <div
-                                                class="text-emerald-500 font-black font-mono text-xl tracking-tighter mb-1 uppercase">
+                                                class="text-[#111111] font-black font-mono text-xl tracking-tighter mb-1 uppercase">
                                                 {{ $o->order_number }}</div>
-                                            <div class="text-white/40 font-black text-[10px] uppercase tracking-[0.2em]">
-                                                {{ optional($o->product)->name ?? $o->jersey_type ?? 'RESERVED PRODUCT' }}
+                                            <div class="text-gray-600 font-black text-[10px] uppercase tracking-[0.2em]">
+                                                {{ optional($o->product)->name ?? $o->jersey_type ?? 'PRODUCT' }}
                                                 @if($o->size)
-                                                    <span class="text-white/20 ml-2">• SIZE {{ $o->size }}</span>
+                                                    <span class="text-gray-400 ml-2">• SIZE {{ $o->size }}</span>
                                                 @endif
                                             </div>
                                         </div>
                                     </div>
                                     <div
-                                        class="px-6 py-2 bg-white/5 rounded-full text-[9px] font-black text-white uppercase tracking-widest border border-white/10 italic">
+                                        class="px-6 py-2 bg-emerald-100 rounded-full text-[9px] font-black text-emerald-700 uppercase tracking-widest border border-emerald-200 italic">
                                         {{ $o->status }}
                                     </div>
                                 </div>
                             @endforeach
                         </div>
 
-                        <!-- Info Uplink -->
-                        <div class="mt-12 p-8 bg-emerald-500/5 border border-emerald-500/10 rounded-3xl">
-                            <div class="flex items-center gap-4 mb-4 text-emerald-500">
+                        <!-- Info Section -->
+                        <div class="mt-12 p-8 bg-blue-50 border border-blue-200 rounded-2xl">
+                            <div class="flex items-center gap-4 mb-4 text-blue-700">
                                 <i data-feather="info" class="w-5 h-5"></i>
-                                <span class="font-black uppercase tracking-[0.2em] text-xs">Security Briefing</span>
+                                <span class="font-black uppercase tracking-[0.2em] text-xs">Order Information</span>
                             </div>
-                            <p class="text-emerald-500/60 text-xs font-bold leading-relaxed uppercase tracking-widest">
+                            <p class="text-blue-700 text-xs font-bold leading-relaxed">
                                 @if($isStripe)
-                                    PAYMENT TELEMETRY SECURED VIA STRIPE PROTOCOL. DISPATCH SEQUENCE INITIATED.
+                                    Your payment has been processed securely via Stripe. We will begin processing your order shortly.
                                 @else
-                                    COD PROTOCOL ENGAGED. LOGISTICS TEAM WILL CONTACT YOUR TERMINAL FOR FINAL CLEARANCE.
+                                    You have selected cash on delivery. Our team will contact you to arrange delivery and payment.
                                 @endif
                             </p>
                         </div>
                     @else
-                        <div class="py-20 text-center text-white/20 font-black uppercase tracking-widest text-sm italic">
-                            No active transmissions detected.
+                        <div class="py-20 text-center text-gray-400 font-black uppercase tracking-widest text-sm italic">
+                            No active purchases found.
                         </div>
                     @endif
                 </div>
 
-                <!-- Action Matrix -->
+                <!-- Action Buttons -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-10">
                     <a href="{{ route('order.track') }}"
-                        class="group bg-white rounded-[2rem] p-8 flex items-center justify-between transition-all hover:scale-[1.02] active:scale-95">
+                        class="group bg-[#155EEF] rounded-2xl p-8 flex items-center justify-between transition-all hover:scale-[1.02] active:scale-95">
                         <div>
-                            <span class="text-black/40 font-black text-[10px] uppercase tracking-widest block mb-1">Live
-                                Tracking</span>
-                            <span class="text-black font-black text-2xl italic uppercase tracking-tighter">Locate
-                                Package.</span>
+                            <span class="text-blue-100 font-black text-[10px] uppercase tracking-widest block mb-1">Track Order</span>
+                            <span class="text-white font-black text-2xl italic uppercase tracking-tighter">View Progress</span>
                         </div>
                         <div
-                            class="w-12 h-12 bg-black rounded-xl flex items-center justify-center text-white group-hover:rotate-12 transition-transform">
+                            class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-[#155EEF] group-hover:rotate-12 transition-transform">
                             <i data-feather="arrow-right"></i>
                         </div>
                     </a>
 
                     <a href="{{ route('products.index') }}"
-                        class="group bg-[#111111] border border-white/5 rounded-[2rem] p-8 flex items-center justify-between transition-all hover:scale-[1.02] active:scale-95">
+                        class="group bg-gray-100 border border-gray-200 rounded-2xl p-8 flex items-center justify-between transition-all hover:scale-[1.02] active:scale-95">
                         <div>
-                            <span class="text-white/20 font-black text-[10px] uppercase tracking-widest block mb-1">New
-                                Intel</span>
-                            <span class="text-white font-black text-2xl italic uppercase tracking-tighter">Back to
-                                Inventory.</span>
+                            <span class="text-gray-500 font-black text-[10px] uppercase tracking-widest block mb-1">Continue Shopping</span>
+                            <span class="text-[#111111] font-black text-2xl italic uppercase tracking-tighter">View Products</span>
                         </div>
                         <div
-                            class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-white group-hover:-rotate-12 transition-transform">
+                            class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-600 group-hover:-rotate-12 transition-transform border border-gray-200">
                             <i data-feather="shopping-bag"></i>
                         </div>
                     </a>
                 </div>
             </div>
 
-            <!-- Footer ID -->
-            <p class="mt-20 text-center text-[9px] text-white/10 font-black uppercase tracking-[0.5em]">
-                MAXUMAX DEPLOYMENT RECORD #{{ date('Ymd-His') }}
+            <!-- Footer -->
+            <p class="mt-20 text-center text-[9px] text-gray-400 font-black uppercase tracking-[0.5em]">
+                MAXUMAX ORDER REFERENCE #{{ date('Ymd-His') }}
             </p>
         </div>
     </div>

@@ -151,10 +151,9 @@
                         <div class="bg-white border border-[#E8E8E3] rounded-2xl p-8 lg:p-10 text-[#111111] shadow-sm">
                             <h2 class="text-2xl font-black mb-8 uppercase italic tracking-tighter border-b border-[#E8E8E3] pb-4">Checkout Logistics.</h2>
                             
-                            <form method="POST" action="{{ route('checkout.cod') }}" id="cartCheckoutForm">
+                            <form method="POST" action="{{ route('checkout.stripe') }}" id="cartCheckoutForm">
                                 @csrf
                                 <input type="hidden" name="currency" value="{{ $currency }}">
-                                <input type="hidden" id="selected_action_cod" value="{{ route('checkout.cod') }}">
                                 <input type="hidden" id="selected_action_stripe" value="{{ route('checkout.stripe') }}">
 
                                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 mt-8">
@@ -269,16 +268,7 @@
                                             <h3 class="text-sm font-black text-[#111111] uppercase tracking-wide">3. Payment Method</h3>
                                             <div class="grid grid-cols-1 gap-3">
                                                 <label class="group relative flex items-center gap-4 bg-[#F7F7F5] border border-[#E8E8E3] rounded-xl px-4 py-3 cursor-pointer hover:border-[#155EEF] transition-all has-[:checked]:bg-[#155EEF] has-[:checked]:border-[#155EEF]">
-                                                    <input type="radio" name="payment_method" value="cod" class="hidden" checked>
-                                                    <div class="w-4 h-4 rounded-full border-2 border-[#999999] group-has-[:checked]:border-white group-has-[:checked]:bg-emerald-500 flex items-center justify-center transition-all flex-shrink-0">
-                                                        <div class="w-1.5 h-1.5 bg-white rounded-full opacity-0 group-has-[:checked]:opacity-100"></div>
-                                                    </div>
-                                                    <div>
-                                                        <div class="font-black text-[#111111] group-has-[:checked]:text-white uppercase tracking-widest text-[10px]">On Receipt</div>
-                                                    </div>
-                                                </label>
-                                                <label class="group relative flex items-center gap-4 bg-[#F7F7F5] border border-[#E8E8E3] rounded-xl px-4 py-3 cursor-pointer hover:border-[#155EEF] transition-all has-[:checked]:bg-[#155EEF] has-[:checked]:border-[#155EEF]">
-                                                    <input type="radio" name="payment_method" value="stripe" class="hidden">
+                                                    <input type="radio" name="payment_method" value="stripe" class="hidden" checked>
                                                     <div class="w-4 h-4 rounded-full border-2 border-[#999999] group-has-[:checked]:border-white group-has-[:checked]:bg-emerald-500 flex items-center justify-center transition-all flex-shrink-0">
                                                         <div class="w-1.5 h-1.5 bg-white rounded-full opacity-0 group-has-[:checked]:opacity-100"></div>
                                                     </div>
@@ -348,10 +338,9 @@
             // General Form Handlers
             const form = document.querySelector('form[action*="checkout"]') || document.querySelector('form');
             const submitBtn = document.getElementById('checkoutSubmit');
-            const codUrl = document.getElementById('selected_action_cod')?.value;
             const stripeUrl = document.getElementById('selected_action_stripe')?.value;
 
-            if (form && submitBtn && codUrl && stripeUrl) {
+            if (form && submitBtn && stripeUrl) {
                 form.addEventListener('submit', function (e) {
                     const shipId = document.getElementById('input_shipping_service_id')?.value;
                     if (!shipId) {
@@ -362,8 +351,7 @@
                         errDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         return;
                     }
-                    const selected = document.querySelector('input[name="payment_method"]:checked')?.value || 'cod';
-                    form.action = selected === 'stripe' ? stripeUrl : codUrl;
+                    form.action = stripeUrl;
                     submitBtn.disabled = true;
                     submitBtn.innerText = 'PROCESSING...';
                 });
