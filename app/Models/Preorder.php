@@ -120,6 +120,11 @@ class Preorder extends Model
                 } while (Preorder::where('order_number', $candidate)->exists());
                 $pre->order_number = $candidate;
             }
+            
+            // Ensure jersey_type is never null
+            if (empty($pre->jersey_type)) {
+                $pre->jersey_type = 'Standard';
+            }
         });
     }
 

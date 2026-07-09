@@ -138,7 +138,7 @@ class OrderService
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
                 'address' => $fullAddress,
-                'jersey_type' => $product->jersey_type ?? null,
+                'jersey_type' => $product->jersey_type ?? 'Standard',
                 'size' => $firstVariantName,
                 'long_sleeve' => $hasLongSleeveGlobal,
                 'custom_fields' => !empty($allCustomFields) ? $allCustomFields : ($data['custom_fields'] ?? null),
