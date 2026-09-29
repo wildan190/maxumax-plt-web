@@ -51,6 +51,14 @@ class PreorderListingRepository
             $query->where('status', $request->query('status'));
         }
 
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->query('date_from'));
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->query('date_to'));
+        }
+
         return $query;
     }
 

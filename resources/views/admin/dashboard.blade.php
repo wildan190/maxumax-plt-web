@@ -89,6 +89,20 @@
             <p class="text-3xl font-black text-slate-900 tracking-tight">{{ $activeProducts }}</p>
             <p class="mt-1 text-sm text-slate-500 font-medium">Active products</p>
         </div>
+
+        <!-- Avg Order Value -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-all duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+                    <i data-feather="bar-chart-2" class="w-5 h-5"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avg Order</span>
+            </div>
+            <p class="text-3xl font-black text-slate-900 tracking-tight">
+                <span class="text-lg font-bold text-slate-400 mr-1">{{ $currencySymbol }}</span>{{ number_format($avgOrderValue, 0, ',', '.') }}
+            </p>
+            <p class="mt-1 text-sm text-slate-500 font-medium">Per transaction</p>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -265,6 +279,100 @@
             </div>
         </div>
     </div>
+
+    {{-- ===== NEW: Status Donut + Top Products ===== --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        {{-- Status Breakdown Donut --}}
+        <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Order Status</h2>
+                    <p class="text-sm text-slate-500 font-medium">Breakdown by status</p>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row items-center gap-8">
+                <div class="w-48 h-48 flex-shrink-0">
+                    <canvas id="statusDonutChart"
+                        data-labels='{!! json_encode($statusBreakdown->keys()) !!}'
+                        data-values='{!! json_encode($statusBreakdown->values()) !!}'></canvas>
+                </div>
+                <div class="flex-1 space-y-2.5 w-full">
+                    @php
+                        $donutColors = [
+                            'pending'   => ['bg' => 'bg-amber-400',  'text' => 'text-amber-600'],
+                            'confirmed' => ['bg' => 'bg-indigo-400', 'text' => 'text-indigo-600'],
+                            'paid'      => ['bg' => 'bg-emerald-400','text' => 'text-emerald-600'],
+                            'shipped'   => ['bg' => 'bg-sky-400',    'text' => 'text-sky-600'],
+                            'delivered' => ['bg' => 'bg-teal-400',   'text' => 'text-teal-600'],
+                            'cancelled' => ['bg' => 'bg-rose-400',   'text' => 'text-rose-600'],
+                            'refunded'  => ['bg' => 'bg-rose-300',   'text' => 'text-rose-500'],
+                            'pickup'    => ['bg' => 'bg-purple-400', 'text' => 'text-purple-600'],
+                        ];
+                        $totalStatusOrders = $statusBreakdown->sum();
+                    @endphp
+                    @foreach($statusBreakdown->sortDesc() as $status => $count)
+                        @php
+                            $color = $donutColors[$status] ?? ['bg' => 'bg-slate-300', 'text' => 'text-slate-500'];
+                            $pct = $totalStatusOrders > 0 ? round(($count / $totalStatusOrders) * 100) : 0;
+                        @endphp
+                        <div class="flex items-center gap-3">
+                            <div class="w-2.5 h-2.5 rounded-full flex-shrink-0 {{ $color['bg'] }}"></div>
+                            <span class="text-sm font-bold text-slate-600 capitalize flex-1">{{ $status }}</span>
+                            <div class="flex items-center gap-2">
+                                <div class="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full {{ $color['bg'] }} rounded-full" style="width: {{ $pct }}%"></div>
+                                </div>
+                                <span class="text-xs font-black text-slate-500 w-6 text-right">{{ $count }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        {{-- Top Products --}}
+        <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Top Products</h2>
+                    <p class="text-sm text-slate-500 font-medium">By units sold (paid orders)</p>
+                </div>
+                <a href="{{ route('admin.products.index') }}" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors flex items-center gap-1">
+                    View All <i data-feather="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+            @if($topProducts->count() > 0)
+                @php $maxQty = $topProducts->max('total_qty'); @endphp
+                <div class="space-y-4">
+                    @foreach($topProducts as $i => $tp)
+                        <div class="flex items-center gap-4">
+                            <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-black flex items-center justify-center flex-shrink-0">{{ $i + 1 }}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-slate-800 truncate">{{ $tp->product?->name ?? 'Deleted Product' }}</p>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div class="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                                            style="width: {{ $maxQty > 0 ? round(($tp->total_qty / $maxQty) * 100) : 0 }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <p class="text-sm font-black text-slate-900">{{ number_format($tp->total_qty) }} <span class="text-[10px] font-medium text-slate-400">units</span></p>
+                                <p class="text-[10px] text-slate-400">{{ number_format($tp->total_orders) }} orders</p>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="py-12 text-center">
+                    <i data-feather="package" class="w-10 h-10 text-slate-200 mx-auto mb-3"></i>
+                    <p class="text-slate-400 text-sm">No product data yet.</p>
+                </div>
+            @endif
+        </div>
+    </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -339,6 +447,54 @@
                 }
             }
         });
+
+        // ===== Status Donut Chart =====
+        const donutCanvas = document.getElementById('statusDonutChart');
+        if (donutCanvas) {
+            const donutLabels = JSON.parse(donutCanvas.dataset.labels || '[]');
+            const donutValues = JSON.parse(donutCanvas.dataset.values || '[]');
+            const colorMap = {
+                pending:   '#f59e0b',
+                confirmed: '#6366f1',
+                paid:      '#10b981',
+                shipped:   '#0ea5e9',
+                delivered: '#14b8a6',
+                cancelled: '#f43f5e',
+                refunded:  '#fb7185',
+                pickup:    '#a855f7',
+            };
+            const donutColors = donutLabels.map(l => colorMap[l] || '#cbd5e1');
+
+            new Chart(donutCanvas.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: donutLabels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
+                    datasets: [{
+                        data: donutValues,
+                        backgroundColor: donutColors,
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: '72%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            padding: 10,
+                            titleFont: { size: 13, weight: '700' },
+                            bodyFont: { size: 12 },
+                            cornerRadius: 10,
+                            displayColors: true
+                        }
+                    }
+                }
+            });
+        }
     });
 </script>
 @endsection

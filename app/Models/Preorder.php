@@ -132,4 +132,12 @@ class Preorder extends Model
     {
         return 'order_number';
     }
+
+    /**
+     * Backward-compatibility accessor for tracking_number
+     */
+    public function getTrackingNoAttribute()
+    {
+        return $this->tracking_number;
+    }
 }

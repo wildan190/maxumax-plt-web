@@ -130,6 +130,35 @@ class DashboardMetricsService
             })->count();
         $lowStockProducts = Product::where('stock', '<', 10)->take(5)->get();
 
+        // Top 5 Products by quantity sold (paid/confirmed/delivered)
+        $topProducts = Preorder::query()
+            ->whereIn('status', ['paid', 'confirmed', 'shipped', 'delivered', 'completed'])
+            ->whereNotNull('product_id')
+            ->selectRaw('product_id, SUM(quantity) as total_qty, COUNT(*) as total_orders')
+            ->groupBy('product_id')
+            ->orderByDesc('total_qty')
+            ->with('product:id,name')
+            ->take(5)
+            ->get();
+
+        // Status breakdown for donut chart
+        $statusBreakdown = Preorder::query()
+            ->selectRaw('status, COUNT(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
+
+        // Average order value (paid orders only)
+        $paidOrders = Preorder::whereIn('status', ['paid', 'confirmed', 'shipped', 'delivered', 'completed'])
+            ->get(['total_amount', 'currency']);
+        $avgOrderValue = 0;
+        if ($paidOrders->count() > 0) {
+            $totalVal = 0;
+            foreach ($paidOrders as $o) {
+                $totalVal += $this->convert((float) $o->total_amount, $o->currency ?? 'MYR', $currentCurrency);
+            }
+            $avgOrderValue = $totalVal / $paidOrders->count();
+        }
+
         $breadcrumbs = [
             ['label' => 'Dashboard', 'url' => route('dashboard')],
         ];
@@ -159,6 +188,9 @@ class DashboardMetricsService
             'pendingComplaints' => $pendingComplaints,
             'ordersToPack' => $ordersToPack,
             'lowStockProducts' => $lowStockProducts,
+            'topProducts' => $topProducts,
+            'statusBreakdown' => $statusBreakdown,
+            'avgOrderValue' => $avgOrderValue,
         ];
     }
 }

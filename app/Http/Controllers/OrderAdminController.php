@@ -80,7 +80,7 @@ class OrderAdminController extends Controller
 
     public function show(Preorder $order)
     {
-        $order->load('product', 'histories');
+        $order->load(['product', 'histories', 'complaints']);
 
         page_breadcrumbs(breadcrumbs(
             ['label' => 'Orders', 'url' => route('admin.orders.index')],
@@ -141,5 +141,47 @@ class OrderAdminController extends Controller
     public function rejectRefund(Request $request, Preorder $order)
     {
         return $this->refunds->rejectRefund($request, $order);
+    }
+
+    public function bulkUpdateStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'order_ids'   => 'required|array|min:1',
+            'order_ids.*' => 'required|integer|exists:preorders,id',
+            'status'      => 'required|string|in:pending,confirmed,paid,pickup,delivered,cancelled,refunded',
+        ]);
+
+        $orders  = Preorder::whereIn('id', $validated['order_ids'])->get();
+        $status  = $validated['status'];
+        $updated = 0;
+
+        foreach ($orders as $order) {
+            $oldStatus     = $order->status;
+            $order->status = $status;
+            $order->save();
+            $updated++;
+        }
+
+        return redirect()->route('admin.orders.index')
+            ->with('status', "Bulk update: {$updated} order(s) set to " . strtoupper($status) . '.');
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'order_ids'   => 'required|array|min:1',
+            'order_ids.*' => 'required|integer|exists:preorders,id',
+        ]);
+
+        $orders  = Preorder::whereIn('id', $validated['order_ids'])->get();
+        $deleted = 0;
+
+        foreach ($orders as $order) {
+            $this->fulfillment->destroy($order, '');
+            $deleted++;
+        }
+
+        return redirect()->route('admin.orders.index')
+            ->with('status', "Bulk delete: {$deleted} order(s) removed.");
     }
 }

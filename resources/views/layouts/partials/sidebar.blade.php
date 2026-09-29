@@ -76,6 +76,12 @@
                         <span>Orders History</span>
                     </a>
 
+                    <a href="{{ route('admin.customers.index') }}"
+                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.customers.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                        <i data-feather="user-check" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.customers.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                        <span>Customers</span>
+                    </a>
+
                     <a href="{{ route('admin.shipping.myparcel.index') }}"
                         class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.shipping.myparcel.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
                         <i data-feather="truck" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.shipping.myparcel.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>

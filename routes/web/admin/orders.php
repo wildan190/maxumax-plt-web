@@ -11,6 +11,10 @@ Route::prefix('orders')->name('admin.orders.')->group(function () {
     Route::get('/print', [OrderAdminController::class, 'printIndex'])->name('print');
     Route::get('/export/csv', [OrderAdminController::class, 'exportCsv'])->name('export');
 
+    // Bulk Actions
+    Route::put('/bulk-status', [OrderAdminController::class, 'bulkUpdateStatus'])->name('bulkUpdateStatus');
+    Route::delete('/bulk', [OrderAdminController::class, 'bulkDestroy'])->name('bulkDestroy');
+
     Route::get('{order}', [OrderAdminController::class, 'show'])->name('show');
     Route::get('{order}/print', [OrderAdminController::class, 'printShow'])->name('printShow');
     Route::post('{order}/confirm', [OrderAdminController::class, 'confirm'])->name('confirm');
@@ -28,6 +32,11 @@ Route::prefix('orders')->name('admin.orders.')->group(function () {
     Route::post('{order}/shipping/rates', [OrderAdminController::class, 'checkRates'])->name('checkRates');
     Route::get('{order}/shipping/rates', [OrderAdminController::class, 'shipping']);
     Route::post('{order}/shipping/book', [OrderAdminController::class, 'bookShipping'])->name('bookShipping');
-    Route::get('{order}/shipping/book', [OrderAdminController::class, 'shipping']);
-    Route::post('{order}/shipping/refresh', [OrderAdminController::class, 'refreshTracking'])->name('refreshTracking');
+    Route::get('{order}/shipping/refresh', [OrderAdminController::class, 'refreshTracking'])->name('refreshTracking');
+});
+
+// Customer Management & Profiles (derived from Preorder records)
+Route::prefix('customers')->name('admin.customers.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\CustomerAdminController::class, 'index'])->name('index');
+    Route::get('/show', [\App\Http\Controllers\CustomerAdminController::class, 'show'])->name('show');
 });

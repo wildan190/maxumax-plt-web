@@ -341,12 +341,12 @@
                         </form>
                     @endif
 
-                    @if($preorder->tracking_no)
+                    @if($preorder->tracking_number)
                         <div class="mt-4 pt-4 border-t border-slate-100">
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tracking Number</p>
                             <p class="font-mono text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-2 rounded-xl flex items-center justify-between">
-                                {{ $preorder->tracking_no }}
-                                <button onclick="navigator.clipboard.writeText('{{ $preorder->tracking_no }}')" class="p-1 hover:bg-indigo-100 rounded transition-colors">
+                                {{ $preorder->tracking_number }}
+                                <button onclick="navigator.clipboard.writeText('{{ $preorder->tracking_number }}')" class="p-1 hover:bg-indigo-100 rounded transition-colors">
                                     <i data-feather="copy" class="w-3 h-3"></i>
                                 </button>
                             </p>
@@ -390,7 +390,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Shared Confirmation Handler

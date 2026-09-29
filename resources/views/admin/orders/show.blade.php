@@ -48,7 +48,12 @@
                                 <i data-feather="user" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Customer</p>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Customer</p>
+                                    <a href="{{ route('admin.customers.show', ['email' => $order->email, 'phone' => $order->phone]) }}" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                                        View Profile &rarr;
+                                    </a>
+                                </div>
                                 <p class="font-bold text-slate-900">{{ $order->name }}</p>
                                 <p class="text-sm text-slate-500">{{ $order->email ?? 'No email provided' }}</p>
                                 <p class="text-sm text-slate-500">{{ $order->phone }}</p>
@@ -347,12 +352,12 @@
                         </form>
                     @endif
 
-                    @if($order->tracking_no)
+                    @if($order->tracking_number)
                         <div class="mt-4 pt-4 border-t border-slate-100">
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tracking Number</p>
                             <p class="font-mono text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-2 rounded-xl flex items-center justify-between">
-                                {{ $order->tracking_no }}
-                                <button onclick="navigator.clipboard.writeText('{{ $order->tracking_no }}')" class="p-1 hover:bg-indigo-100 rounded transition-colors">
+                                {{ $order->tracking_number }}
+                                <button onclick="navigator.clipboard.writeText('{{ $order->tracking_number }}'); this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'3\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'20 6 9 17 4 12\'></polyline></svg>'; setTimeout(()=>{ this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><rect x=\'9\' y=\'9\' width=\'13\' height=\'13\' rx=\'2\' ry=\'2\'></rect><path d=\'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\'></path></svg>'; }, 2000);" class="p-1 hover:bg-indigo-100 rounded transition-colors" title="Copy tracking number">
                                     <i data-feather="copy" class="w-3 h-3"></i>
                                 </button>
                             </p>
@@ -392,11 +397,142 @@
                     </div>
                 </div>
             @endif
+
+            <!-- Complaints Section (If any) -->
+            @if($order->complaints && $order->complaints->count() > 0)
+                <div class="bg-amber-50/70 rounded-3xl shadow-sm border border-amber-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-amber-200/60 bg-amber-100/30 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-feather="alert-triangle" class="w-4 h-4 text-amber-600"></i>
+                            <h3 class="text-sm font-bold text-amber-900 uppercase tracking-wider">Complaints / Returns</h3>
+                        </div>
+                        <span class="text-[10px] font-bold text-amber-700 bg-amber-200/50 px-2 py-0.5 rounded-full">{{ $order->complaints->count() }}</span>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        @foreach($order->complaints as $complaint)
+                            <div class="p-4 bg-white rounded-2xl border border-amber-100 shadow-sm space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                                        {{ $complaint->type ?? 'Complaint' }}
+                                    </span>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full {{ $complaint->status === 'approved' ? 'bg-emerald-100 text-emerald-700' : ($complaint->status === 'rejected' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700') }}">
+                                        {{ $complaint->status }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-700 font-medium">{{ $complaint->reason }}</p>
+                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                                    <span>{{ $complaint->created_at->format('d M Y, H:i') }}</span>
+                                    <a href="{{ route('admin.complaints.show', $complaint) }}" class="text-indigo-600 font-bold hover:underline flex items-center gap-1">
+                                        View Detail &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
+
+    {{-- ===== ORDER ACTIVITY TIMELINE ===== --}}
+    @if($order->histories && $order->histories->count() > 0)
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <i data-feather="activity" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Order Activity Timeline</h3>
+                    <p class="text-[10px] text-slate-400 font-medium mt-0.5">{{ $order->histories->count() }} events recorded</p>
+                </div>
+            </div>
+            <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full uppercase tracking-widest">Audit Log</span>
+        </div>
+        <div class="p-6">
+            <div class="relative">
+                {{-- Vertical line --}}
+                <div class="absolute left-5 top-0 bottom-0 w-px bg-gradient-to-b from-indigo-200 via-slate-200 to-transparent"></div>
+
+                <div class="space-y-0">
+                    @foreach($order->histories->sortByDesc('created_at') as $history)
+                        @php
+                            $iconConfig = match($history->new_status ?? '') {
+                                'confirmed'  => ['icon' => 'check-circle',  'bg' => 'bg-indigo-100',  'text' => 'text-indigo-600',  'border' => 'border-indigo-200',  'badge' => 'bg-indigo-100 text-indigo-700 border-indigo-200'],
+                                'paid'       => ['icon' => 'dollar-sign',   'bg' => 'bg-emerald-100', 'text' => 'text-emerald-600', 'border' => 'border-emerald-200', 'badge' => 'bg-emerald-100 text-emerald-700 border-emerald-200'],
+                                'shipped'    => ['icon' => 'truck',         'bg' => 'bg-sky-100',     'text' => 'text-sky-600',     'border' => 'border-sky-200',     'badge' => 'bg-sky-100 text-sky-700 border-sky-200'],
+                                'delivered'  => ['icon' => 'package',       'bg' => 'bg-teal-100',    'text' => 'text-teal-600',    'border' => 'border-teal-200',    'badge' => 'bg-teal-100 text-teal-700 border-teal-200'],
+                                'cancelled'  => ['icon' => 'x-circle',      'bg' => 'bg-rose-100',    'text' => 'text-rose-600',    'border' => 'border-rose-200',    'badge' => 'bg-rose-100 text-rose-700 border-rose-200'],
+                                'refunded'   => ['icon' => 'refresh-ccw',   'bg' => 'bg-rose-100',    'text' => 'text-rose-600',    'border' => 'border-rose-200',    'badge' => 'bg-rose-100 text-rose-700 border-rose-200'],
+                                'packing'    => ['icon' => 'box',           'bg' => 'bg-amber-100',   'text' => 'text-amber-600',   'border' => 'border-amber-200',   'badge' => 'bg-amber-100 text-amber-700 border-amber-200'],
+                                'pickup'     => ['icon' => 'map-pin',       'bg' => 'bg-purple-100',  'text' => 'text-purple-600',  'border' => 'border-purple-200',  'badge' => 'bg-purple-100 text-purple-700 border-purple-200'],
+                                'deleted'    => ['icon' => 'trash-2',       'bg' => 'bg-rose-100',    'text' => 'text-rose-600',    'border' => 'border-rose-200',    'badge' => 'bg-rose-100 text-rose-700 border-rose-200'],
+                                'pending'    => ['icon' => 'clock',         'bg' => 'bg-slate-100',   'text' => 'text-slate-500',   'border' => 'border-slate-200',   'badge' => 'bg-slate-100 text-slate-600 border-slate-200'],
+                                default      => ['icon' => 'edit-3',        'bg' => 'bg-slate-100',   'text' => 'text-slate-500',   'border' => 'border-slate-200',   'badge' => 'bg-slate-100 text-slate-600 border-slate-200'],
+                            };
+                        @endphp
+                        <div class="relative flex gap-4 pb-6 last:pb-0">
+                            {{-- Icon dot --}}
+                            <div class="relative z-10 flex-shrink-0 w-10 h-10 rounded-full {{ $iconConfig['bg'] }} {{ $iconConfig['text'] }} border-2 {{ $iconConfig['border'] }} flex items-center justify-center bg-white shadow-sm">
+                                <i data-feather="{{ $iconConfig['icon'] }}" class="w-4 h-4"></i>
+                            </div>
+
+                            {{-- Content --}}
+                            <div class="flex-1 min-w-0 pt-1">
+                                <div class="flex flex-wrap items-start gap-2 mb-1">
+                                    {{-- Status badge --}}
+                                    @if($history->new_status)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border {{ $iconConfig['badge'] }}">
+                                            {{ $history->new_status }}
+                                        </span>
+                                    @endif
+                                    {{-- Old → New --}}
+                                    @if($history->old_status && $history->old_status !== $history->new_status)
+                                        <span class="text-[10px] font-medium text-slate-400">
+                                            from <span class="font-bold text-slate-500 uppercase">{{ $history->old_status }}</span>
+                                        </span>
+                                    @endif
+                                </div>
+
+                                {{-- Note --}}
+                                @if($history->note)
+                                    <p class="text-sm text-slate-600 font-medium leading-relaxed mb-1.5">{{ $history->note }}</p>
+                                @endif
+
+                                {{-- Timestamp --}}
+                                <p class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                    <i data-feather="clock" class="w-3 h-3"></i>
+                                    {{ $history->created_at->format('d M Y, H:i') }}
+                                    <span class="text-slate-300">·</span>
+                                    {{ $history->created_at->diffForHumans() }}
+                                </p>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+    @else
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <i data-feather="activity" class="w-4 h-4"></i>
+            </div>
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Order Activity Timeline</h3>
+        </div>
+        <div class="p-8 text-center">
+            <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i data-feather="clock" class="w-5 h-5 text-slate-400"></i>
+            </div>
+            <p class="text-slate-500 text-sm font-medium">No activity recorded yet.</p>
+            <p class="text-slate-400 text-xs mt-1">History will appear here when the order status changes.</p>
+        </div>
+    </div>
+    @endif
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Shared Confirmation Handler
