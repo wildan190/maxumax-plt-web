@@ -138,6 +138,74 @@ class PreorderFulfillmentAdminService
         return back()->with('status', 'Order ditandai sebagai delivered');
     }
 
+    public function updateStatus(Request $request, Preorder $preorder): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:pending,confirmed,paid,pickup,delivered,cancelled,refunded',
+            'shipping_status' => 'nullable|string|in:pending,packing,shipped,pickup,delivered,cancelled,returned',
+            'tracking_number' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $oldStatus = $preorder->status;
+        $newStatus = $validated['status'];
+        $oldShipping = $preorder->shipping_status;
+        $newShipping = $validated['shipping_status'] ?? $oldShipping;
+        $oldTracking = $preorder->tracking_number;
+        $newTracking = $validated['tracking_number'] ?? $oldTracking;
+        $adminNotes = $validated['notes'] ?? null;
+
+        $changes = [];
+
+        // Check status change & stock adjustments if moving into or out of paid
+        if ($oldStatus !== $newStatus) {
+            $preorder->status = $newStatus;
+            $changes[] = "Status: {$oldStatus} → {$newStatus}";
+
+            // If changing to paid from something else, reduce stock
+            if ($newStatus === 'paid' && $oldStatus !== 'paid') {
+                $stockNote = $this->stockLedger->decrementOnMarkPaid($preorder);
+                if ($stockNote) {
+                    $changes[] = trim($stockNote, '. ');
+                }
+            } elseif ($oldStatus === 'paid' && in_array($newStatus, ['cancelled', 'refunded'])) {
+                // If moving from paid to cancelled/refunded, restore stock
+                $this->stockLedger->restoreAfterRefund($preorder);
+                $changes[] = "Stock restored";
+            }
+        }
+
+        if ($newShipping !== null && $oldShipping !== $newShipping) {
+            $preorder->shipping_status = $newShipping;
+            $changes[] = "Shipping: " . ($oldShipping ?? 'pending') . " → {$newShipping}";
+        }
+
+        if ($request->has('tracking_number') && $newTracking !== $oldTracking) {
+            $preorder->tracking_number = $newTracking;
+            $changes[] = "Tracking: " . ($newTracking ?: '(empty)');
+        }
+
+        if ($adminNotes) {
+            $preorder->notes = $adminNotes;
+        }
+
+        $preorder->save();
+
+        $historyNote = !empty($changes) ? implode(' | ', $changes) : 'Status updated manually';
+        if ($adminNotes) {
+            $historyNote .= ' (Note: ' . $adminNotes . ')';
+        }
+
+        $this->history->add(
+            $preorder->id,
+            $oldStatus,
+            $newStatus,
+            'Manual update: ' . $historyNote
+        );
+
+        return back()->with('status', 'Status order berhasil diperbarui secara manual.');
+    }
+
     public function destroy(Preorder $preorder, string $successMessage = 'Order deleted successfully'): \Illuminate\Http\RedirectResponse
     {
         $this->history->add($preorder->id, $preorder->status, 'deleted', 'Deleted by admin');

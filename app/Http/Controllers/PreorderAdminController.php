@@ -61,6 +61,11 @@ class PreorderAdminController extends Controller
         return $this->fulfillment->markDelivered($request, $preorder);
     }
 
+    public function updateStatus(Request $request, Preorder $preorder)
+    {
+        return $this->fulfillment->updateStatus($request, $preorder);
+    }
+
     public function destroy(Preorder $preorder)
     {
         return $this->fulfillment->destroy($preorder, 'Preorder deleted successfully');

@@ -90,44 +90,58 @@
                                 <span class="font-black text-slate-900">{{ number_format($preorder->total_amount, 2) }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                @php
-                                    $statusBadge = match($preorder->status) {
-                                        'pending' => 'bg-amber-100 text-amber-700 border-amber-200',
-                                        'confirmed' => 'bg-indigo-100 text-indigo-700 border-indigo-200',
-                                        'paid' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
-                                        default => 'bg-slate-100 text-slate-700 border-slate-200'
-                                    };
-                                @endphp
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border {{ $statusBadge }}">
-                                    {{ $preorder->status }}
-                                </span>
+                                <form action="{{ route('admin.preorders.updateStatus', $preorder) }}" method="POST" class="inline-block">
+                                    @csrf
+                                    @method('PUT')
+                                    @php
+                                        $statusClass = match($preorder->status) {
+                                            'pending' => 'bg-amber-50 text-amber-700 border-amber-200 focus:border-amber-400',
+                                            'confirmed' => 'bg-indigo-50 text-indigo-700 border-indigo-200 focus:border-indigo-400',
+                                            'paid' => 'bg-emerald-50 text-emerald-700 border-emerald-200 focus:border-emerald-400',
+                                            'pickup' => 'bg-sky-50 text-sky-700 border-sky-200 focus:border-sky-400',
+                                            'delivered' => 'bg-teal-50 text-teal-700 border-teal-200 focus:border-teal-400',
+                                            'cancelled', 'refunded' => 'bg-rose-50 text-rose-700 border-rose-200 focus:border-rose-400',
+                                            default => 'bg-slate-50 text-slate-700 border-slate-200 focus:border-slate-400'
+                                        };
+                                    @endphp
+                                    <select name="status" onchange="if(confirm('Ubah status preorder ini ke ' + this.value.toUpperCase() + '?')) { this.form.submit(); } else { this.value = '{{ $preorder->status }}'; }"
+                                        class="text-[11px] font-black uppercase tracking-wider py-1 px-2.5 rounded-lg border cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all {{ $statusClass }}">
+                                        <option value="pending" {{ $preorder->status === 'pending' ? 'selected' : '' }}>PENDING</option>
+                                        <option value="confirmed" {{ $preorder->status === 'confirmed' ? 'selected' : '' }}>CONFIRMED</option>
+                                        <option value="paid" {{ $preorder->status === 'paid' ? 'selected' : '' }}>PAID</option>
+                                        <option value="pickup" {{ $preorder->status === 'pickup' ? 'selected' : '' }}>PICKUP</option>
+                                        <option value="delivered" {{ $preorder->status === 'delivered' ? 'selected' : '' }}>DELIVERED</option>
+                                        <option value="cancelled" {{ $preorder->status === 'cancelled' ? 'selected' : '' }}>CANCELLED</option>
+                                        <option value="refunded" {{ $preorder->status === 'refunded' ? 'selected' : '' }}>REFUNDED</option>
+                                    </select>
+                                </form>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div class="flex items-center justify-end gap-1.5">
                                     @if($preorder->status === 'pending')
                                         <form method="POST" action="{{ route('admin.preorders.confirm', $preorder) }}" class="inline">
                                             @csrf
-                                            <button type="submit" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Confirm">
+                                            <button type="submit" class="p-2 text-indigo-600 hover:text-indigo-700 bg-indigo-50/60 hover:bg-indigo-100 rounded-lg transition-colors" title="Confirm">
                                                 <i data-feather="check-circle" class="w-4 h-4"></i>
                                             </button>
                                         </form>
                                     @elseif($preorder->status === 'confirmed')
                                         <form method="POST" action="{{ route('admin.preorders.markPaid', $preorder) }}" class="inline">
                                             @csrf
-                                            <button type="submit" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Mark as Paid">
+                                            <button type="submit" class="p-2 text-emerald-600 hover:text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100 rounded-lg transition-colors" title="Mark as Paid">
                                                 <i data-feather="dollar-sign" class="w-4 h-4"></i>
                                             </button>
                                         </form>
                                     @endif
                                     
-                                    <a href="{{ route('admin.preorders.show', $preorder) }}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Details">
+                                    <a href="{{ route('admin.preorders.show', $preorder) }}" class="p-2 text-blue-600 hover:text-blue-700 bg-blue-50/60 hover:bg-blue-100 rounded-lg transition-colors" title="View Details">
                                         <i data-feather="eye" class="w-4 h-4"></i>
                                     </a>
 
                                     <form method="POST" action="{{ route('admin.preorders.destroy', $preorder) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete">
+                                        <button type="submit" class="p-2 text-rose-500 hover:text-rose-600 bg-rose-50/60 hover:bg-rose-100 rounded-lg transition-colors" title="Delete">
                                             <i data-feather="trash-2" class="w-4 h-4"></i>
                                         </button>
                                     </form>

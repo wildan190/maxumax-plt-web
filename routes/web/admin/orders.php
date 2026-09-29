@@ -18,6 +18,7 @@ Route::prefix('orders')->name('admin.orders.')->group(function () {
     Route::post('{order}/mark-packing', [OrderAdminController::class, 'markPacking'])->name('markPacking');
     Route::post('{order}/mark-shipped', [OrderAdminController::class, 'markShipped'])->name('markShipped');
     Route::post('{order}/mark-delivered', [OrderAdminController::class, 'markDelivered'])->name('markDelivered');
+    Route::put('{order}/status', [OrderAdminController::class, 'updateStatus'])->name('updateStatus');
     Route::post('{order}/request-refund', [OrderAdminController::class, 'requestRefund'])->name('requestRefund');
     Route::post('{order}/approve-refund', [OrderAdminController::class, 'approveRefund'])->name('approveRefund');
     Route::post('{order}/reject-refund', [OrderAdminController::class, 'rejectRefund'])->name('rejectRefund');

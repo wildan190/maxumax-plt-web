@@ -54,6 +54,8 @@
                                 $statusColors = [
                                     'paid' => 'bg-emerald-500',
                                     'confirmed' => 'bg-[#155EEF]',
+                                    'pickup' => 'bg-sky-500',
+                                    'delivered' => 'bg-teal-500',
                                     'refunded' => 'bg-rose-500',
                                     'pending' => 'bg-amber-500',
                                 ];

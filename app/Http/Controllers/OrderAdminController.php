@@ -68,6 +68,11 @@ class OrderAdminController extends Controller
         return $this->fulfillment->markDelivered($request, $order);
     }
 
+    public function updateStatus(Request $request, Preorder $order)
+    {
+        return $this->fulfillment->updateStatus($request, $order);
+    }
+
     public function destroy(Preorder $order)
     {
         return $this->fulfillment->destroy($order, 'Order deleted successfully');

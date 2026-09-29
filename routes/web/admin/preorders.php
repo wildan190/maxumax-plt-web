@@ -13,6 +13,7 @@ Route::prefix('preorders')->name('admin.preorders.')->group(function () {
     Route::post('{preorder}/mark-packing', [PreorderAdminController::class, 'markPacking'])->name('markPacking');
     Route::post('{preorder}/mark-shipped', [PreorderAdminController::class, 'markShipped'])->name('markShipped');
     Route::post('{preorder}/mark-delivered', [PreorderAdminController::class, 'markDelivered'])->name('markDelivered');
+    Route::put('{preorder}/status', [PreorderAdminController::class, 'updateStatus'])->name('updateStatus');
 
     Route::get('{preorder}/shipping', [PreorderAdminController::class, 'shipping'])->name('shipping');
     Route::post('{preorder}/shipping/rates', [PreorderAdminController::class, 'checkRates'])->name('checkRates');
