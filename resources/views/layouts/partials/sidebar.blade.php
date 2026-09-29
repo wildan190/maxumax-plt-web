@@ -1,9 +1,8 @@
 <!-- Sidebar Partial -->
 <aside 
     id="adminSidebar"
-    class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 transition-transform duration-300 ease-in-out transform md:relative md:translate-x-0"
-    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-    x-cloak>
+    class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 transition-transform duration-300 ease-in-out transform -translate-x-full md:relative md:translate-x-0"
+    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
     
     <div class="flex flex-col h-full">
         <!-- Sidebar Header -->

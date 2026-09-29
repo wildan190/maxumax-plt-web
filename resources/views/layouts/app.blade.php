@@ -24,7 +24,7 @@
     </style>
 </head>
 
-<body class="bg-slate-50 font-sans text-slate-900 antialiased">
+<body class="admin-body bg-slate-50 font-sans text-slate-900 antialiased">
     <div class="flex h-screen bg-slate-50" x-data="{ sidebarOpen: false }">
         <!-- Mobile Sidebar Overlay -->
         <div 

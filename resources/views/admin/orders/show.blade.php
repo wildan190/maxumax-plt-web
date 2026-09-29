@@ -5,11 +5,16 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Back Action -->
-    <div>
+    <!-- Back Action + Print -->
+    <div class="flex items-center justify-between">
         <a href="{{ route('admin.orders.index') }}" class="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors gap-2">
             <i data-feather="arrow-left" class="w-4 h-4"></i>
             Back to Orders
+        </a>
+        <a href="{{ route('admin.orders.printShow', $order) }}" target="_blank"
+            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl bg-slate-900 text-white hover:bg-slate-700 transition-colors shadow-sm">
+            <i data-feather="printer" class="w-4 h-4"></i>
+            Print / PDF
         </a>
     </div>
 

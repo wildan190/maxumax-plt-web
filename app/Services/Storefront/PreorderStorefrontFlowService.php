@@ -230,9 +230,14 @@ class PreorderStorefrontFlowService
         $product->load('variants');
 
         $currency = $this->currencyService->resolveCurrency($request);
-        $avg = round((float) Feedback::where('product_id', $product->id)->avg('rating'), 2);
-        $count = (int) Feedback::where('product_id', $product->id)->count();
-        $latest = Feedback::where('product_id', $product->id)->orderByDesc('created_at')->limit(6)->get();
+
+        // N+1 fix: 1 query instead of 3 separate Feedback queries (avg, count, latest)
+        $allFeedback = Feedback::where('product_id', $product->id)
+            ->orderByDesc('created_at')
+            ->get(['rating', 'created_at', 'id', 'product_id', 'comment', 'name']);
+        $avg    = $allFeedback->isNotEmpty() ? round((float) $allFeedback->avg('rating'), 2) : 0.0;
+        $count  = $allFeedback->count();
+        $latest = $allFeedback->take(6);
 
         $currencyConfig = $this->currencyService->getCurrencyConfig($currency);
 

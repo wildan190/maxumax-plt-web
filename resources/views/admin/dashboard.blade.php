@@ -194,13 +194,7 @@
                 </div>
             @endif
 
-            <div class="mt-10 p-4 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-600/20">
-                <div class="flex items-center gap-3 mb-2">
-                    <i data-feather="zap" class="w-4 h-4 text-indigo-200"></i>
-                    <p class="text-xs font-bold uppercase tracking-widest text-indigo-100">Quick Tip</p>
-                </div>
-                <p class="text-sm font-medium leading-relaxed">Use <span class="font-bold underline">MyParcel Asia</span> to process shipments automatically and faster.</p>
-            </div>
+
         </div>
 
         <!-- Recent Activity (Orders) -->

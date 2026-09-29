@@ -6,9 +6,11 @@ use App\Models\Preorder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PreorderListingRepository
 {
+    /** @return Builder<Preorder> */
     public function retailOrdersQuery(): Builder
     {
         return Preorder::query()
@@ -20,6 +22,7 @@ class PreorderListingRepository
             ->orderByDesc('created_at');
     }
 
+    /** @return Builder<Preorder> */
     public function preorderOnlyQuery(): Builder
     {
         return Preorder::query()
@@ -59,12 +62,21 @@ class PreorderListingRepository
         $query = clone $baseQuery;
         $this->applyFilters($query, $request, $searchIncludesOrderNumber);
 
+        // N+1 fix: 1 query with groupBy instead of 4 separate count() queries
+        // reorder() removes inherited ORDER BY (from base query) to avoid MySQL only_full_group_by error
         $allQuery = clone $query;
+        $statusCounts = $allQuery
+            ->reorder()
+            ->selectRaw('status, COUNT(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
+
+        $totalCount = $statusCounts->sum();
         $counts = [
-            'total' => $allQuery->count(),
-            'pending' => $allQuery->clone()->where('status', 'pending')->count(),
-            'confirmed' => $allQuery->clone()->where('status', 'confirmed')->count(),
-            'paid' => $allQuery->clone()->where('status', 'paid')->count(),
+            'total'     => (int) $totalCount,
+            'pending'   => (int) ($statusCounts->get('pending', 0)),
+            'confirmed' => (int) ($statusCounts->get('confirmed', 0)),
+            'paid'      => (int) ($statusCounts->get('paid', 0)),
         ];
 
         $records = $query->paginate($perPage)->withQueryString();
@@ -101,10 +113,21 @@ class PreorderListingRepository
 
         $orders = $query->paginate($perPage)->withQueryString();
 
+        // N+1 fix: 1 query aggregate instead of 3 separate Preorder::count() calls
+        $countRows = Preorder::query()
+            ->join('products', 'preorders.product_id', '=', 'products.id')
+            ->selectRaw('products.available_for_preorder, products.is_active, COUNT(*) as cnt')
+            ->groupByRaw('products.available_for_preorder, products.is_active')
+            ->get();
+
+        $countAll      = (int) $countRows->sum('cnt');
+        $countPreorder = (int) $countRows->where('available_for_preorder', true)->sum('cnt');
+        $countOrder    = (int) $countRows->where('available_for_preorder', false)->where('is_active', true)->sum('cnt');
+
         $counts = [
-            'all' => Preorder::count(),
-            'preorder' => Preorder::whereHas('product', fn ($q) => $q->where('available_for_preorder', true))->count(),
-            'order' => Preorder::whereHas('product', fn ($q) => $q->where('available_for_preorder', false)->where('is_active', true))->count(),
+            'all'      => $countAll,
+            'preorder' => $countPreorder,
+            'order'    => $countOrder,
         ];
 
         return compact('orders', 'type', 'counts');
